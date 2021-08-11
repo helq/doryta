@@ -1,0 +1,4 @@
+[submodule "external/ROSS"]
+	path = external/ROSS
+	url = https://github.com/ROSS-org/ROSS
+	branch = tiebreaker

@@ -1,0 +1,16 @@
+# Folders containing stuff not to be tracked (additional data and binaries)
+non-tracked/
+build/
+
+# Clang files (used by clang-check)
+compile_commands.json
+
+# Neomake (Nvim pluggin) files
+*@neomake_*
+
+# OS/Desktop environment litter
+.directory
+.DS_Store
+
+# Generated documentation
+docs/html
