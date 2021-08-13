@@ -1,5 +1,5 @@
-#ifndef HIGHLIFE_UTILS_H
-#define HIGHLIFE_UTILS_H
+#ifndef DORYTA_UTILS_H
+#define DORYTA_UTILS_H
 
 /** @file
  * Utilities that don't rely on ROSS.

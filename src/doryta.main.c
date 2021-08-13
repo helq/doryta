@@ -1,7 +1,11 @@
-#include "driver.h"
-#include "mapping.h"
-#include "utils.h"
+#include <ross.h>
 #include <doryta_config.h>
+#include "driver/lp_neuron.h"
+#include "mapping.h"
+#include "message.h"
+#include "probes/spikes.h"
+#include "neurons/lif_beta.h"
+#include "utils.h"
 
 
 /** Defining LP types.
@@ -9,41 +13,62 @@
  * - Multiple sets can be defined (for multiple LP types)
  */
 tw_lptype model_lps[] = {
-    {(init_f)    highlife_init,
-     (pre_run_f) NULL,
-     (event_f)   highlife_event,
-     (revent_f)  highlife_event_reverse,
-     (commit_f)  highlife_event_commit,
-     (final_f)   highlife_final,
-     (map_f)     highlife_map,
-     sizeof(struct HighlifeState)},
+    {.init     = (init_f)    neuronLP_init,
+     .pre_run  = (pre_run_f) NULL,
+     .event    = (event_f)   neuronLP_event,
+     .revent   = (revent_f)  NULL,
+     .commit   = (commit_f)  neuronLP_event_commit,
+     .final    = (final_f)   NULL,
+     .map      = (map_f)     NULL,
+     .state_sz = sizeof(struct NeuronLP)},
     {0},
 };
 
 /** Define command line arguments default values. */
-static int init_pattern = 0;
+// static int init_pattern = 0;
 
-/** Custom to Highlife command line options. */
-static tw_optdef const model_opts[] = {
-    TWOPT_GROUP("HighLife"),
-    TWOPT_UINT("pattern", init_pattern, "initial pattern for HighLife world"),
-    TWOPT_END(),
-};
+/** Custom to doryta command line options. */
+//static tw_optdef const model_opts[] = {
+//    TWOPT_GROUP("Doryta options"),
+//    TWOPT_UINT("pattern", init_pattern, "initial pattern for HighLife world"),
+//    TWOPT_END(),
+//};
 
 
 int main(int argc, char *argv[]) {
-  tw_opt_add(model_opts);
+  //tw_opt_add(model_opts);
   tw_init(&argc, &argv);
 
   // Do some error checking?
   if (g_tw_mynode == 0) {
     check_folder("output");
   }
+
+  struct LifNeuron test_neuron = {
+      .potential = 0,
+      .threshhold = 1,
+      .beta = 0.01,
+      .baseline = 0
+  };
+
+  struct LifNeuron * pointer_to_test_neuron = &test_neuron;
+
+  initialize_record_spikes(5000);
+  probe_event_f probe_events[2] = {record_spikes, NULL};
+
   // Setting the driver configuration should be done before running anything
-  driver_config(init_pattern);
-  // Print out some settings?
+  neuron_pe_config((struct SettingsPE){
+    .num_neurons      = 1,
+    .neurons          = (void **) &pointer_to_test_neuron,
+    .neuron_leak      = (neuron_leak_f) leak_lif_neuron,
+    .neuron_integrate = (neuron_integrate_f) integrate_lif_neuron,
+    .neuron_fire      = (neuron_fire_f) fire_lif_neuron,
+    .probe_events     = probe_events,
+  });
+
+  // Printing settings
   if (g_tw_mynode == 0) {
-    printf("Highlife git version: " MODEL_VERSION "\n");
+    printf("doryta git version: " MODEL_VERSION "\n");
   }
 
   // Custom Mapping
@@ -83,6 +108,9 @@ int main(int argc, char *argv[]) {
   // Do some file I/O here? on a per-node (not per-LP) basis
 
   tw_run();
+
+  save_record_spikes("output/spikes");
+  deinitialize_record_spikes();
 
   tw_end();
 

@@ -26,9 +26,11 @@ set_source_files_properties(
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(doryta_lib
-  driver.c
   mapping.c
   utils.c
+  driver/lp_neuron.c
+  neurons/lif_beta.c
+  probes/spikes.c
 )
 
 # Compiling ROSS doryta model

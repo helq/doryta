@@ -2,6 +2,11 @@
 
 tw_peid highlife_map(tw_lpid gid) { return (tw_peid)gid / g_tw_nlp; }
 
+uint64_t get_neuron_id(struct tw_lp *lp) {
+    return lp->gid;
+}
+
+
 /*
 // Multiple LP Types mapping function
 //    Given an LP's GID
