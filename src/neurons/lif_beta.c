@@ -9,7 +9,7 @@ void integrate_lif_neuron(struct LifNeuron * lf, float current) {
 }
 
 bool fire_lif_neuron(struct LifNeuron * lf) {
-    bool to_fire = lf->threshhold > lf->potential;
+    bool const to_fire = lf->potential > lf->threshhold;
     if (to_fire) {
         lf->potential = lf->baseline;
     }

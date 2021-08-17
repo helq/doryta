@@ -13,9 +13,11 @@ struct tw_lp;
 /** Mapping of LPs to SEs.
  * Given an LP's GID (global ID) return the PE (aka node, MPI Rank)
  */
-unsigned long highlife_map(uint64_t gid);
+unsigned long linear_map(uint64_t gid);
 
 uint64_t get_neuron_id(struct tw_lp *lp);
+
+uint64_t get_gid_for_neuronid(uint64_t);
 
 /*
 void model_cutom_mapping(void);

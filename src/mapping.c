@@ -1,11 +1,18 @@
 #include <ross.h>
 
-tw_peid highlife_map(tw_lpid gid) { return (tw_peid)gid / g_tw_nlp; }
+tw_peid linear_map(tw_lpid gid) {
+    return (tw_peid)gid / g_tw_nlp;
+}
+
 
 uint64_t get_neuron_id(struct tw_lp *lp) {
     return lp->gid;
 }
 
+
+uint64_t get_gid_for_neuronid(uint64_t neuronID) {
+    return neuronID;
+}
 
 /*
 // Multiple LP Types mapping function

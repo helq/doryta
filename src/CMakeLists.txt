@@ -31,6 +31,7 @@ add_library(doryta_lib
   driver/lp_neuron.c
   neurons/lif_beta.c
   probes/spikes.c
+  probes/lif_beta/voltage.c
 )
 
 # Compiling ROSS doryta model
