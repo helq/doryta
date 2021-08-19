@@ -1,4 +1,4 @@
-#include "spikes.h"
+#include "firing.h"
 #include "../mapping.h"
 #include "../message.h"
 #include "../storable_spikes.h"
@@ -7,29 +7,29 @@
 
 #include <stdio.h>
 
-static struct StorableSpike * spikes = NULL;
+static struct StorableSpike * firing_spikes = NULL;
 static size_t buffer_size;
 static size_t buffer_used = 0;
 static bool buffer_limit_hit = false;
 
-void initialize_record_spikes(size_t buffer_size_) {
+void initialize_record_firing(size_t buffer_size_) {
     buffer_size = buffer_size_;
-    spikes = malloc(buffer_size * sizeof(struct StorableSpike));
+    firing_spikes = malloc(buffer_size * sizeof(struct StorableSpike));
 }
 
 
-void record_spikes(
+void record_firing(
         struct NeuronLP * neuronLP,
         struct Message * msg,
         struct tw_lp * lp) {
     (void) neuronLP;
-    assert(spikes != NULL);
+    assert(firing_spikes != NULL);
 
     if (msg->fired) {
         if (buffer_used < buffer_size) {
-            spikes[buffer_used].neuron    = get_neuron_id(lp);
-            spikes[buffer_used].time      = msg->time_processed;
-            spikes[buffer_used].intensity = msg->current;
+            firing_spikes[buffer_used].neuron    = get_neuron_id(lp);
+            firing_spikes[buffer_used].time      = msg->time_processed;
+            firing_spikes[buffer_used].intensity = 1;
             buffer_used++;
         } else {
             buffer_limit_hit = true;
@@ -38,8 +38,8 @@ void record_spikes(
 }
 
 
-void save_record_spikes(char const * path) {
-    assert(spikes != NULL);
+void save_record_firing(char const * path) {
+    assert(firing_spikes != NULL);
     unsigned long self = g_tw_mynode;
     if (buffer_limit_hit) {
         fprintf(stderr, "Only the first %ld spikes have been recorded\n", buffer_size);
@@ -55,7 +55,7 @@ void save_record_spikes(char const * path) {
 
     if (fp != NULL) {
         for (size_t i = 0; i < buffer_used; i++) {
-            fprintf(fp, "%lu\t%f\n", spikes[i].neuron, spikes[i].time);
+            fprintf(fp, "%lu\t%f\n", firing_spikes[i].neuron, firing_spikes[i].time);
         }
 
         fclose(fp);
@@ -65,7 +65,7 @@ void save_record_spikes(char const * path) {
 }
 
 
-void deinitialize_record_spikes(void) {
-    assert(spikes != NULL);
-    free(spikes);
+void deinitialize_record_firing(void) {
+    assert(firing_spikes != NULL);
+    free(firing_spikes);
 }

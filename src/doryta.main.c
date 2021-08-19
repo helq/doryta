@@ -4,7 +4,7 @@
 #include "mapping.h"
 #include "message.h"
 #include "storable_spikes.h"
-#include "probes/spikes.h"
+#include "probes/firing.h"
 #include "probes/lif_beta/voltage.h"
 #include "neurons/lif_beta.h"
 #include "utils.h"
@@ -31,7 +31,7 @@ tw_lptype model_lps[] = {
 /** Custom to doryta command line options. */
 //static tw_optdef const model_opts[] = {
 //    TWOPT_GROUP("Doryta options"),
-//    TWOPT_UINT("pattern", init_pattern, "initial pattern for HighLife world"),
+//    TWOPT_UINT("pattern", init_pattern, "some neuron configuration pattern"),
 //    TWOPT_END(),
 //};
 
@@ -48,8 +48,8 @@ int main(int argc, char *argv[]) {
     struct LifNeuron *lif_neurons[1] = {
         &(struct LifNeuron) {
             .potential = 0,
-            .threshhold = 1,
-            .beta = 0.9,
+            .threshhold = 1.2,
+            .beta = 0.99,
             .baseline = 0
         }
     };
@@ -62,25 +62,36 @@ int main(int argc, char *argv[]) {
     };
 
     // Spikes
-    struct StorableSpike spikes_for_neuron_1[3] = {
-        {   .neuron = 0,
-            .time = 0.1,
-            .intensity = 1
-        },
-        {   .neuron = 0,
-            .time = 0.3,
-            .intensity = 1
-        },
-        {0}
-    };
     struct StorableSpike *spikes[1] = {
-        spikes_for_neuron_1
+        (struct StorableSpike[]) {
+            {   .neuron = 0,
+                .time = 0.1,
+                .intensity = 1
+            },
+            {   .neuron = 0,
+                .time = 0.1,
+                .intensity = 1
+            },
+            {   .neuron = 0,
+                .time = 0.15,
+                .intensity = 1
+            },
+            {   .neuron = 0,
+                .time = 0.5,
+                .intensity = 1
+            },
+            {   .neuron = 0,
+                .time = 0.75,
+                .intensity = 1
+            },
+            {0}
+        }
     };
 
-    initialize_record_spikes(5000);
+    initialize_record_firing(5000);
     initialize_record_lif_beta_voltages(5000);
     probe_event_f probe_events[3] = {
-        record_spikes, record_lif_beta_voltages, NULL};
+        record_firing, record_lif_beta_voltages, NULL};
 
     // Setting the driver configuration should be done before running anything
     neuron_pe_config(&(struct SettingsPE){
@@ -88,7 +99,8 @@ int main(int argc, char *argv[]) {
       .neurons          = (void**) lif_neurons,
       .synapses         = synapses,
       .spikes           = spikes,
-      .beat             = 1.0/16,
+      .beat             = 1.0/256,
+      .firing_delay     = 1.0/256,
       .neuron_leak      = (neuron_leak_f) leak_lif_neuron,
       .neuron_integrate = (neuron_integrate_f) integrate_lif_neuron,
       .neuron_fire      = (neuron_fire_f) fire_lif_neuron,
@@ -138,8 +150,8 @@ int main(int argc, char *argv[]) {
 
     tw_run();
 
-    save_record_spikes("output/one-neuron-test");
-    deinitialize_record_spikes();
+    save_record_firing("output/one-neuron-test");
+    deinitialize_record_firing();
     save_record_lif_beta_voltages("output/one-neuron-test");
     deinitialize_record_lif_beta_voltages();
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(doryta)
-include(CTest)
+#include(CTest)
 
 set(CMAKE_C_STANDARD 17)
 
@@ -17,5 +17,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native \
 #-Wstrict-prototypes -Wredundant-decls 
 
 add_subdirectory(src)
+#add_subdirectory(test)
 
-enable_testing()
+#enable_testing()

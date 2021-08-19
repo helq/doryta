@@ -30,7 +30,7 @@ add_library(doryta_lib
   utils.c
   driver/lp_neuron.c
   neurons/lif_beta.c
-  probes/spikes.c
+  probes/firing.c
   probes/lif_beta/voltage.c
 )
 
