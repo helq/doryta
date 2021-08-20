@@ -12,8 +12,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native \
 -Wall -Wextra -Wpedantic \
 -Wformat=2 -Wno-unused-parameter -Wshadow \
 -Wwrite-strings -Wold-style-definition \
--Wnested-externs -Wmissing-include-dirs \
--Werror")
+-Wnested-externs -Wmissing-include-dirs")
 #-Wstrict-prototypes -Wredundant-decls 
 
 add_subdirectory(src)

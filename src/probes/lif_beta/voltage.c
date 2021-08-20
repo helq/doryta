@@ -1,5 +1,4 @@
 #include "voltage.h"
-#include "../../mapping.h"
 #include "../../message.h"
 #include "../../driver/lp_neuron.h"
 #include "../../neurons/lif_beta.h"
@@ -17,8 +16,14 @@ static struct StorableVoltage * spikes = NULL;
 static size_t buffer_size;
 static size_t buffer_used = 0;
 static bool buffer_limit_hit = false;
+static struct VoltagesLIFbetaStngs settings;
 
-void initialize_record_lif_beta_voltages(size_t buffer_size_) {
+void initialize_record_lif_beta_voltages(
+        size_t buffer_size_,
+        struct VoltagesLIFbetaStngs * settings_in) {
+    assert_valid_VoltagesLIFbetaStngs(settings_in);
+    settings = *settings_in;
+
     buffer_size = buffer_size_;
     spikes = malloc(buffer_size * sizeof(struct StorableVoltage));
 }
@@ -34,7 +39,7 @@ void record_lif_beta_voltages(
 
     if (msg->type == MESSAGE_TYPE_heartbeat) {
         if (buffer_used < buffer_size) {
-            spikes[buffer_used].neuron  = get_neuron_id(lp);
+            spikes[buffer_used].neuron  = settings.get_neuron_id(lp);
             spikes[buffer_used].time    = msg->time_processed;
             spikes[buffer_used].voltage = lif->potential;
             buffer_used++;

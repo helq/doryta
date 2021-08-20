@@ -1,5 +1,4 @@
 #include "firing.h"
-#include "../mapping.h"
 #include "../message.h"
 #include "../storable_spikes.h"
 #include "../driver/lp_neuron.h"
@@ -11,8 +10,14 @@ static struct StorableSpike * firing_spikes = NULL;
 static size_t buffer_size;
 static size_t buffer_used = 0;
 static bool buffer_limit_hit = false;
+static struct FiringProbeSettings settings;
 
-void initialize_record_firing(size_t buffer_size_) {
+void initialize_record_firing(
+        size_t buffer_size_,
+        struct FiringProbeSettings * settings_in) {
+    assert_valid_FiringProbeSettings(settings_in);
+    settings = *settings_in;
+
     buffer_size = buffer_size_;
     firing_spikes = malloc(buffer_size * sizeof(struct StorableSpike));
 }
@@ -25,9 +30,9 @@ void record_firing(
     (void) neuronLP;
     assert(firing_spikes != NULL);
 
-    if (msg->fired) {
+    if (msg->type == MESSAGE_TYPE_heartbeat && msg->fired) {
         if (buffer_used < buffer_size) {
-            firing_spikes[buffer_used].neuron    = get_neuron_id(lp);
+            firing_spikes[buffer_used].neuron    = settings.get_neuron_id(lp);
             firing_spikes[buffer_used].time      = msg->time_processed;
             firing_spikes[buffer_used].intensity = 1;
             buffer_used++;

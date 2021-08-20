@@ -1,13 +1,17 @@
 #include <ross.h>
 #include <doryta_config.h>
 #include "driver/lp_neuron.h"
-#include "mapping.h"
 #include "message.h"
 #include "storable_spikes.h"
 #include "probes/firing.h"
 #include "probes/lif_beta/voltage.h"
 #include "neurons/lif_beta.h"
 #include "utils.h"
+
+
+static tw_peid linear_map(tw_lpid gid) {
+    return (tw_peid)gid / g_tw_nlp;
+}
 
 /** Defining LP types.
  * - These are the functions called by ROSS for each LP
@@ -34,6 +38,11 @@ tw_lptype model_lps[] = {
 //    TWOPT_UINT("pattern", init_pattern, "some neuron configuration pattern"),
 //    TWOPT_END(),
 //};
+
+
+static size_t identity_fn_for_ID(struct tw_lp *lp) {
+    return lp->gid;
+}
 
 
 int main(int argc, char *argv[]) {
@@ -84,27 +93,42 @@ int main(int argc, char *argv[]) {
                 .time = 0.75,
                 .intensity = 1
             },
+            {   .neuron = 0,
+                .time = 0.75,
+                .intensity = 1
+            },
+            {   .neuron = 0,
+                .time = 0.75,
+                .intensity = 1
+            },
             {0}
         }
     };
 
-    initialize_record_firing(5000);
-    initialize_record_lif_beta_voltages(5000);
+    initialize_record_firing(5000, &(struct FiringProbeSettings) {
+      .get_neuron_id = identity_fn_for_ID
+    });
+    initialize_record_lif_beta_voltages(5000, &(struct VoltagesLIFbetaStngs) {
+      .get_neuron_id = identity_fn_for_ID
+    });
     probe_event_f probe_events[3] = {
         record_firing, record_lif_beta_voltages, NULL};
 
     // Setting the driver configuration should be done before running anything
     neuron_pe_config(&(struct SettingsPE){
-      .num_neurons      = 1,
+      .num_neurons      = 1, // for now, it coincides with num LPs in PE
+      .num_neurons_pe   = 1,
       .neurons          = (void**) lif_neurons,
       .synapses         = synapses,
       .spikes           = spikes,
       .beat             = 1.0/256,
-      .firing_delay     = 1.0/256,
+      .firing_delay     = 1,
       .neuron_leak      = (neuron_leak_f) leak_lif_neuron,
       .neuron_integrate = (neuron_integrate_f) integrate_lif_neuron,
       .neuron_fire      = (neuron_fire_f) fire_lif_neuron,
       .probe_events     = probe_events,
+      .get_neuron_gid   = identity_fn_for_ID,
+      .get_neuron_local_pos_init = identity_fn_for_ID,
     });
 
     // Printing settings
