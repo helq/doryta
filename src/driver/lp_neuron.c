@@ -5,21 +5,21 @@
 #include <ross.h>
 
 // If spikes and heartbeats "occur" at the same time (ie, they are scheduled
-// for the same timestamp), then all spike events will be processed before any
-// heartbeat spike does
-#define SPIKE_PRIORITY 0.5
-#define HEARTBEAT_PRIORITY 0.8
+// for the same timestamp), then all heartbeat events will be processed before
+// any spike event does
+#define SPIKE_PRIORITY 0.8
+#define HEARTBEAT_PRIORITY 0.5
 
-struct SettingsPE settings = {0};
+struct SettingsNeuronPE settings = {0};
 bool settings_initialized = false;
 double firing_delay_double = -1;
 
 
-void neuron_pe_config(struct SettingsPE * settings_in) {
+void neuron_pe_config(struct SettingsNeuronPE * settings_in) {
     assert_valid_SettingsPE(settings_in);
     settings = *settings_in;
     settings_initialized = true;
-    firing_delay_double = (settings.firing_delay - 0.5) * settings.firing_delay;
+    firing_delay_double = (settings.firing_delay - 0.5) * settings.beat;
 
     // TODO: This PE should communicate with all the others to see if the total
     // number of neurons is what is supposed to be
@@ -88,7 +88,20 @@ void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     // Initializing NeuronLP from parameters defined by the
     initialize_NeuronLP(neuronLP);
     neuronLP->id = settings.get_neuron_gid(lp);
-    neuronLP->neuron_struct = settings.neurons[neuron_id];
+
+    // Allocating memory or copying of neuron from data passed in settings
+    if (settings.neurons == NULL) {
+        neuronLP->neuron_struct = malloc(settings.sizeof_neuron);
+    } else {
+        neuronLP->neuron_struct = settings.neurons[neuron_id];
+    }
+
+    // Initializing neuron state if function to do so was passed on
+    if (settings.neuron_init != NULL) {
+        settings.neuron_init(neuronLP->neuron_struct, neuronLP->id, lp);
+    }
+
+    // Copying synapses weights from data passed in settings
     if (settings.synapses != NULL) {
         neuronLP->to_contact = settings.synapses[neuron_id];
     }
@@ -111,15 +124,6 @@ void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
 
 
 // Forward event handler
-/**
- * `MESSAGE_TYPE_fire` are (almost) guaranteed to not be executed at the same time as a
- * `MESSAGE_TYPE_heartbeat`. The same cannot be said of any of the other relations between
- * events. It is possible that a heartbeat and a spike messages are schedule to run at the
- * same instant, or a fire and a spike message. If this happens, it is pretty much
- * impossible to know what will happen. This is an intrinsic limitation of PDES
- * unfortunately. There is no way to enforce an ordering between the kinds of events.
- * Where this ever to happen, there would be no need for shifting tricks.
- */
 void neuronLP_event(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
@@ -129,10 +133,11 @@ void neuronLP_event(
     assert_valid_Message(msg);
 
     msg->time_processed = tw_now(lp);
+    settings.store_neuron(neuronLP->neuron_struct, msg->reserved_for_reverse);
 
     switch (msg->type) {
         case MESSAGE_TYPE_heartbeat: {
-            // If more than one "fire msg" was sent
+            // printf("neuron %lu: processing HEARTBEAT at time %f\n", neuronLP->id, tw_now(lp));
             bool const fired = settings.neuron_fire(neuronLP->neuron_struct);
             if (fired) {
                 send_spike(neuronLP, lp, firing_delay_double);
@@ -144,6 +149,7 @@ void neuronLP_event(
         }
 
         case MESSAGE_TYPE_spike:
+            // printf("neuron %lu: processing SPIKE at time %f\n", neuronLP->id, tw_now(lp));
             settings.neuron_integrate(neuronLP->neuron_struct, msg->current);
             break;
     }
@@ -153,12 +159,15 @@ void neuronLP_event(
 // Reverse Event Handler
 // Notice that all operations are reversed using the data stored in either the reverse
 // message or the bit field
-//void neuronLP_event_reverse(
-//        struct NeuronLP *neuronLP,
-//        struct tw_bf *bit_field,
-//        struct Message *msg,
-//        struct tw_lp *lp) {
-//}
+void neuronLP_event_reverse(
+        struct NeuronLP *neuronLP,
+        struct tw_bf *bit_field,
+        struct Message *msg,
+        struct tw_lp *lp) {
+    (void) bit_field;
+    (void) lp;
+    settings.reverse_store_neuron(neuronLP->neuron_struct, msg->reserved_for_reverse);
+}
 
 
 // Commit event handler
@@ -181,5 +190,16 @@ void neuronLP_event_commit(
 
 // The finalization function
 // Reporting any final statistics for this LP in the file previously opened
-//void neuronLP_final(struct NeuronLP *neuronLP, struct tw_lp *lp) {
-//}
+void neuronLP_final(struct NeuronLP *neuronLP, struct tw_lp *lp) {
+    uint64_t const self = lp->gid;
+    printf("LP (neuron): %lu. ", self);
+    if (settings.print_neuron_struct != NULL) {
+        settings.print_neuron_struct(neuronLP->neuron_struct);
+    } else {
+        printf("\n");
+    }
+
+    if (settings.neurons == NULL) {
+        free(neuronLP->neuron_struct);
+    }
+}

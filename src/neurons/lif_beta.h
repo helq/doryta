@@ -20,7 +20,7 @@
  */
 struct LifNeuron {
     float potential;
-    float threshhold;
+    float threshold;
     float beta;
     float baseline;
 };
@@ -30,5 +30,9 @@ void leak_lif_neuron(struct LifNeuron *);
 void integrate_lif_neuron(struct LifNeuron *, float current);
 
 bool fire_lif_neuron(struct LifNeuron *);
+
+void store_lif_neuron_state(struct LifNeuron *, char[32]);
+
+void reverse_store_lif_neuron_state(struct LifNeuron *, char[32]);
 
 #endif /* end of include guard */

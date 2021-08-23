@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <math.h>
+#include <stddef.h>
 
 // Order of types is important. An array of spikes is encoded as
 // zeroed-terminated array which is only possible if the `spike`
@@ -28,6 +29,11 @@ struct Message {
       float current;
     };
   };
+  // This reserves 32 bytes (enough for 4 double-precision floating point
+  // numbers, 8 32-bit integers, or really anything that can occupy that
+  // same space. This is meant to be used by the neuron mechanism to
+  // store and restore the state of the neuron.)
+  char reserved_for_reverse[32];
 };
 
 static inline void initialize_Message(struct Message * msg, enum MESSAGE_TYPE type) {

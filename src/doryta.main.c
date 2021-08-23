@@ -21,9 +21,9 @@ tw_lptype model_lps[] = {
     {   .init     = (init_f)    neuronLP_init,
         .pre_run  = (pre_run_f) NULL,
         .event    = (event_f)   neuronLP_event,
-        .revent   = (revent_f)  NULL,
+        .revent   = (revent_f)  neuronLP_event_reverse,
         .commit   = (commit_f)  neuronLP_event_commit,
-        .final    = (final_f)   NULL,
+        .final    = (final_f)   neuronLP_final,
         .map      = (map_f)     linear_map,
         .state_sz = sizeof(struct NeuronLP)},
     {0},
@@ -45,6 +45,12 @@ static size_t identity_fn_for_ID(struct tw_lp *lp) {
 }
 
 
+static void print_LIF_beta_neuron(struct LifNeuron * lif) {
+    printf("potential = %f  threshold = %f  beta = %f  baseline = %f\n",
+            lif->potential, lif->threshold, lif->beta, lif->baseline);
+}
+
+
 int main(int argc, char *argv[]) {
     //tw_opt_add(model_opts);
     tw_init(&argc, &argv);
@@ -54,24 +60,37 @@ int main(int argc, char *argv[]) {
       check_folder("output");
     }
 
-    struct LifNeuron *lif_neurons[1] = {
+    struct LifNeuron *lif_neurons[2] = {
         &(struct LifNeuron) {
             .potential = 0,
-            .threshhold = 1.2,
+            .threshold = 1.2,
             .beta = 0.99,
             .baseline = 0
-        }
+        },
+        &(struct LifNeuron) {
+            .potential = .3,
+            .threshold = 1,
+            .beta = 0.999,
+            .baseline = -0.01
+        },
     };
 
     // Synapses
-    struct SynapseCollection synapses[1] = {
+    struct SynapseCollection synapses[2] = {
+        {   .num = 1,
+            .synapses = (struct Synapse[1]) {
+                {   .id_to_send = 1,
+                    .weight = 0.5
+                }
+            }
+        },
         {   .num = 0,
             .synapses = NULL
         }
     };
 
     // Spikes
-    struct StorableSpike *spikes[1] = {
+    struct StorableSpike *spikes[2] = {
         (struct StorableSpike[]) {
             {   .neuron = 0,
                 .time = 0.1,
@@ -102,6 +121,9 @@ int main(int argc, char *argv[]) {
                 .intensity = 1
             },
             {0}
+        },
+        (struct StorableSpike[]) {
+            {0}
         }
     };
 
@@ -114,21 +136,28 @@ int main(int argc, char *argv[]) {
     probe_event_f probe_events[3] = {
         record_firing, record_lif_beta_voltages, NULL};
 
+    // number of LPs == number of neurons
+    int const num_lps_in_pe = 2;
+
     // Setting the driver configuration should be done before running anything
-    neuron_pe_config(&(struct SettingsPE){
-      .num_neurons      = 1, // for now, it coincides with num LPs in PE
-      .num_neurons_pe   = 1,
+    neuron_pe_config(&(struct SettingsNeuronPE){
+      .num_neurons      = num_lps_in_pe, // for now, it coincides with num LPs in PE
+      .num_neurons_pe   = num_lps_in_pe,
       .neurons          = (void**) lif_neurons,
       .synapses         = synapses,
       .spikes           = spikes,
       .beat             = 1.0/256,
       .firing_delay     = 1,
+      .neuron_init      = (neuron_init_f) NULL,
       .neuron_leak      = (neuron_leak_f) leak_lif_neuron,
       .neuron_integrate = (neuron_integrate_f) integrate_lif_neuron,
       .neuron_fire      = (neuron_fire_f) fire_lif_neuron,
       .probe_events     = probe_events,
       .get_neuron_gid   = identity_fn_for_ID,
       .get_neuron_local_pos_init = identity_fn_for_ID,
+      .print_neuron_struct  = (print_neuron_f) print_LIF_beta_neuron,
+      .store_neuron         = (neuron_state_op_f) store_lif_neuron_state,
+      .reverse_store_neuron = (neuron_state_op_f) reverse_store_lif_neuron_state,
     });
 
     // Printing settings
@@ -154,9 +183,6 @@ int main(int argc, char *argv[]) {
     // g_tw_nkp
     // g_tw_synchronization_protocol
     // g_tw_total_lps
-
-    // assume 1 lp in this node
-    int const num_lps_in_pe = 1;
 
     // set up LPs within ROSS
     tw_define_lps(num_lps_in_pe, sizeof(struct Message));
