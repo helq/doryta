@@ -6,6 +6,8 @@
 #include <math.h>
 #include <stddef.h>
 
+#define MESSAGE_SIZE_REVERSE 32
+
 // Order of types is important. An array of spikes is encoded as
 // zeroed-terminated array which is only possible if the `spike`
 // type is not zero
@@ -29,12 +31,15 @@ struct Message {
       float current;
     };
   };
-  // This reserves 32 bytes (enough for 4 double-precision floating point
-  // numbers, 8 32-bit integers, or really anything that can occupy that
-  // same space. This is meant to be used by the neuron mechanism to
-  // store and restore the state of the neuron.)
-  char reserved_for_reverse[32];
+  // This reserves MESSAGE_SIZE_REVERSE bytes (enough for
+  // MESSAGE_SIZE_REVERSE/4 double-precision floating point numbers,
+  // MESSAGE_SIZE_REVERSE/8 64-bit integers, or really anything that can occupy
+  // that same space. This is meant to be used by the neuron mechanism to store
+  // and restore the state of the neuron.)
+  char reserved_for_reverse[MESSAGE_SIZE_REVERSE];
 };
+
+#define MESSAGE_SIZE ()
 
 static inline void initialize_Message(struct Message * msg, enum MESSAGE_TYPE type) {
     msg->time_processed = -1;

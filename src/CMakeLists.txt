@@ -27,11 +27,13 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(doryta_lib
   driver/lp_neuron.c
+  layout/fully_connected.c
   message.c
   neurons/lif_beta.c
   probes/firing.c
   probes/lif_beta/voltage.c
-  utils.c
+  utils/closure.c
+  utils/io.c
 )
 
 # Compiling ROSS doryta model

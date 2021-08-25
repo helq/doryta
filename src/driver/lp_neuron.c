@@ -81,25 +81,13 @@ static inline void send_spike_from_StorableSpike(
 void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     assert(settings_initialized);
 
-    // TODO: This should be changed to neuron id in current PE
-    uint64_t const neuron_id = settings.get_neuron_local_pos_init(lp);
+    uint64_t const neuron_id = call_closure(settings.get_neuron_local_pos_init, lp);
     assert(neuron_id < settings.num_neurons_pe);
 
     // Initializing NeuronLP from parameters defined by the
     initialize_NeuronLP(neuronLP);
-    neuronLP->id = settings.get_neuron_gid(lp);
-
-    // Allocating memory or copying of neuron from data passed in settings
-    if (settings.neurons == NULL) {
-        neuronLP->neuron_struct = malloc(settings.sizeof_neuron);
-    } else {
-        neuronLP->neuron_struct = settings.neurons[neuron_id];
-    }
-
-    // Initializing neuron state if function to do so was passed on
-    if (settings.neuron_init != NULL) {
-        settings.neuron_init(neuronLP->neuron_struct, neuronLP->id, lp);
-    }
+    neuronLP->id = call_closure(settings.get_neuron_gid, lp);
+    neuronLP->neuron_struct = settings.neurons[neuron_id];
 
     // Copying synapses weights from data passed in settings
     if (settings.synapses != NULL) {
@@ -143,7 +131,7 @@ void neuronLP_event(
                 send_spike(neuronLP, lp, firing_delay_double);
                 msg->fired = true;
             }
-            settings.neuron_leak(neuronLP->neuron_struct);
+            settings.neuron_leak(neuronLP->neuron_struct, settings.beat);
             send_heartbeat(neuronLP, lp);
             break;
         }

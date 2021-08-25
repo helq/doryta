@@ -10,14 +10,8 @@ static struct StorableSpike * firing_spikes = NULL;
 static size_t buffer_size;
 static size_t buffer_used = 0;
 static bool buffer_limit_hit = false;
-static struct FiringProbeSettings settings;
 
-void initialize_record_firing(
-        size_t buffer_size_,
-        struct FiringProbeSettings * settings_in) {
-    assert_valid_FiringProbeSettings(settings_in);
-    settings = *settings_in;
-
+void initialize_record_firing(size_t buffer_size_) {
     buffer_size = buffer_size_;
     firing_spikes = malloc(buffer_size * sizeof(struct StorableSpike));
 }
@@ -27,12 +21,12 @@ void record_firing(
         struct NeuronLP * neuronLP,
         struct Message * msg,
         struct tw_lp * lp) {
-    (void) neuronLP;
+    (void) lp;
     assert(firing_spikes != NULL);
 
     if (msg->type == MESSAGE_TYPE_heartbeat && msg->fired) {
         if (buffer_used < buffer_size) {
-            firing_spikes[buffer_used].neuron    = settings.get_neuron_id(lp);
+            firing_spikes[buffer_used].neuron    = neuronLP->id;
             firing_spikes[buffer_used].time      = msg->time_processed;
             firing_spikes[buffer_used].intensity = 1;
             buffer_used++;

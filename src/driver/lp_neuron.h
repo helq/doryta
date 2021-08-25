@@ -10,11 +10,12 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <math.h>
+#include "../message.h"
+#include "../utils/closure.h"
 
 // There is no need to import ROSS headers just to define those structs
 struct tw_bf;
 struct tw_lp;
-struct Message;
 struct StorableSpike;
 
 /**
@@ -65,14 +66,17 @@ static inline void assert_valid_NeuronLP(struct NeuronLP * neuronLP) {
 #endif // NDEBUG
 }
 
-typedef void (*neuron_init_f)      (void *, size_t, struct tw_lp *);
-typedef void (*neuron_leak_f)      (void *);
+typedef void (*neuron_leak_f)      (void *, float);
 typedef void (*neuron_integrate_f) (void *, float);
 typedef bool (*neuron_fire_f)      (void *);
 typedef void (*probe_event_f)      (struct NeuronLP *, struct Message *, struct tw_lp *);
 typedef size_t (*get_neuron_id_f)  (struct tw_lp *);
 typedef void (*print_neuron_f)     (void *);
-typedef void (*neuron_state_op_f)  (void *, char[32]);
+typedef void (*neuron_state_op_f)  (void *, char[MESSAGE_SIZE_REVERSE]);
+
+// This defines a new type called `get_neuron_id_c` which is a
+// closure (function with internal state).
+CREATE_CLOSURE_TYPE(get_neuron_id_c, size_t, struct tw_lp *);
 
 /**
  * If `spikes` is NULL
@@ -103,21 +107,20 @@ struct SettingsNeuronPE {
     struct StorableSpike    ** spikes;
     double                     beat; //<! Heartbeat frequency
     int                        firing_delay;
-    neuron_init_f              neuron_init;
     neuron_leak_f              neuron_leak;
     neuron_integrate_f         neuron_integrate;
     neuron_fire_f              neuron_fire;
-    probe_event_f            * probe_events; //<! A list of functions to call to record/trace the computation
-    get_neuron_id_f            get_neuron_gid; //<! Global neuron gid
-    get_neuron_id_f            get_neuron_local_pos_init; //<! Position of neuron in initializing array `neurons`
-    print_neuron_f             print_neuron_struct;
     neuron_state_op_f          store_neuron;
     neuron_state_op_f          reverse_store_neuron;
+    print_neuron_f             print_neuron_struct;
+    get_neuron_id_c          * get_neuron_gid; //<! Global neuron gid
+    get_neuron_id_c          * get_neuron_local_pos_init; //<! Position of neuron in initializing array `neurons`
+    probe_event_f            * probe_events; //<! A list of functions to call to record/trace the computation
 };
 
 static inline bool is_valid_SettingsPE(struct SettingsNeuronPE * settingsPE) {
     bool const basic_non_nullness =
-           ((settingsPE->neurons != NULL) || (settingsPE->neuron_init != NULL))
+           settingsPE->neurons != NULL
         && settingsPE->neuron_leak != NULL
         && settingsPE->neuron_integrate != NULL
         && settingsPE->neuron_fire != NULL
@@ -149,7 +152,7 @@ static inline bool is_valid_SettingsPE(struct SettingsNeuronPE * settingsPE) {
 static inline void assert_valid_SettingsPE(struct SettingsNeuronPE * settingsPE) {
 #ifndef NDEBUG
     assert(settingsPE->num_neurons_pe > 0);
-    assert((settingsPE->neurons != NULL) || (settingsPE->neuron_init != NULL));
+    assert(settingsPE->neurons != NULL);
     assert(settingsPE->neuron_leak != NULL);
     assert(settingsPE->neuron_integrate != NULL);
     assert(settingsPE->neuron_fire != NULL);
