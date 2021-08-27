@@ -18,7 +18,7 @@ enum MESSAGE_TYPE {
 
 /**
  * Invariants:
- * - `current` must be a number (not NaN)
+ * - `spike_current` must be a number (not NaN)
  */
 struct Message {
   enum MESSAGE_TYPE type;
@@ -28,7 +28,7 @@ struct Message {
       bool fired;
     };
     struct { // message type = spike
-      float current;
+      float spike_current;
     };
   };
   // This reserves MESSAGE_SIZE_REVERSE bytes (enough for
@@ -50,21 +50,21 @@ static inline void initialize_Message(struct Message * msg, enum MESSAGE_TYPE ty
             break;
         case MESSAGE_TYPE_spike:
             msg->type = MESSAGE_TYPE_spike;
-            msg->current = 1;
+            msg->spike_current = 1;
             break;
     }
 }
 
 static inline bool is_valid_Message(struct Message * msg) {
     bool const correct_current = msg->type == MESSAGE_TYPE_spike ?
-                                 !isnan(msg->current) : true;
+                                 !isnan(msg->spike_current) : true;
     return correct_current;
 }
 
 static inline void assert_valid_Message(struct Message * msg) {
 #ifndef NDEBUG
     if (msg->type == MESSAGE_TYPE_spike) {
-        assert(!isnan(msg->current));
+        assert(!isnan(msg->spike_current));
     }
 #endif // NDEBUG
 }

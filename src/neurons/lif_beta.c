@@ -1,17 +1,18 @@
 #include "lif_beta.h"
+#include <stdio.h>
 
-void leak_lif_neuron(struct LifNeuron * lf, float dt) {
+void leak_lif_beta_neuron(struct LifBetaNeuron * lf, float dt) {
     (void) dt;
     lf->potential = lf->beta * lf->potential;
 }
 
 
-void integrate_lif_neuron(struct LifNeuron * lf, float current) {
+void integrate_lif_beta_neuron(struct LifBetaNeuron * lf, float current) {
     lf->potential += current;
 }
 
 
-bool fire_lif_neuron(struct LifNeuron * lf) {
+bool fire_lif_beta_neuron(struct LifBetaNeuron * lf) {
     bool const to_fire = lf->potential > lf->threshold;
     if (to_fire) {
         lf->potential = lf->baseline;
@@ -20,16 +21,21 @@ bool fire_lif_neuron(struct LifNeuron * lf) {
 }
 
 
-void store_lif_neuron_state(struct LifNeuron * lf, void * storage_space) {
-    struct StorageInMessage * storage =
-        (struct StorageInMessage *) storage_space;
+void store_lif_beta_neuron_state(
+        struct LifBetaNeuron * lf,
+        struct StorageInMessageLifBeta * storage) {
     storage->potential = lf->potential;
 }
 
 
-void reverse_store_lif_neuron_state(
-        struct LifNeuron * lf, void * storage_space) {
-    struct StorageInMessage * storage =
-        (struct StorageInMessage *) storage_space;
+void reverse_store_lif_beta_neuron_state(
+        struct LifBetaNeuron * lf,
+        struct StorageInMessageLifBeta * storage) {
     lf->potential = storage->potential;
+}
+
+
+void print_lif_beta_neuron(struct LifBetaNeuron * lif) {
+    printf("potential = %f  threshold = %f  beta = %f  baseline = %f\n",
+            lif->potential, lif->threshold, lif->beta, lif->baseline);
 }

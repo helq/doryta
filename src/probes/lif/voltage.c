@@ -1,7 +1,7 @@
 #include "voltage.h"
 #include "../../message.h"
 #include "../../driver/lp_neuron.h"
-#include "../../neurons/lif_beta.h"
+#include "../../neurons/lif.h"
 #include "ross.h"
 
 #include <stdio.h>
@@ -17,21 +17,21 @@ static size_t buffer_size;
 static size_t buffer_used = 0;
 static bool buffer_limit_hit = false;
 
-void initialize_record_lif_beta_voltages(size_t buffer_size_) {
+void initialize_record_lif_voltages(size_t buffer_size_) {
     buffer_size = buffer_size_;
     spikes = malloc(buffer_size * sizeof(struct StorableVoltage));
 }
 
 
-void record_lif_beta_voltages(
+void record_lif_voltages(
         struct NeuronLP * neuronLP,
         struct Message * msg,
         struct tw_lp * lp) {
     (void) lp;
     assert_valid_NeuronLP(neuronLP);
     assert(spikes != NULL);
-    struct StorageInMessageLifBeta * storage =
-        (struct StorageInMessageLifBeta *) msg->reserved_for_reverse;
+    struct StorageInMessageLif * storage =
+        (struct StorageInMessageLif *) msg->reserved_for_reverse;
 
     if (msg->type == MESSAGE_TYPE_heartbeat) {
         if (buffer_used < buffer_size) {
@@ -46,7 +46,7 @@ void record_lif_beta_voltages(
 }
 
 
-void save_record_lif_beta_voltages(char const * path) {
+void save_record_lif_voltages(char const * path) {
     assert(spikes != NULL);
     unsigned long self = g_tw_mynode;
     if (buffer_limit_hit) {
@@ -73,7 +73,7 @@ void save_record_lif_beta_voltages(char const * path) {
 }
 
 
-void deinitialize_record_lif_beta_voltages(void) {
+void deinitialize_record_lif_voltages(void) {
     assert(spikes != NULL);
     free(spikes);
 }

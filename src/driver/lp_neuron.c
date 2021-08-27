@@ -50,7 +50,7 @@ static inline void send_spike(
                 tw_event_new_user_prio(synap.id_to_send, diff, lp, SPIKE_PRIORITY);
             struct Message * const msg = tw_event_data(event);
             initialize_Message(msg, MESSAGE_TYPE_spike);
-            msg->current = synap.weight;
+            msg->spike_current = synap.weight;
             assert_valid_Message(msg);
             tw_event_send(event);
         }
@@ -71,7 +71,7 @@ static inline void send_spike_from_StorableSpike(
         = tw_event_new_user_prio(self, spike->time, lp, SPIKE_PRIORITY);
     struct Message * const msg = tw_event_data(event);
     initialize_Message(msg, MESSAGE_TYPE_spike);
-    msg->current = spike->intensity;
+    msg->spike_current = spike->intensity;
     assert_valid_Message(msg);
     tw_event_send(event);
 }
@@ -126,19 +126,19 @@ void neuronLP_event(
     switch (msg->type) {
         case MESSAGE_TYPE_heartbeat: {
             // printf("neuron %lu: processing HEARTBEAT at time %f\n", neuronLP->id, tw_now(lp));
+            settings.neuron_leak(neuronLP->neuron_struct, settings.beat);
             bool const fired = settings.neuron_fire(neuronLP->neuron_struct);
             if (fired) {
                 send_spike(neuronLP, lp, firing_delay_double);
                 msg->fired = true;
             }
-            settings.neuron_leak(neuronLP->neuron_struct, settings.beat);
             send_heartbeat(neuronLP, lp);
             break;
         }
 
         case MESSAGE_TYPE_spike:
             // printf("neuron %lu: processing SPIKE at time %f\n", neuronLP->id, tw_now(lp));
-            settings.neuron_integrate(neuronLP->neuron_struct, msg->current);
+            settings.neuron_integrate(neuronLP->neuron_struct, msg->spike_current);
             break;
     }
 }
