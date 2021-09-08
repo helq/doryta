@@ -11,7 +11,6 @@
 #include <stddef.h>
 #include <math.h>
 #include "../message.h"
-#include "../utils/closure.h"
 
 // There is no need to import ROSS headers just to define those structs
 struct tw_bf;
@@ -39,13 +38,12 @@ struct SynapseCollection {
  * - `to_contact` has to be valid (`num` == 0 iff `synapses` == NULL)
  */
 struct NeuronLP {
-    size_t id;
+    //size_t id; // The id of the neuron corresponds one to one with the id of its LP
     void *neuron_struct; /**< A pointer to the neuron state */
     struct SynapseCollection to_contact;
 };
 
 static inline void initialize_NeuronLP(struct NeuronLP * neuronLP) {
-    neuronLP->id = 0;
     neuronLP->neuron_struct = NULL;
     neuronLP->to_contact = (struct SynapseCollection){0, NULL};
 }
@@ -66,17 +64,15 @@ static inline void assert_valid_NeuronLP(struct NeuronLP * neuronLP) {
 #endif // NDEBUG
 }
 
+
 typedef void (*neuron_leak_f)      (void *, float);
 typedef void (*neuron_integrate_f) (void *, float);
 typedef bool (*neuron_fire_f)      (void *);
 typedef void (*probe_event_f)      (struct NeuronLP *, struct Message *, struct tw_lp *);
-typedef size_t (*get_neuron_id_f)  (struct tw_lp *);
+typedef size_t (*get_neuron_id_f)  (unsigned long);
 typedef void (*print_neuron_f)     (void *);
 typedef void (*neuron_state_op_f)  (void *, char[MESSAGE_SIZE_REVERSE]);
 
-// This defines a new type called `get_neuron_id_c` which is a
-// closure (function with internal state).
-CREATE_CLOSURE_TYPE(get_neuron_id_c, size_t, struct tw_lp *);
 
 /**
  * If `spikes` is NULL
@@ -113,8 +109,7 @@ struct SettingsNeuronPE {
     neuron_state_op_f          store_neuron;
     neuron_state_op_f          reverse_store_neuron;
     print_neuron_f             print_neuron_struct;
-    get_neuron_id_c          * get_neuron_gid; //<! Global neuron gid
-    get_neuron_id_c          * get_neuron_local_pos_init; //<! Position of neuron in initializing array `neurons`
+    get_neuron_id_f            get_neuron_local_pos_init; //<! Position of neuron in initializing array `neurons`
     probe_event_f            * probe_events; //<! A list of functions to call to record/trace the computation
 };
 
@@ -124,7 +119,6 @@ static inline bool is_valid_SettingsPE(struct SettingsNeuronPE * settingsPE) {
         && settingsPE->neuron_leak != NULL
         && settingsPE->neuron_integrate != NULL
         && settingsPE->neuron_fire != NULL
-        && settingsPE->get_neuron_gid != NULL
         && settingsPE->get_neuron_local_pos_init != NULL
         && settingsPE->store_neuron != NULL
         && settingsPE->reverse_store_neuron != NULL;
@@ -156,7 +150,6 @@ static inline void assert_valid_SettingsPE(struct SettingsNeuronPE * settingsPE)
     assert(settingsPE->neuron_leak != NULL);
     assert(settingsPE->neuron_integrate != NULL);
     assert(settingsPE->neuron_fire != NULL);
-    assert(settingsPE->get_neuron_gid != NULL);
     assert(settingsPE->get_neuron_local_pos_init != NULL);
     assert(settingsPE->store_neuron != NULL);
     assert(settingsPE->reverse_store_neuron != NULL);

@@ -1,3 +1,6 @@
+#ifndef DORYTA_SRC_LAYOUT_FULLY_CONNECTED_NETWORK_H
+#define DORYTA_SRC_LAYOUT_FULLY_CONNECTED_NETWORK_H
+
 #include "../driver/lp_neuron.h"
 
 typedef void (*neuron_init_f) (void * neuron_struct, size_t neuron_id);
@@ -20,3 +23,5 @@ create_fully_connected(
 
 // Frees memory allocated when creating network
 void free_fully_connected(struct SettingsNeuronPE *);
+
+#endif /* end of include guard */

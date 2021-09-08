@@ -27,7 +27,6 @@ void record_lif_beta_voltages(
         struct NeuronLP * neuronLP,
         struct Message * msg,
         struct tw_lp * lp) {
-    (void) lp;
     assert_valid_NeuronLP(neuronLP);
     assert(spikes != NULL);
     struct StorageInMessageLifBeta * storage =
@@ -35,7 +34,7 @@ void record_lif_beta_voltages(
 
     if (msg->type == MESSAGE_TYPE_heartbeat) {
         if (buffer_used < buffer_size) {
-            spikes[buffer_used].neuron  = neuronLP->id;
+            spikes[buffer_used].neuron  = lp->id;
             spikes[buffer_used].time    = msg->time_processed;
             spikes[buffer_used].voltage = storage->potential;
             buffer_used++;

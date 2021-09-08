@@ -21,12 +21,12 @@ void record_firing(
         struct NeuronLP * neuronLP,
         struct Message * msg,
         struct tw_lp * lp) {
-    (void) lp;
+    (void) neuronLP;
     assert(firing_spikes != NULL);
 
     if (msg->type == MESSAGE_TYPE_heartbeat && msg->fired) {
         if (buffer_used < buffer_size) {
-            firing_spikes[buffer_used].neuron    = neuronLP->id;
+            firing_spikes[buffer_used].neuron    = lp->id;
             firing_spikes[buffer_used].time      = msg->time_processed;
             firing_spikes[buffer_used].intensity = 1;
             buffer_used++;

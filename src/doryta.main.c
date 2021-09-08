@@ -1,7 +1,7 @@
 #include <ross.h>
 #include <doryta_config.h>
 #include "driver/lp_neuron.h"
-#include "layout/fully_connected.h"
+#include "layout/fully_connected_network.h"
 #include "message.h"
 //#include "neurons/lif_beta.h"
 #include "neurons/lif.h"
@@ -166,11 +166,11 @@ int main(int argc, char *argv[]) {
       .store_neuron         = (neuron_state_op_f) store_lif_neuron_state,
       .reverse_store_neuron = (neuron_state_op_f) reverse_store_lif_neuron_state,
       .print_neuron_struct  = (print_neuron_f) print_lif_neuron,
-      // .get_neuron_gid   = identity_fn_for_ID,
       // .get_neuron_local_pos_init = identity_fn_for_local_ID,
       .probe_events     = probe_events,
     };
 
+    // TODO: Modify this to receive settingsNeuronPE and a configuration struct
     create_fully_connected(
             &settingsNeuronPE,
             sizeof(struct LifNeuron),
@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
     */
 
     // Useful ROSS variables and functions
-    // tw_nnodes() : number of nodes/processors defined (ONLY available after running `tw_run`!)
+    // tw_nnodes() : number of nodes/processors defined
     // g_tw_mynode : my node/processor id (mpi rank)
 
     // Useful ROSS variables (set from command line)

@@ -1,14 +1,12 @@
-#include "fully_connected.h"
+#include "fully_connected_network.h"
 #include <ross.h>
 #include "../driver/lp_neuron.h"
 
-static size_t identity_fn_for_ID(void * state, struct tw_lp *lp) {
-    (void) state;
-    return lp->gid;
-}
-
-static size_t identity_fn_for_local_ID(size_t * neurons_per_pe, struct tw_lp *lp) {
-    return lp->gid % (*neurons_per_pe);
+static size_t identity_fn_for_local_ID(size_t gid) {
+    assert(g_tw_mapping == LINEAR);
+    // TODO: This must be changed to account for different types of neurons
+    // which will shift the position of the neuron. Assuming LINEAR allocation
+    return gid - g_tw_lp_offset;
 }
 
 void
@@ -66,24 +64,10 @@ create_fully_connected(
     settings->neurons = pointers_to_neurons;
     settings->synapses = synapse_collections;
 
-    CREATE_NON_CLOSURE(
-        settings->get_neuron_gid,
-        get_neuron_id_c,
-        identity_fn_for_ID
-    );
-
-    CREATE_CLOSURE(
-        settings->get_neuron_local_pos_init,
-        get_neuron_id_c,
-        neurons_per_pe,
-        identity_fn_for_local_ID
-    );
+    settings->get_neuron_local_pos_init = identity_fn_for_local_ID;
 }
 
 void free_fully_connected(struct SettingsNeuronPE * settings) {
-    DESTROY_CLOSURE(settings->get_neuron_gid);
-    DESTROY_CLOSURE(settings->get_neuron_local_pos_init);
-
     free(settings->neurons[0]);  // Freeing neurons
     free(settings->neurons);  // Freeing pointers_to_neurons
     free((*settings->synapses).synapses);  // Freeing synapses
