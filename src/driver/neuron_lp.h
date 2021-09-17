@@ -1,5 +1,5 @@
-#ifndef DORYTA_DRIVER_LP_NEURON_H
-#define DORYTA_DRIVER_LP_NEURON_H
+#ifndef DORYTA_DRIVER_NEURON_LP_H
+#define DORYTA_DRIVER_NEURON_LP_H
 
 /** @file
  * Functions implementing a neuron as a discrete event simulator
@@ -98,7 +98,10 @@ struct SettingsNeuronPE {
     size_t                     num_neurons;
     size_t                     num_neurons_pe;
     size_t                     sizeof_neuron;
-    void                    ** neurons; // Yes, this is redundant but only slightly because we are copying a small struct (NeuronLP)
+    // Yes, this is not ideal, best would be to have everything contained
+    // within the neuron, but ROSS has no separation for memory allocation
+    // and execution. (Both are performed at `tw_run`.)
+    void                    ** neurons;
     struct SynapseCollection * synapses;
     struct StorableSpike    ** spikes;
     double                     beat; //<! Heartbeat frequency

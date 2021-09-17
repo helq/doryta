@@ -1,7 +1,8 @@
 #include <ross.h>
 #include <doryta_config.h>
-#include "driver/lp_neuron.h"
+#include "driver/neuron_lp.h"
 #include "layout/fully_connected_network.h"
+#include "layout/master.h"
 #include "message.h"
 //#include "neurons/lif_beta.h"
 #include "neurons/lif.h"
@@ -92,12 +93,8 @@ int main(int argc, char *argv[]) {
     }
 
     // Spikes
-    struct StorableSpike *spikes[5] = {
+    struct StorableSpike *spikes[3] = {
         (struct StorableSpike[]) {
-            {   .neuron = 0,
-                .time = 0.1,
-                .intensity = 1
-            },
             {   .neuron = 0,
                 .time = 0.1,
                 .intensity = 1
@@ -107,43 +104,19 @@ int main(int argc, char *argv[]) {
                 .intensity = 1
             },
             {   .neuron = 0,
-                .time = 0.25,
-                .intensity = 1
-            },
-            {   .neuron = 0,
                 .time = 0.26,
                 .intensity = 1
             },
             {   .neuron = 0,
-                .time = 0.28,
+                .time = 0.36,
                 .intensity = 1
             },
             {   .neuron = 0,
-                .time = 0.5,
-                .intensity = 1
-            },
-            {   .neuron = 0,
-                .time = 0.5,
-                .intensity = 1
-            },
-            {   .neuron = 0,
-                .time = 0.8,
+                .time = 0.65,
                 .intensity = 1
             },
             {0}
         },
-        (struct StorableSpike[]) {
-            {   .neuron = 1,
-                .time = 0.52,
-                .intensity = 1
-            },
-            {   .neuron = 1,
-                .time = 0.53,
-                .intensity = 1
-            },
-            {0}
-        },
-        NULL,
         NULL,
         NULL
     };
@@ -170,15 +143,17 @@ int main(int argc, char *argv[]) {
       .probe_events     = probe_events,
     };
 
-    // TODO: Modify this to receive settingsNeuronPE and a configuration struct
-    create_fully_connected(
-            &settingsNeuronPE,
-            sizeof(struct LifNeuron),
-            num_lps_in_pe,
-            g_tw_mynode,
-            tw_nnodes(),
-            (neuron_init_f) initialize_LIF,
-            (synapse_init_f) initialize_weight_neurons);
+    reserve_fully_connected_net(5, 0, tw_nnodes()-1);
+
+    master_layout_init(sizeof(struct LifNeuron));
+
+    create_fully_connected_net(
+        &settingsNeuronPE,
+        &(struct SettingsFullyConnectedNetwork) {
+            .sizeof_neuron = sizeof(struct LifNeuron),
+            .neuron_init  = (neuron_init_f) initialize_LIF,
+            .synapse_init = (synapse_init_f) initialize_weight_neurons
+        });
 
     neuron_pe_config(&settingsNeuronPE);
 
@@ -226,7 +201,7 @@ int main(int argc, char *argv[]) {
     save_record_lif_voltages("output/one-neuron-test");
     deinitialize_record_lif_voltages();
 
-    free_fully_connected(&settingsNeuronPE);
+    free_fully_connected_net(&settingsNeuronPE);
 
     tw_end();
 

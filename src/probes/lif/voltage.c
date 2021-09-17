@@ -1,6 +1,6 @@
 #include "voltage.h"
 #include "../../message.h"
-#include "../../driver/lp_neuron.h"
+#include "../../driver/neuron_lp.h"
 #include "../../neurons/lif.h"
 #include "ross.h"
 

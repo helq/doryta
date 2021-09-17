@@ -1,4 +1,4 @@
-#include "lp_neuron.h"
+#include "neuron_lp.h"
 #include "../message.h"
 #include "../storable_spikes.h"
 #include <stdbool.h>
@@ -110,7 +110,8 @@ void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     assert(settings_initialized);
 
     uint64_t const neuron_id_in_init =
-        settings.get_neuron_local_pos_init(lp->gid);
+        settings.get_neuron_local_pos_init(lp->gid); // TODO: to change simply for lp->id
+    //uint64_t const neuron_id_in_init = lp->id;
     assert(neuron_id_in_init < settings.num_neurons_pe);
 
     // Initializing NeuronLP from parameters defined by the

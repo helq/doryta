@@ -12,8 +12,8 @@
 // - Integrate
 // Additionally it should define a struct that contains the values
 // that those functions apply
-// This file is, for now, included directly by lp_neuron.c, but later
-// it should be defined by an interface defined by lp_neuron
+// This file is, for now, included directly by neuron_lp.c, but later
+// it should be defined by an interface defined by neuron_lp
 
 /** This very simple LIF implementation requires all values to be positive.
  * Invariants:

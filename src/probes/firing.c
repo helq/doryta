@@ -1,7 +1,7 @@
 #include "firing.h"
 #include "../message.h"
 #include "../storable_spikes.h"
-#include "../driver/lp_neuron.h"
+#include "../driver/neuron_lp.h"
 #include "ross.h"
 
 #include <stdio.h>
