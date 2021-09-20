@@ -94,7 +94,7 @@ typedef void (*neuron_state_op_f)  (void *, char[MESSAGE_SIZE_REVERSE]);
  * - `beat` should be a power of 2
  * - If `spikes` is not null, it points to `num_neurons` spikes (array of pointers ending in a null element)
  */
-struct SettingsNeuronPE {
+struct SettingsNeuronLP {
     size_t                     num_neurons;
     size_t                     num_neurons_pe;
     size_t                     sizeof_neuron;
@@ -116,7 +116,7 @@ struct SettingsNeuronPE {
     probe_event_f            * probe_events; //<! A list of functions to call to record/trace the computation
 };
 
-static inline bool is_valid_SettingsPE(struct SettingsNeuronPE * settingsPE) {
+static inline bool is_valid_SettingsPE(struct SettingsNeuronLP * settingsPE) {
     bool const basic_non_nullness =
            settingsPE->neurons != NULL
         && settingsPE->neuron_leak != NULL
@@ -146,7 +146,7 @@ static inline bool is_valid_SettingsPE(struct SettingsNeuronPE * settingsPE) {
     return true;
 }
 
-static inline void assert_valid_SettingsPE(struct SettingsNeuronPE * settingsPE) {
+static inline void assert_valid_SettingsPE(struct SettingsNeuronLP * settingsPE) {
 #ifndef NDEBUG
     assert(settingsPE->num_neurons_pe > 0);
     assert(settingsPE->neurons != NULL);
@@ -167,7 +167,7 @@ static inline void assert_valid_SettingsPE(struct SettingsNeuronPE * settingsPE)
 }
 
 /** Setting global variables for the simulation. */
-void neuron_pe_config(struct SettingsNeuronPE *);
+void neuronLP_config(struct SettingsNeuronLP *);
 
 /** Neuron initialization. */
 void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp);

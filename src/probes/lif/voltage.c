@@ -17,13 +17,13 @@ static size_t buffer_size;
 static size_t buffer_used = 0;
 static bool buffer_limit_hit = false;
 
-void initialize_record_lif_voltages(size_t buffer_size_) {
+void probes_lif_voltages_init(size_t buffer_size_) {
     buffer_size = buffer_size_;
     spikes = malloc(buffer_size * sizeof(struct StorableVoltage));
 }
 
 
-void record_lif_voltages(
+void probes_lif_voltages_record(
         struct NeuronLP * neuronLP,
         struct Message * msg,
         struct tw_lp * lp) {
@@ -45,7 +45,7 @@ void record_lif_voltages(
 }
 
 
-void save_record_lif_voltages(char const * path) {
+void probes_lif_voltages_save(char const * path) {
     assert(spikes != NULL);
     unsigned long self = g_tw_mynode;
     if (buffer_limit_hit) {
@@ -72,7 +72,7 @@ void save_record_lif_voltages(char const * path) {
 }
 
 
-void deinitialize_record_lif_voltages(void) {
+void probes_lif_voltages_deinit(void) {
     assert(spikes != NULL);
     free(spikes);
 }

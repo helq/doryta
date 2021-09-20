@@ -33,12 +33,12 @@
 #define SPIKE_PRIORITY 0.8
 #define HEARTBEAT_PRIORITY 0.5
 
-struct SettingsNeuronPE settings = {0};
+struct SettingsNeuronLP settings = {0};
 bool settings_initialized = false;
 double firing_delay_double = -1;
 
 
-void neuron_pe_config(struct SettingsNeuronPE * settings_in) {
+void neuronLP_config(struct SettingsNeuronLP * settings_in) {
     assert_valid_SettingsPE(settings_in);
     settings = *settings_in;
     settings_initialized = true;

@@ -11,13 +11,13 @@ static size_t buffer_size;
 static size_t buffer_used = 0;
 static bool buffer_limit_hit = false;
 
-void initialize_record_firing(size_t buffer_size_) {
+void probes_firing_init(size_t buffer_size_) {
     buffer_size = buffer_size_;
     firing_spikes = malloc(buffer_size * sizeof(struct StorableSpike));
 }
 
 
-void record_firing(
+void probes_firing_record(
         struct NeuronLP * neuronLP,
         struct Message * msg,
         struct tw_lp * lp) {
@@ -37,7 +37,7 @@ void record_firing(
 }
 
 
-void save_record_firing(char const * path) {
+void probes_firing_save(char const * path) {
     assert(firing_spikes != NULL);
     unsigned long self = g_tw_mynode;
     if (buffer_limit_hit) {
@@ -64,7 +64,7 @@ void save_record_firing(char const * path) {
 }
 
 
-void deinitialize_record_firing(void) {
+void probes_firing_deinit(void) {
     assert(firing_spikes != NULL);
     free(firing_spikes);
 }

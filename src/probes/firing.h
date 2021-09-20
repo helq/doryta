@@ -10,12 +10,12 @@ struct NeuronLP;
 struct Message;
 struct tw_lp;
 
-void initialize_record_firing(size_t buffer_size);
+void probes_firing_init(size_t buffer_size);
 
-void record_firing(struct NeuronLP *, struct Message *, struct tw_lp *);
+void probes_firing_record(struct NeuronLP *, struct Message *, struct tw_lp *);
 
-void save_record_firing(char const *);
+void probes_firing_save(char const *);
 
-void deinitialize_record_firing(void);
+void probes_firing_deinit(void);
 
 #endif /* end of include guard */

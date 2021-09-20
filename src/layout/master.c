@@ -26,7 +26,7 @@ static size_t                   total_synapses = 0;
 static struct MemoryAllocationLayout allocation_layout = {0};
 
 
-size_t reserve_layout_neurons(
+size_t layout_master_reserve_neurons(
         size_t total_neurons, unsigned long initial_pe, unsigned long final_pe,
         enum LAYOUT_TYPE layoutType) {
     if (initial_pe >= tw_nnodes() || final_pe >= tw_nnodes()) {
@@ -89,7 +89,7 @@ size_t reserve_layout_neurons(
 }
 
 
-size_t reserve_synapses_on_layout(size_t num_layout_level, size_t n_synapses) {
+size_t layout_master_reserve_synapses(size_t num_layout_level, size_t n_synapses) {
     assert(num_layout_level < num_layouts);
     assert(layout_levels[num_layout_level].n_synapses == 0);
 
@@ -101,27 +101,58 @@ size_t reserve_synapses_on_layout(size_t num_layout_level, size_t n_synapses) {
 }
 
 
-void master_layout_init(int sizeof_neuron) {
+void layout_master_init(int sizeof_neuron) {
     (void) sizeof_neuron;
-    // The init should be in charge of allocating space!
 
-	//Custom Mapping
-	/*
-	g_tw_mapping = CUSTOM;
-	g_tw_custom_initial_mapping = &map_pseudo_linear;
-	g_tw_custom_lp_global_to_local_map = &gid_to_local_lp_id;
-	*/
+    allocation_layout.synapses =
+        malloc(total_neurons_in_pe * sizeof(struct SynapseCollection));
+    allocation_layout.naked_synapses =
+        malloc(total_synapses * sizeof(struct Synapse));
+    allocation_layout.neurons =
+        malloc(total_neurons_in_pe * sizeof(void*));
+    allocation_layout.naked_neurons =
+        malloc(total_neurons_in_pe * sizeof_neuron);
 
-	// IF there are multiple LP types
-	//    you should define the mapping of GID -> lptype index
-	//g_tw_lp_typemap = &model_typemap;
+    if (allocation_layout.synapses == NULL
+       || allocation_layout.naked_synapses == NULL
+       || allocation_layout.naked_neurons == NULL
+       || allocation_layout.neurons == NULL) {
+        tw_error(TW_LOC, "Not able to allocate space for neurons and synapses");
+    }
+
+    // Connecting neurons pointers to naked neuron array
+    for (size_t i = 0; i < total_neurons_in_pe; i++) {
+        allocation_layout.neurons[i] = (void*) & allocation_layout.naked_neurons[i];
+    }
+
+    //Custom Mapping
+    /*
+    g_tw_mapping = CUSTOM;
+    g_tw_custom_initial_mapping = &map_pseudo_linear;
+    g_tw_custom_lp_global_to_local_map = &gid_to_local_lp_id;
+    */
+
+    // IF there are multiple LP types
+    //    you should define the mapping of GID -> lptype index
+    //g_tw_lp_typemap = &model_typemap;
     //
 }
 
-void master_layout_free(void) {
+void layout_master_free(void) {
     free(allocation_layout.naked_synapses);
     free(allocation_layout.neurons);
     free(allocation_layout.synapses);
+}
+
+struct MemoryAllocationLayout
+layout_master_allocation(void) {
+    assert(num_layouts > 0);
+    return allocation_layout;
+}
+
+void layout_master_configure(struct SettingsNeuronLP *settingsNeuronLP) {
+    settingsNeuronLP->neurons = allocation_layout.neurons;
+    settingsNeuronLP->synapses = allocation_layout.synapses;
 }
 
 // Master defines mapping for everything in this PE. It's an alteration on linear mapping

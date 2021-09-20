@@ -21,7 +21,7 @@ static tw_peid linear_map(tw_lpid gid) {
  * - These are the functions called by ROSS for each LP
  * - Multiple sets can be defined (for multiple LP types)
  */
-tw_lptype model_lps[] = {
+tw_lptype doryta_lps[] = {
     {   .init     = (init_f)    neuronLP_init,
         .pre_run  = (pre_run_f) NULL,
         .event    = (event_f)   neuronLP_event,
@@ -122,10 +122,10 @@ int main(int argc, char *argv[]) {
     };
 
     probe_event_f probe_events[3] = {
-        record_firing, record_lif_voltages, NULL};
+        probes_firing_record, probes_lif_voltages_record, NULL};
 
     // Setting the driver configuration should be done before running anything
-    struct SettingsNeuronPE settingsNeuronPE = {
+    struct SettingsNeuronLP settings_neuron_lp = {
       //.num_neurons      = tw_nnodes() * num_lps_in_pe,
       //.num_neurons_pe   = num_lps_in_pe,
       //.neurons          = (void**) lif_neurons,
@@ -143,65 +143,39 @@ int main(int argc, char *argv[]) {
       .probe_events     = probe_events,
     };
 
-    reserve_fully_connected_net(5, 0, tw_nnodes()-1);
+    layout_fcn_reserve(5, 0, tw_nnodes()-1);
 
-    master_layout_init(sizeof(struct LifNeuron));
+    layout_master_init(sizeof(struct LifNeuron));
 
-    create_fully_connected_net(
-        &settingsNeuronPE,
-        &(struct SettingsFullyConnectedNetwork) {
-            .sizeof_neuron = sizeof(struct LifNeuron),
-            .neuron_init  = (neuron_init_f) initialize_LIF,
-            .synapse_init = (synapse_init_f) initialize_weight_neurons
-        });
+    layout_fcn_init(
+            (neuron_init_f) initialize_LIF,
+            (synapse_init_f) initialize_weight_neurons);
 
-    neuron_pe_config(&settingsNeuronPE);
+    layout_master_configure(&settings_neuron_lp);
+    neuronLP_config(&settings_neuron_lp);
 
     // Printing settings
     if (g_tw_mynode == 0) {
       printf("doryta git version: " MODEL_VERSION "\n");
     }
 
-    // Custom Mapping
-    /*
-    g_tw_mapping = CUSTOM;
-    g_tw_custom_initial_mapping = &model_custom_mapping;
-    g_tw_custom_lp_global_to_local_map = &model_mapping_to_lp;
-    */
-
-    // Useful ROSS variables and functions
-    // tw_nnodes() : number of nodes/processors defined
-    // g_tw_mynode : my node/processor id (mpi rank)
-
-    // Useful ROSS variables (set from command line)
-    // g_tw_events_per_pe
-    // g_tw_lookahead
-    // g_tw_nkp
-    // g_tw_synchronization_protocol
-    // g_tw_total_lps
-
-    // IF there are multiple LP types
-    //    you should define the mapping of GID -> lptype index
-    // g_tw_lp_typemap = &model_typemap;
-
     // set the global variable and initialize each LP's type
-    g_tw_lp_types = model_lps;
+    g_tw_lp_types = doryta_lps;
     tw_lp_setup_types();
 
-    // Do some file I/O here? on a per-node (not per-LP) basis
-
-    initialize_record_firing(5000);
-    initialize_record_lif_voltages(5000);
+    // Initializing probes memory
+    probes_firing_init(5000);
+    probes_lif_voltages_init(5000);
 
     tw_run();
 
     // Deallocating/deinitializing everything
-    save_record_firing("output/one-neuron-test");
-    deinitialize_record_firing();
-    save_record_lif_voltages("output/one-neuron-test");
-    deinitialize_record_lif_voltages();
+    probes_firing_save("output/five-neurons-test");
+    probes_firing_deinit();
+    probes_lif_voltages_save("output/five-neurons-test");
+    probes_lif_voltages_deinit();
 
-    free_fully_connected_net(&settingsNeuronPE);
+    layout_master_free();
 
     tw_end();
 
