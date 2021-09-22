@@ -13,10 +13,6 @@
 #include "utils/io.h"
 
 
-static tw_peid linear_map(tw_lpid gid) {
-    return (tw_peid)gid / g_tw_nlp;
-}
-
 /** Defining LP types.
  * - These are the functions called by ROSS for each LP
  * - Multiple sets can be defined (for multiple LP types)
@@ -28,7 +24,7 @@ tw_lptype doryta_lps[] = {
         .revent   = (revent_f)  neuronLP_event_reverse,
         .commit   = (commit_f)  neuronLP_event_commit,
         .final    = (final_f)   neuronLP_final,
-        .map      = (map_f)     linear_map,
+        .map      = (map_f)     NULL, // Set own mapping function. ROSS won't work without it! Use `set_mapping_on_all_lps` for that
         .state_sz = sizeof(struct NeuronLP)},
     {0},
 };
@@ -72,7 +68,18 @@ static void initialize_LIF(struct LifNeuron * lif, size_t doryta_id) {
 static float initialize_weight_neurons(size_t neuron_from, size_t neuron_to) {
     (void) neuron_from;
     (void) neuron_to;
-    return 0.4;
+    return neuron_from == neuron_to ? 0 : 0.4;
+}
+
+
+/**
+ * Helper function to make all LPs use the same (GID -> local ID) mapping
+ * function.
+ */
+static void set_mapping_on_all_lps(map_f map) {
+    for (size_t i = 0; doryta_lps[i].event != NULL; i++) {
+        doryta_lps[i].map = map;
+    }
 }
 
 
@@ -155,6 +162,7 @@ int main(int argc, char *argv[]) {
     // once the simulation starts)
     settings_neuron_lp = *layout_master_configure(&settings_neuron_lp);
     neuronLP_config(&settings_neuron_lp);
+    set_mapping_on_all_lps(layout_master_gid_to_pe);
 
     // Setting up ROSS variables
     // number of LPs == number of neurons per PE + supporting neurons

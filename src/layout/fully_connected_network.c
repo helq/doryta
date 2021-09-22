@@ -29,6 +29,7 @@ void layout_fcn_init(neuron_init_f neuron_init, synapse_init_f synapse_init) {
         size_t const synapses_offset = fcn_level_params[i].synapses_offset;
         size_t const doryta_id_offset = fcn_level_params[i].doryta_id_offset;
         size_t const local_id_offset = fcn_level_params[i].local_id_offset;
+        size_t const global_neuron_offset = fcn_level_params[i].global_neuron_offset;
 
         for (size_t j = 0; j < neurons_in_pe; j++) {
             // Connecting synapses correctly
@@ -43,9 +44,10 @@ void layout_fcn_init(neuron_init_f neuron_init, synapse_init_f synapse_init) {
                 for (size_t k = 0; k < total_neurons; k++) {
                     allocation.synapses[j].synapses[k].weight =
                         synapse_init(doryta_id, k);
-                    size_t const gid = layout_master_doryta_id_to_gid(doryta_id);
-                    allocation.synapses[j].synapses[k].gid_to_send = gid;
-                    allocation.synapses[j].synapses[k].doryta_id_to_send = doryta_id;
+                    size_t const to_doryta_id = global_neuron_offset + k;
+                    allocation.synapses[j].synapses[k].doryta_id_to_send = to_doryta_id;
+                    allocation.synapses[j].synapses[k].gid_to_send =
+                        layout_master_doryta_id_to_gid(to_doryta_id);
                 }
             }
 

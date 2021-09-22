@@ -21,12 +21,12 @@ void probes_firing_record(
         struct NeuronLP * neuronLP,
         struct Message * msg,
         struct tw_lp * lp) {
-    (void) neuronLP;
+    (void) lp;
     assert(firing_spikes != NULL);
 
     if (msg->type == MESSAGE_TYPE_heartbeat && msg->fired) {
         if (buffer_used < buffer_size) {
-            firing_spikes[buffer_used].neuron    = lp->id;
+            firing_spikes[buffer_used].neuron    = neuronLP->doryta_id;
             firing_spikes[buffer_used].time      = msg->time_processed;
             firing_spikes[buffer_used].intensity = 1;
             buffer_used++;
@@ -41,7 +41,7 @@ void probes_firing_save(char const * path) {
     assert(firing_spikes != NULL);
     unsigned long self = g_tw_mynode;
     if (buffer_limit_hit) {
-        fprintf(stderr, "Only the first %ld spikes have been recorded\n", buffer_size);
+        fprintf(stderr, "Only the first %ld `spikes` have been recorded\n", buffer_size);
     }
 
     // Finding name for file
@@ -59,7 +59,7 @@ void probes_firing_save(char const * path) {
 
         fclose(fp);
     } else {
-        fprintf(stderr, "Unable to store spikes in file %s\n", filename);
+        fprintf(stderr, "Unable to store `spikes` in file %s\n", filename);
     }
 }
 

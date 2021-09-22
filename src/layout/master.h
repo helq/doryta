@@ -11,13 +11,19 @@ enum LAYOUT_TYPE {
 
 struct LayoutLevelParams {
     enum LAYOUT_TYPE layoutType;
+
+    // global parameters
     size_t total_neurons;
     size_t initial_pe;
     size_t final_pe;
+    size_t total_pes;
+    size_t global_neuron_offset;
+
+    // local parameters
     size_t neurons_in_pe;
     size_t local_id_offset;
     size_t doryta_id_offset;
-    //size_t gid_offset;
+
     size_t n_synapses;
     size_t synapses_offset;
 };
@@ -104,8 +110,10 @@ void layout_master_get_all_layouts(
         enum LAYOUT_TYPE layoutType
 );
 
-size_t layout_master_doryta_id_to_gid(size_t doryta_id);
+unsigned long layout_master_gid_to_pe(uint64_t gid);
 
 size_t layout_master_gid_to_doryta_id(size_t gid);
+
+size_t layout_master_doryta_id_to_gid(size_t doryta_id);
 
 #endif /* end of include guard */

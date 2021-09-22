@@ -27,6 +27,7 @@ void probes_lif_beta_voltages_record(
         struct NeuronLP * neuronLP,
         struct Message * msg,
         struct tw_lp * lp) {
+    (void) lp;
     assert_valid_NeuronLP(neuronLP);
     assert(spikes != NULL);
     struct StorageInMessageLifBeta * storage =
@@ -34,7 +35,7 @@ void probes_lif_beta_voltages_record(
 
     if (msg->type == MESSAGE_TYPE_heartbeat) {
         if (buffer_used < buffer_size) {
-            spikes[buffer_used].neuron  = lp->id;
+            spikes[buffer_used].neuron  = neuronLP->doryta_id;
             spikes[buffer_used].time    = msg->time_processed;
             spikes[buffer_used].voltage = storage->potential;
             buffer_used++;
@@ -49,7 +50,7 @@ void probes_lif_beta_voltages_save(char const * path) {
     assert(spikes != NULL);
     unsigned long self = g_tw_mynode;
     if (buffer_limit_hit) {
-        fprintf(stderr, "Only the first %ld spikes have been recorded\n", buffer_size);
+        fprintf(stderr, "Only the first %ld `voltages` have been recorded\n", buffer_size);
     }
 
     // Finding name for file
@@ -67,7 +68,7 @@ void probes_lif_beta_voltages_save(char const * path) {
 
         fclose(fp);
     } else {
-        fprintf(stderr, "Unable to store spikes in file %s\n", filename);
+        fprintf(stderr, "Unable to store `voltages` in file %s\n", filename);
     }
 }
 

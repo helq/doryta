@@ -10,6 +10,7 @@ static bool initialized = false;
 static size_t                   num_layouts = 0;
 static struct LayoutLevelParams layout_levels[MAX_LAYOUTS];
 static size_t                   max_num_neurons_per_pe = 0;
+static size_t                   total_neurons_globally = 0;
 static size_t                   total_neurons_in_pe = 0;
 static size_t                   total_synapses = 0;
 
@@ -34,35 +35,41 @@ int layout_master_reserve_neurons(
     // later case, the layout spands a total of 31 PEs, starting from a
     // position at the tail of the PE ID numbering and continuing from the
     // start.
-    const unsigned long total_pes = initial_pe <= final_pe ?
+    size_t const my_pe = g_tw_mynode;
+    size_t const max_pes = tw_nnodes();
+    size_t const total_pes = initial_pe <= final_pe ?
         final_pe - initial_pe + 1
-        : tw_nnodes() - (initial_pe - final_pe - 1);
-    const bool pe_inside_range = initial_pe <= final_pe ?
-        initial_pe <= g_tw_mynode && g_tw_mynode <= final_pe
-        : initial_pe <= g_tw_mynode || g_tw_mynode <= final_pe;
-    const unsigned long index_within_range = initial_pe <= g_tw_mynode ?
-        g_tw_mynode - initial_pe
-        : g_tw_mynode + (tw_nnodes() - initial_pe);
+        : max_pes - (initial_pe - final_pe - 1);
+    bool const pe_inside_range = initial_pe <= final_pe ?
+        initial_pe <= my_pe && my_pe <= final_pe
+        : initial_pe <= my_pe || my_pe <= final_pe;
+    size_t const index_within_range = initial_pe <= my_pe ?
+        my_pe - initial_pe
+        : my_pe + (max_pes - initial_pe);
     // The reminder neurons appear when the total number of neurons cannot be
     // divided exactly in the number of PEs. To balance the number of neurons
     // per PE we give an additional neuron to the first `total_neurons %
     // total_pes` PEs
-    const size_t reminder_neurons = total_neurons % total_pes;
-    const size_t neurons_in_pe =
+    size_t const remainder_neurons = total_neurons % total_pes;
+    size_t const neurons_in_pe =
         pe_inside_range ?
-        total_neurons / total_pes + (index_within_range < reminder_neurons)
+        total_neurons / total_pes + (index_within_range < remainder_neurons)
         : 0;
-    const unsigned long doryta_id_offset =
-        total_neurons_in_pe
+    size_t const doryta_id_offset =
+        total_neurons_globally
         + index_within_range * (total_neurons / total_pes)
-        + (index_within_range < reminder_neurons ?
-                index_within_range : reminder_neurons);
+        + (index_within_range < remainder_neurons ?
+                index_within_range : remainder_neurons);
 
     layout_levels[num_layouts] = (struct LayoutLevelParams){
         .layoutType = layoutType,
+
         .total_neurons = total_neurons,
         .initial_pe = initial_pe,
         .final_pe = final_pe,
+        .total_pes = total_pes,
+        .global_neuron_offset = total_neurons_globally,
+
         .neurons_in_pe = neurons_in_pe,
         .local_id_offset = total_neurons_in_pe,
         .doryta_id_offset = doryta_id_offset,
@@ -75,8 +82,9 @@ int layout_master_reserve_neurons(
 
     max_num_neurons_per_pe += ceil((double) total_neurons / total_pes);
     total_neurons_in_pe += neurons_in_pe;
+    total_neurons_globally += total_neurons;
 
-    const size_t current_layout_level = num_layouts;
+    size_t const current_layout_level = num_layouts;
     num_layouts++;
     return current_layout_level;
 }
@@ -86,7 +94,7 @@ size_t layout_master_reserve_synapses(size_t num_layout_level, size_t n_synapses
     assert(num_layout_level < num_layouts);
     assert(layout_levels[num_layout_level].n_synapses == 0);
 
-    const size_t synapses_offset = total_synapses;
+    size_t const synapses_offset = total_synapses;
     layout_levels[num_layout_level].n_synapses = n_synapses;
     layout_levels[num_layout_level].synapses_offset = synapses_offset;
     total_synapses += n_synapses;
@@ -94,7 +102,7 @@ size_t layout_master_reserve_synapses(size_t num_layout_level, size_t n_synapses
 }
 
 
-static void layout_master_map_pseudo_linear(void);
+static void map_pseudo_linear(void);
 static struct tw_lp * gid_to_local_lp(tw_lpid gid);
 
 void layout_master_init(int sizeof_neuron) {
@@ -125,7 +133,7 @@ void layout_master_init(int sizeof_neuron) {
 
     // Custom Mapping
     g_tw_mapping = CUSTOM;
-    g_tw_custom_initial_mapping = &layout_master_map_pseudo_linear;
+    g_tw_custom_initial_mapping = &map_pseudo_linear;
     g_tw_custom_lp_global_to_local_map = &gid_to_local_lp;
 
     // IF there are multiple LP types
@@ -205,14 +213,144 @@ void layout_master_get_all_layouts(
     }
 }
 
-size_t layout_master_doryta_id_to_gid(size_t doryta_id) {
-    // TODO: THIS IS A BIG FAT LIE!!
-    return doryta_id;
+
+unsigned long layout_master_gid_to_pe(uint64_t gid) {
+    //return (unsigned long)gid / max_num_neurons_per_pe;
+    return gid / max_num_neurons_per_pe;
 }
 
+
+static inline size_t local_id_to_doryta_id(size_t id, size_t pe) {
+    size_t const max_pes = tw_nnodes();
+    size_t prev_num_neurons_in_pe = 0;
+    size_t num_neurons_in_pe = 0;
+
+    for (size_t i = 0; i < num_layouts; i++) {
+        size_t const total_neurons = layout_levels[i].total_neurons;
+        size_t const initial_pe = layout_levels[i].initial_pe;
+        size_t const final_pe = layout_levels[i].final_pe;
+        size_t const total_pes = layout_levels[i].total_pes;
+        size_t const global_neuron_offset = layout_levels[i].global_neuron_offset;
+
+        // Yes, this is the same code used when reserving space for neurons
+        // in `layout_master_reserve_neurons`. The difference is that now we
+        // are computing these values for a given PE
+        bool const pe_inside_range = initial_pe <= final_pe ?
+            initial_pe <= pe && pe <= final_pe
+            : initial_pe <= pe || pe <= final_pe;
+        size_t const index_within_range = initial_pe <= pe ?
+            pe - initial_pe
+            : pe + (max_pes - initial_pe);
+        size_t const remainder_neurons = total_neurons % total_pes;
+        size_t const neurons_in_pe =
+            pe_inside_range ?
+            total_neurons / total_pes + (index_within_range < remainder_neurons)
+            : 0;
+
+        prev_num_neurons_in_pe = num_neurons_in_pe;
+        num_neurons_in_pe += neurons_in_pe;
+
+        if (id < num_neurons_in_pe) {
+            size_t const doryta_id_offset =
+                global_neuron_offset
+                + index_within_range * (total_neurons / total_pes)
+                + (index_within_range < remainder_neurons ?
+                        index_within_range : remainder_neurons);
+            return doryta_id_offset + (id - prev_num_neurons_in_pe);
+        }
+    }
+    tw_error(TW_LOC, "The given local id (%lu) for PE (%lu) is out of range. "
+            "There are only %lu LPs in the PE", id, pe, g_tw_nlp);
+    return -1;
+}
+
+
 size_t layout_master_gid_to_doryta_id(size_t gid) {
-    // TODO: THIS IS A BIG FAT LIE!!
-    return gid;
+    size_t pe = layout_master_gid_to_pe(gid);
+    return local_id_to_doryta_id(gid % max_num_neurons_per_pe, pe);
+}
+
+
+static inline size_t get_local_offset_for_level_in_pe(size_t pe, size_t level) {
+    assert(pe < tw_nnodes());
+    assert(level < num_layouts);
+
+    size_t const max_pes = tw_nnodes();
+    size_t num_neurons_in_pe = 0;
+
+    for (size_t i = 0; i < level; i++) {
+        size_t const total_neurons = layout_levels[i].total_neurons;
+        size_t const initial_pe = layout_levels[i].initial_pe;
+        size_t const final_pe = layout_levels[i].final_pe;
+        size_t const total_pes = layout_levels[i].total_pes;
+
+        // Yes, this is the same code used when reserving space for neurons
+        // in `layout_master_reserve_neurons`. The difference is that now we
+        // are computing these values for a given PE
+        bool const pe_inside_range = initial_pe <= final_pe ?
+            initial_pe <= pe && pe <= final_pe
+            : initial_pe <= pe || pe <= final_pe;
+        size_t const index_within_range = initial_pe <= pe ?
+            pe - initial_pe
+            : pe + (max_pes - initial_pe);
+        size_t const remainder_neurons = total_neurons % total_pes;
+        size_t const neurons_in_pe =
+            pe_inside_range ?
+            total_neurons / total_pes + (index_within_range < remainder_neurons)
+            : 0;
+
+        num_neurons_in_pe += neurons_in_pe;
+    }
+
+    return num_neurons_in_pe;
+}
+
+
+size_t layout_master_doryta_id_to_gid(size_t doryta_id) {
+    assert(doryta_id < total_neurons_globally);
+    size_t level;
+
+    // Finding level in which DorytaID recides
+    for (level = 0; level < num_layouts; level++) {
+        size_t const total_neurons = layout_levels[level].total_neurons;
+        size_t const global_neuron_offset = layout_levels[level].global_neuron_offset;
+        if (doryta_id < global_neuron_offset + total_neurons) {
+            break;
+        }
+    }
+    assert(level < num_layouts);
+
+    // Finding PE in which DorytaID lives
+    size_t const global_neuron_offset = layout_levels[level].global_neuron_offset;
+    size_t const total_neurons = layout_levels[level].total_neurons;
+    size_t const initial_pe = layout_levels[level].initial_pe;
+    size_t const total_pes = layout_levels[level].total_pes;
+
+    size_t const neurons_per_pe = total_neurons / total_pes;
+    size_t const remainder_neurons = total_neurons % total_pes;
+
+    size_t const id_within_level = doryta_id - global_neuron_offset;
+    size_t pe;
+    size_t offset; // offset of neuron within layer in PE
+
+    // The first `remainder_neurons` PEs will have a total of
+    // `neurons_per_pe + 1`. The ones that follow only have
+    // `remainder_neurons` each
+    size_t const neurons_within_remainder_pes = (neurons_per_pe + 1) * remainder_neurons;
+    if (id_within_level < neurons_within_remainder_pes) {
+        pe = id_within_level / (neurons_per_pe + 1);
+        offset = id_within_level % (neurons_per_pe + 1);
+    } else {
+        pe = remainder_neurons
+            + (id_within_level - neurons_within_remainder_pes) / neurons_per_pe;
+        offset = (id_within_level - neurons_within_remainder_pes) % neurons_per_pe;
+    }
+
+    pe = (pe + initial_pe) % tw_nnodes();
+
+    return pe * max_num_neurons_per_pe
+        + get_local_offset_for_level_in_pe(pe, level)
+        + offset;
 }
 
 
@@ -221,7 +359,7 @@ size_t layout_master_gid_to_doryta_id(size_t gid) {
 // Master defines mapping for everything in this PE. This code has been
 // copied and pasted with very little alterations from linear mapping defined
 // in ROSS
-static void layout_master_map_pseudo_linear(void) {
+static void map_pseudo_linear(void) {
     tw_lpid  lpid;
     tw_kpid  kpid;
     unsigned int j;
