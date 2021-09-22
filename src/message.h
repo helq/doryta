@@ -31,8 +31,10 @@ struct Message {
             bool fired;
         };
         struct { // message type = spike
-            size_t neuron_from;
-            size_t neuron_to;
+            size_t neuron_from; // DorytaID
+            size_t neuron_to;   // DorytaID
+            size_t neuron_from_gid;
+            size_t neuron_to_gid;
             float spike_current;
         };
     };
@@ -43,8 +45,6 @@ struct Message {
     // and restore the state of the neuron.)
     char reserved_for_reverse[MESSAGE_SIZE_REVERSE];
 };
-
-#define MESSAGE_SIZE ()
 
 // Creates a message with the appropiate fields loaded. Default values are
 // given to all fields. Some default values are incorrect and must be
@@ -63,6 +63,8 @@ static inline void initialize_Message(struct Message * msg, enum MESSAGE_TYPE ty
             msg->spike_current = 1;
             msg->neuron_from = -1;
             msg->neuron_to = -1;
+            msg->neuron_from_gid = -1;
+            msg->neuron_to_gid = -1;
             break;
     }
 }

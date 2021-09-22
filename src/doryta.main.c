@@ -7,7 +7,7 @@
 //#include "neurons/lif_beta.h"
 #include "neurons/lif.h"
 #include "probes/firing.h"
-/*#include "probes/lif_beta/voltage.h"*/
+//#include "probes/lif_beta/voltage.h"
 #include "probes/lif/voltage.h"
 #include "storable_spikes.h"
 #include "utils/io.h"
@@ -44,8 +44,8 @@ tw_lptype doryta_lps[] = {
 //};
 
 
-//static void initialize_LIF_beta(struct LifBetaNeuron * lif, size_t neuron_id) {
-//    (void) neuron_id;
+//static void initialize_LIF_beta(struct LifBetaNeuron * lif, size_t doryta_id) {
+//    (void) doryta_id;
 //    *lif = (struct LifBetaNeuron) {
 //        .potential = 0,
 //        .threshold = 1.2,
@@ -55,8 +55,8 @@ tw_lptype doryta_lps[] = {
 //}
 
 
-static void initialize_LIF(struct LifNeuron * lif, size_t neuron_id) {
-    (void) neuron_id;
+static void initialize_LIF(struct LifNeuron * lif, size_t doryta_id) {
+    (void) doryta_id;
     *lif = (struct LifNeuron) {
         .potential = 0,
         .current = 0,
@@ -80,20 +80,18 @@ int main(int argc, char *argv[]) {
     //tw_opt_add(model_opts);
     tw_init(&argc, &argv);
 
-    // number of LPs == number of neurons per PE
-    int const num_lps_in_pe = 5;
-
-    // set up LPs within ROSS
-    tw_define_lps(num_lps_in_pe, sizeof(struct Message));
-    // note that g_tw_nlp gets set here by tw_define_lps
-
     // Do some error checking?
     if (g_tw_mynode == 0) {
       check_folder("output");
     }
 
+    // Printing settings
+    if (g_tw_mynode == 0) {
+      printf("doryta git version: " MODEL_VERSION "\n");
+    }
+
     // Spikes
-    struct StorableSpike *spikes[3] = {
+    struct StorableSpike *spikes[5] = {
         (struct StorableSpike[]) {
             {   .neuron = 0,
                 .time = 0.1,
@@ -118,6 +116,8 @@ int main(int argc, char *argv[]) {
             {0}
         },
         NULL,
+        NULL,
+        NULL,
         NULL
     };
 
@@ -139,35 +139,39 @@ int main(int argc, char *argv[]) {
       .store_neuron         = (neuron_state_op_f) store_lif_neuron_state,
       .reverse_store_neuron = (neuron_state_op_f) reverse_store_lif_neuron_state,
       .print_neuron_struct  = (print_neuron_f) print_lif_neuron,
-      // .get_neuron_local_pos_init = identity_fn_for_local_ID,
+      //.gid_to_doryta_id    = ...
       .probe_events     = probe_events,
     };
 
+    // Defining layout structure (levels) and configuring neurons in current PE
     layout_fcn_reserve(5, 0, tw_nnodes()-1);
-
+    // Init master (allocates space for neurons and synapses)
     layout_master_init(sizeof(struct LifNeuron));
-
+    // Initializes the neurons and synapses with the given functions
     layout_fcn_init(
             (neuron_init_f) initialize_LIF,
             (synapse_init_f) initialize_weight_neurons);
-
-    layout_master_configure(&settings_neuron_lp);
+    // Modifying and loading neuron configuration (it will be trully loaded
+    // once the simulation starts)
+    settings_neuron_lp = *layout_master_configure(&settings_neuron_lp);
     neuronLP_config(&settings_neuron_lp);
 
-    // Printing settings
-    if (g_tw_mynode == 0) {
-      printf("doryta git version: " MODEL_VERSION "\n");
-    }
-
+    // Setting up ROSS variables
+    // number of LPs == number of neurons per PE + supporting neurons
+    int const num_lps_in_pe = layout_master_total_lps_pe();
+    tw_define_lps(num_lps_in_pe, sizeof(struct Message));
     // set the global variable and initialize each LP's type
     g_tw_lp_types = doryta_lps;
     tw_lp_setup_types();
+    // note that g_tw_nlp gets set here by tw_define_lps
 
-    // Initializing probes memory
+    // Allocating memory for probes
     probes_firing_init(5000);
     probes_lif_voltages_init(5000);
 
+    // Running simulation
     tw_run();
+    // Simulation ends when the function exits
 
     // Deallocating/deinitializing everything
     probes_firing_save("output/five-neurons-test");

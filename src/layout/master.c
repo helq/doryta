@@ -3,19 +3,9 @@
 #include <stdbool.h>
 #include <ross.h>
 
-struct LayoutLevelParams {
-    enum LAYOUT_TYPE layoutType;
-    size_t total_neurons;
-    size_t initial_pe;
-    size_t final_pe;
-    size_t neurons_in_pe;
-    size_t local_id_offset;
-    size_t doryta_id_offset;
-    size_t n_synapses;
-    size_t synapses_offset;
-};
-
 #define MAX_LAYOUTS 20
+
+static bool initialized = false;
 
 static size_t                   num_layouts = 0;
 static struct LayoutLevelParams layout_levels[MAX_LAYOUTS];
@@ -25,8 +15,10 @@ static size_t                   total_synapses = 0;
 
 static struct MemoryAllocationLayout allocation_layout = {0};
 
+static uint64_t pe_gid_offset;
 
-size_t layout_master_reserve_neurons(
+
+int layout_master_reserve_neurons(
         size_t total_neurons, unsigned long initial_pe, unsigned long final_pe,
         enum LAYOUT_TYPE layoutType) {
     if (initial_pe >= tw_nnodes() || final_pe >= tw_nnodes()) {
@@ -74,6 +66,7 @@ size_t layout_master_reserve_neurons(
         .neurons_in_pe = neurons_in_pe,
         .local_id_offset = total_neurons_in_pe,
         .doryta_id_offset = doryta_id_offset,
+        //.gid_offset = -1,
         .n_synapses = 0,
         .synapses_offset = 0,
     };
@@ -101,9 +94,11 @@ size_t layout_master_reserve_synapses(size_t num_layout_level, size_t n_synapses
 }
 
 
-void layout_master_init(int sizeof_neuron) {
-    (void) sizeof_neuron;
+static void layout_master_map_pseudo_linear(void);
+static struct tw_lp * gid_to_local_lp(tw_lpid gid);
 
+void layout_master_init(int sizeof_neuron) {
+    assert(!initialized);
     allocation_layout.synapses =
         malloc(total_neurons_in_pe * sizeof(struct SynapseCollection));
     allocation_layout.naked_synapses =
@@ -122,103 +117,167 @@ void layout_master_init(int sizeof_neuron) {
 
     // Connecting neurons pointers to naked neuron array
     for (size_t i = 0; i < total_neurons_in_pe; i++) {
-        allocation_layout.neurons[i] = (void*) & allocation_layout.naked_neurons[i];
+        allocation_layout.neurons[i] =
+            (void*) & allocation_layout.naked_neurons[i*sizeof_neuron];
     }
 
-    //Custom Mapping
-    /*
+    pe_gid_offset = g_tw_mynode * max_num_neurons_per_pe;
+
+    // Custom Mapping
     g_tw_mapping = CUSTOM;
-    g_tw_custom_initial_mapping = &map_pseudo_linear;
-    g_tw_custom_lp_global_to_local_map = &gid_to_local_lp_id;
-    */
+    g_tw_custom_initial_mapping = &layout_master_map_pseudo_linear;
+    g_tw_custom_lp_global_to_local_map = &gid_to_local_lp;
 
     // IF there are multiple LP types
     //    you should define the mapping of GID -> lptype index
     //g_tw_lp_typemap = &model_typemap;
-    //
+
+    initialized = true;
 }
+
 
 void layout_master_free(void) {
     free(allocation_layout.naked_synapses);
+    free(allocation_layout.naked_neurons);
     free(allocation_layout.neurons);
     free(allocation_layout.synapses);
 }
 
+
 struct MemoryAllocationLayout
 layout_master_allocation(void) {
     assert(num_layouts > 0);
+    assert(initialized);
     return allocation_layout;
 }
 
-void layout_master_configure(struct SettingsNeuronLP *settingsNeuronLP) {
+
+struct SettingsNeuronLP *
+layout_master_configure(struct SettingsNeuronLP *settingsNeuronLP) {
+    assert(initialized);
     settingsNeuronLP->neurons = allocation_layout.neurons;
     settingsNeuronLP->synapses = allocation_layout.synapses;
+    settingsNeuronLP->gid_to_doryta_id = layout_master_gid_to_doryta_id;
+
+    size_t total_neurons_across_all = 0;
+    for (size_t i = 0; i < num_layouts; i++) {
+        total_neurons_across_all += layout_levels[i].total_neurons;
+    }
+    settingsNeuronLP->num_neurons = total_neurons_across_all;
+    settingsNeuronLP->num_neurons_pe = total_neurons_in_pe;
+    return settingsNeuronLP;
 }
 
-// Master defines mapping for everything in this PE. It's an alteration on linear mapping
+
+size_t layout_master_total_lps_pe(void) {
+    assert(initialized);
+    // If this is not true, something went totally wrong!
+    assert(total_neurons_in_pe <= max_num_neurons_per_pe);
+    return total_neurons_in_pe;
+}
+
+
+size_t layout_master_neurons_in_pe_level(int level) {
+    assert(0 <= level && (size_t)level < num_layouts);
+    return layout_levels[level].neurons_in_pe;
+}
+
+
+struct LayoutLevelParams
+layout_master_params_level(int level) {
+    assert(0 <= level && (size_t)level < num_layouts);
+    assert(initialized);
+    return layout_levels[level];
+}
+
+
+void layout_master_get_all_layouts(
+        struct LayoutLevelParams * to_store_in,
+        enum LAYOUT_TYPE layoutType
+) {
+    assert(initialized);
+    size_t j = 0;
+    for (size_t i = 0; i < num_layouts; i++) {
+        if (layout_levels[i].layoutType == layoutType) {
+            to_store_in[j] = layout_levels[i];
+            j++;
+        }
+    }
+}
+
+size_t layout_master_doryta_id_to_gid(size_t doryta_id) {
+    // TODO: THIS IS A BIG FAT LIE!!
+    return doryta_id;
+}
+
+size_t layout_master_gid_to_doryta_id(size_t gid) {
+    // TODO: THIS IS A BIG FAT LIE!!
+    return gid;
+}
+
+
+// ========================== HELPER / MAPPING FUNCTIONS ==========================
 //
-//static void map_pseudo_linear(void) {
-//
-//    unsigned int nlp_per_kp;
-//    tw_lpid  lpid;
-//    tw_kpid  kpid;
-//    unsigned int j;
-//
-//    // may end up wasting last KP, but guaranteed each KP has == nLPs
-//    nlp_per_kp = (int)ceil((double) g_tw_nlp / (double) g_tw_nkp);
-//
-//    if(!nlp_per_kp) {
-//        tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
-//    }
-//
-//    g_tw_lp_offset = g_tw_mynode * g_tw_nlp; // THIS IS DIFFERENT!!
-//    //g_tw_lp_offset = g_tw_mynode * max_num_neurons_per_pe;
-//
-//#if VERIFY_MAPPING
-//    printf("NODE %d: nlp %lld, offset %lld\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
-//    printf("\tPE %d\n", g_tw_pe->id);
-//#endif
-//
-//    for(kpid = 0, lpid = 0; kpid < nkp_per_pe; kpid++) {
-//        tw_kp_onpe(kpid, g_tw_pe);
-//
-//#if VERIFY_MAPPING
-//        printf("\t\tKP %d", kpid);
-//#endif
-//
-//        for(j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++) {
-//            tw_lp_onpe(lpid, g_tw_pe, g_tw_lp_offset+lpid);
-//            tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
-//
-//#if VERIFY_MAPPING
-//            if(0 == j % 20) {
-//                printf("\n\t\t\t");
-//            }
-//            printf("%lld ", lpid+g_tw_lp_offset);
-//#endif
-//        }
-//
-//#if VERIFY_MAPPING
-//        printf("\n");
-//#endif
-//    }
-//
-//    if(!g_tw_lp[g_tw_nlp-1]) {
-//        tw_error(TW_LOC, "Not all LPs defined! (g_tw_nlp=%d)", g_tw_nlp);
-//    }
-//
-//    if(g_tw_lp[g_tw_nlp-1]->gid != g_tw_lp_offset + g_tw_nlp - 1) {
-//        tw_error(TW_LOC, "LPs not sequentially enumerated!");
-//    }
-//}
-//
-//
-////Given a gid, return the local LP (global id => local id mapping)
-//tw_lp * gid_to_local_lp_id(tw_lpid){
-//  int local_id = lp_id - g_tw_offset;
-//  return g_tw_lp[id];
-//}
-//
+// Master defines mapping for everything in this PE. This code has been
+// copied and pasted with very little alterations from linear mapping defined
+// in ROSS
+static void layout_master_map_pseudo_linear(void) {
+    tw_lpid  lpid;
+    tw_kpid  kpid;
+    unsigned int j;
+
+    // may end up wasting last KP, but guaranteed each KP has == nLPs
+    unsigned int nlp_per_kp = (int)ceil((double) g_tw_nlp / (double) g_tw_nkp);
+
+    if(!nlp_per_kp) {
+        tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
+    }
+
+#if VERIFY_MAPPING
+    printf("NODE %d: nlp %lld, offset %lld\n", g_tw_mynode, g_tw_nlp, pe_gid_offset);
+    printf("\tPE %d\n", g_tw_pe->id);
+#endif
+
+    for(kpid = 0, lpid = 0; kpid < g_tw_nkp; kpid++) {
+        tw_kp_onpe(kpid, g_tw_pe);
+
+#if VERIFY_MAPPING
+        printf("\t\tKP %d", kpid);
+#endif
+
+        for(j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++) {
+            tw_lp_onpe(lpid, g_tw_pe, pe_gid_offset+lpid);
+            tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
+
+#if VERIFY_MAPPING
+            if(0 == j % 20) {
+                printf("\n\t\t\t");
+            }
+            printf("%lld ", lpid+pe_gid_offset);
+#endif
+        }
+
+#if VERIFY_MAPPING
+        printf("\n");
+#endif
+    }
+
+    if(!g_tw_lp[g_tw_nlp-1]) {
+        tw_error(TW_LOC, "Not all LPs defined! (g_tw_nlp=%d)", g_tw_nlp);
+    }
+
+    if(g_tw_lp[g_tw_nlp-1]->gid != pe_gid_offset + g_tw_nlp - 1) {
+        tw_error(TW_LOC, "LPs not sequentially enumerated!");
+    }
+}
+
+
+//Given a gid, return the local LP (global id => local PE mapping)
+static struct tw_lp * gid_to_local_lp(tw_lpid gid) {
+  int local_id = gid - pe_gid_offset;
+  return g_tw_lp[local_id];
+}
+
 // There are functions to define here!
 // - GID to model type
 // - GID to PE (for fast location, basically, the same shit as always, this is plugged directly in the LP definitions)
