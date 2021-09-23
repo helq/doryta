@@ -33,21 +33,32 @@ void layout_fcn_init(neuron_init_f neuron_init, synapse_init_f synapse_init) {
 
         for (size_t j = 0; j < neurons_in_pe; j++) {
             // Connecting synapses correctly
-            allocation.synapses[j].synapses =
+            allocation.synapses[local_id_offset + j].synapses =
                 &allocation.naked_synapses[synapses_offset + j * total_neurons];
-            allocation.synapses[j].num = total_neurons;
+            allocation.synapses[local_id_offset + j].num = total_neurons;
 
             size_t const doryta_id = doryta_id_offset + j;
 
             // Initializing synapses
             if (synapse_init != NULL) {
+                struct Synapse *synapses_layer =
+                    allocation.synapses[local_id_offset + j].synapses;
                 for (size_t k = 0; k < total_neurons; k++) {
-                    allocation.synapses[j].synapses[k].weight =
-                        synapse_init(doryta_id, k);
                     size_t const to_doryta_id = global_neuron_offset + k;
-                    allocation.synapses[j].synapses[k].doryta_id_to_send = to_doryta_id;
-                    allocation.synapses[j].synapses[k].gid_to_send =
+                    synapses_layer[k].weight =
+                        synapse_init(doryta_id, to_doryta_id);
+                    synapses_layer[k].doryta_id_to_send = to_doryta_id;
+                    synapses_layer[k].gid_to_send =
                         layout_master_doryta_id_to_gid(to_doryta_id);
+
+                    /*
+                     *float const weight = synapses_layer[k].weight;
+                     *size_t const gid_to_send = synapses_layer[k].gid_to_send;
+                     *printf("PE %lu : Initializing neuron %lu (gid: %lu)"
+                     *       " with synapse to %lu (gid: %lu) -> weight = %f\n",
+                     *        g_tw_mynode, doryta_id, layout_master_doryta_id_to_gid(doryta_id),
+                     *        to_doryta_id, gid_to_send, weight);
+                     */
                 }
             }
 

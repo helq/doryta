@@ -128,16 +128,45 @@ int main(int argc, char *argv[]) {
         NULL
     };
 
+    struct StorableSpike *spikes_pe1[4] = {
+        NULL,
+        NULL,
+        (struct StorableSpike[]) {
+            {   .neuron = 5,
+                .time = 0.1,
+                .intensity = 1
+            },
+            {   .neuron = 5,
+                .time = 0.2,
+                .intensity = 1
+            },
+            {   .neuron = 5,
+                .time = 0.26,
+                .intensity = 1
+            },
+            {   .neuron = 5,
+                .time = 0.36,
+                .intensity = 1
+            },
+            {   .neuron = 5,
+                .time = 0.65,
+                .intensity = 1
+            },
+            {0}
+        },
+        NULL,
+    };
+
     probe_event_f probe_events[3] = {
         probes_firing_record, probes_lif_voltages_record, NULL};
 
     // Setting the driver configuration should be done before running anything
     struct SettingsNeuronLP settings_neuron_lp = {
-      //.num_neurons      = tw_nnodes() * num_lps_in_pe,
-      //.num_neurons_pe   = num_lps_in_pe,
-      //.neurons          = (void**) lif_neurons,
-      //.synapses         = g_tw_mynode == 0 ? synapses : NULL,
-      .spikes           = g_tw_mynode == 0 ? spikes : NULL,
+      //.num_neurons      = ...
+      //.num_neurons_pe   = ...
+      //.neurons          = ...
+      //.synapses         = ...
+      .spikes           = g_tw_mynode == 0 ? spikes : (g_tw_mynode == 1 ? spikes_pe1 : NULL),
       .beat             = 1.0/256,
       .firing_delay     = 1,
       .neuron_leak      = (neuron_leak_f) leak_lif_neuron,
@@ -152,6 +181,9 @@ int main(int argc, char *argv[]) {
 
     // Defining layout structure (levels) and configuring neurons in current PE
     layout_fcn_reserve(5, 0, tw_nnodes()-1);
+    if (tw_nnodes() > 1) {
+        layout_fcn_reserve(2, 1, 1);
+    }
     // Init master (allocates space for neurons and synapses)
     layout_master_init(sizeof(struct LifNeuron));
     // Initializes the neurons and synapses with the given functions

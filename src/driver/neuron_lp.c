@@ -216,6 +216,7 @@ void neuronLP_event_commit(
 void neuronLP_final(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     (void) lp;
     uint64_t const self = neuronLP->doryta_id;
+    // TODO: define a variable (VERBOSE or something) and run this code based on that
     printf("LP (neuron): %lu. ", self);
     if (settings.print_neuron_struct != NULL) {
         settings.print_neuron_struct(neuronLP->neuron_struct);
