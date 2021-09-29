@@ -10,12 +10,12 @@ struct NeuronLP;
 struct Message;
 struct tw_lp;
 
-void initialize_record_lif_voltages(size_t buffer_size);
+void probes_lif_voltages_init(size_t buffer_size);
 
-void record_lif_voltages(struct NeuronLP *, struct Message *, struct tw_lp *);
+void probes_lif_voltages_record(struct NeuronLP *, struct Message *, struct tw_lp *);
 
-void save_record_lif_voltages(char const *);
+void probes_lif_voltages_save(char const *);
 
-void deinitialize_record_lif_voltages(void);
+void probes_lif_voltages_deinit(void);
 
 #endif /* end of include guard */

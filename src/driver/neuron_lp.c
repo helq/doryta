@@ -1,4 +1,4 @@
-#include "lp_neuron.h"
+#include "neuron_lp.h"
 #include "../message.h"
 #include "../storable_spikes.h"
 #include <stdbool.h>
@@ -33,12 +33,12 @@
 #define SPIKE_PRIORITY 0.8
 #define HEARTBEAT_PRIORITY 0.5
 
-struct SettingsNeuronPE settings = {0};
+struct SettingsNeuronLP settings = {0};
 bool settings_initialized = false;
 double firing_delay_double = -1;
 
 
-void neuron_pe_config(struct SettingsNeuronPE * settings_in) {
+void neuronLP_config(struct SettingsNeuronLP * settings_in) {
     assert_valid_SettingsPE(settings_in);
     settings = *settings_in;
     settings_initialized = true;
@@ -70,11 +70,13 @@ static inline void send_spike(
                 neuronLP->to_contact.synapses[i];
 
             struct tw_event * const event =
-                tw_event_new_user_prio(synap.id_to_send, diff, lp, SPIKE_PRIORITY);
+                tw_event_new_user_prio(synap.gid_to_send, diff, lp, SPIKE_PRIORITY);
             struct Message * const msg = tw_event_data(event);
             initialize_Message(msg, MESSAGE_TYPE_spike);
-            msg->neuron_from = lp->id;
-            msg->neuron_to = synap.id_to_send;
+            msg->neuron_from = neuronLP->doryta_id;
+            msg->neuron_to = synap.doryta_id_to_send;
+            msg->neuron_from_gid = lp->gid;
+            msg->neuron_to_gid = synap.gid_to_send;
             msg->spike_current = synap.weight;
             assert_valid_Message(msg);
             tw_event_send(event);
@@ -87,18 +89,19 @@ static inline void send_spike_from_StorableSpike(
         struct NeuronLP *neuronLP,
         struct tw_lp *lp,
         struct StorableSpike * spike) {
-    (void) neuronLP;
     // A StorableSpike is only to be sent and processed by the same neuron that
     // it's indicated in the StorableSpike
-    assert(lp->id == spike->neuron);
+    assert(neuronLP->doryta_id == spike->neuron);
 
     uint64_t const self = lp->gid;
     struct tw_event * const event
         = tw_event_new_user_prio(self, spike->time, lp, SPIKE_PRIORITY);
     struct Message * const msg = tw_event_data(event);
     initialize_Message(msg, MESSAGE_TYPE_spike);
-    msg->neuron_from = lp->id;
-    msg->neuron_to = self;
+    msg->neuron_from = neuronLP->doryta_id;
+    msg->neuron_to = neuronLP->doryta_id;
+    msg->neuron_from_gid = lp->id;
+    msg->neuron_to_gid = self;
     msg->spike_current = spike->intensity;
     assert_valid_Message(msg);
     tw_event_send(event);
@@ -109,22 +112,22 @@ static inline void send_spike_from_StorableSpike(
 void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     assert(settings_initialized);
 
-    uint64_t const neuron_id_in_init =
-        settings.get_neuron_local_pos_init(lp->gid);
-    assert(neuron_id_in_init < settings.num_neurons_pe);
+    uint64_t const local_id = lp->id;
+    assert(local_id < settings.num_neurons_pe);
 
     // Initializing NeuronLP from parameters defined by the
     initialize_NeuronLP(neuronLP);
-    neuronLP->neuron_struct = settings.neurons[neuron_id_in_init];
+    neuronLP->doryta_id = settings.gid_to_doryta_id(lp->gid);
+    neuronLP->neuron_struct = settings.neurons[local_id];
 
     // Copying synapses weights from data passed in settings
     if (settings.synapses != NULL) {
-        neuronLP->to_contact = settings.synapses[neuron_id_in_init];
+        neuronLP->to_contact = settings.synapses[local_id];
     }
 
     // Creating spike events
-    if (settings.spikes != NULL && settings.spikes[neuron_id_in_init] != NULL) {
-        struct StorableSpike * spikes_for_neuron = settings.spikes[neuron_id_in_init];
+    if (settings.spikes != NULL && settings.spikes[local_id] != NULL) {
+        struct StorableSpike * spikes_for_neuron = settings.spikes[local_id];
         // spikes is a pointer to an array of NULL/zero terminated spikes
         while(spikes_for_neuron->intensity != 0) {
             assert_valid_StorableSpike(spikes_for_neuron);
@@ -211,7 +214,9 @@ void neuronLP_event_commit(
 // The finalization function
 // Reporting any final statistics for this LP in the file previously opened
 void neuronLP_final(struct NeuronLP *neuronLP, struct tw_lp *lp) {
-    uint64_t const self = lp->gid;
+    (void) lp;
+    uint64_t const self = neuronLP->doryta_id;
+    // TODO: define a variable (VERBOSE or something) and run this code based on that
     printf("LP (neuron): %lu. ", self);
     if (settings.print_neuron_struct != NULL) {
         settings.print_neuron_struct(neuronLP->neuron_struct);

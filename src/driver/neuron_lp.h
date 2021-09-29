@@ -1,5 +1,5 @@
-#ifndef DORYTA_DRIVER_LP_NEURON_H
-#define DORYTA_DRIVER_LP_NEURON_H
+#ifndef DORYTA_DRIVER_NEURON_LP_H
+#define DORYTA_DRIVER_NEURON_LP_H
 
 /** @file
  * Functions implementing a neuron as a discrete event simulator
@@ -18,15 +18,19 @@ struct tw_lp;
 struct StorableSpike;
 
 /**
- * `id_to_send` is not the neuron to which a spike is sent but rather the LP which will
+ * `gid_to_send` is not the neuron to which a spike is sent but rather the LP which will
  * receive the spike. A spike can be processed by a neuron or a SynapseLP (these are in
  * charge of sending spikes in small batches to not obstruct the system)
  */
 struct Synapse {
-    uint64_t id_to_send;
+    uint64_t gid_to_send;
+    uint64_t doryta_id_to_send;
     float weight;
 };
 
+/**
+ * Beware: make sure `num` is correctly initialized!
+ */
 struct SynapseCollection {
     size_t num;
     struct Synapse * synapses; /**< An array containing all connections to other */
@@ -38,7 +42,7 @@ struct SynapseCollection {
  * - `to_contact` has to be valid (`num` == 0 iff `synapses` == NULL)
  */
 struct NeuronLP {
-    //size_t id; // The id of the neuron corresponds one to one with the id of its LP
+    size_t doryta_id; // This might not be the same as the GID for the neuron (it is defined as dorytaID because that is how it is caled in src/layout, but it might be anything the user wants)
     void *neuron_struct; /**< A pointer to the neuron state */
     struct SynapseCollection to_contact;
 };
@@ -69,13 +73,18 @@ typedef void (*neuron_leak_f)      (void *, float);
 typedef void (*neuron_integrate_f) (void *, float);
 typedef bool (*neuron_fire_f)      (void *);
 typedef void (*probe_event_f)      (struct NeuronLP *, struct Message *, struct tw_lp *);
-typedef size_t (*get_neuron_id_f)  (unsigned long);
+typedef size_t (*id_to_id)         (size_t);
 typedef void (*print_neuron_f)     (void *);
 typedef void (*neuron_state_op_f)  (void *, char[MESSAGE_SIZE_REVERSE]);
 
 
 /**
- * If `spikes` is NULL
+ * General settings for all neurons in the simulation.
+ * It is assumed that `neurons` and `synapses` contain a correct
+ * initialization of the given neuron type, and that they match with the LPs'
+ * local IDs. What this means is that `neurons[0]` is assigned to LP with
+ * local ID 0. The same happens with `synapses[0]`
+ *
  * Invariants:
  * - `num_neurons_pe` > 0
  * - `num_neurons` > 0
@@ -94,11 +103,13 @@ typedef void (*neuron_state_op_f)  (void *, char[MESSAGE_SIZE_REVERSE]);
  * - `beat` should be a power of 2
  * - If `spikes` is not null, it points to `num_neurons` spikes (array of pointers ending in a null element)
  */
-struct SettingsNeuronPE {
+struct SettingsNeuronLP {
     size_t                     num_neurons;
     size_t                     num_neurons_pe;
-    size_t                     sizeof_neuron;
-    void                    ** neurons; // Yes, this is redundant but only slightly because we are copying a small struct (NeuronLP)
+    // Yes, this is not ideal, best would be to have everything contained
+    // within the neuron, but ROSS has no separation for memory allocation
+    // and execution. (Both are performed at `tw_run`.)
+    void                    ** neurons;
     struct SynapseCollection * synapses;
     struct StorableSpike    ** spikes;
     double                     beat; //<! Heartbeat frequency
@@ -109,24 +120,23 @@ struct SettingsNeuronPE {
     neuron_state_op_f          store_neuron;
     neuron_state_op_f          reverse_store_neuron;
     print_neuron_f             print_neuron_struct;
-    get_neuron_id_f            get_neuron_local_pos_init; //<! Position of neuron in initializing array `neurons`
+    id_to_id                   gid_to_doryta_id; //<! Getting neuron ID (aka, DorytaID)
     probe_event_f            * probe_events; //<! A list of functions to call to record/trace the computation
 };
 
-static inline bool is_valid_SettingsPE(struct SettingsNeuronPE * settingsPE) {
+static inline bool is_valid_SettingsPE(struct SettingsNeuronLP * settingsPE) {
     bool const basic_non_nullness =
            settingsPE->neurons != NULL
         && settingsPE->neuron_leak != NULL
         && settingsPE->neuron_integrate != NULL
         && settingsPE->neuron_fire != NULL
-        && settingsPE->get_neuron_local_pos_init != NULL
+        && settingsPE->gid_to_doryta_id != NULL
         && settingsPE->store_neuron != NULL
         && settingsPE->reverse_store_neuron != NULL;
     bool const correct_neuron_sizes =
            settingsPE->num_neurons > 0
         && settingsPE->num_neurons_pe > 0
-        && settingsPE->num_neurons_pe <= settingsPE->num_neurons
-        && settingsPE->sizeof_neuron > 0;
+        && settingsPE->num_neurons_pe <= settingsPE->num_neurons;
     bool const beat_validity = settingsPE->beat > 0
                             && !isnan(settingsPE->beat)
                             && !isinf(settingsPE->beat);
@@ -143,14 +153,14 @@ static inline bool is_valid_SettingsPE(struct SettingsNeuronPE * settingsPE) {
     return true;
 }
 
-static inline void assert_valid_SettingsPE(struct SettingsNeuronPE * settingsPE) {
+static inline void assert_valid_SettingsPE(struct SettingsNeuronLP * settingsPE) {
 #ifndef NDEBUG
     assert(settingsPE->num_neurons_pe > 0);
     assert(settingsPE->neurons != NULL);
     assert(settingsPE->neuron_leak != NULL);
     assert(settingsPE->neuron_integrate != NULL);
     assert(settingsPE->neuron_fire != NULL);
-    assert(settingsPE->get_neuron_local_pos_init != NULL);
+    assert(settingsPE->gid_to_doryta_id != NULL);
     assert(settingsPE->store_neuron != NULL);
     assert(settingsPE->reverse_store_neuron != NULL);
     assert(settingsPE->beat > 0);
@@ -164,7 +174,7 @@ static inline void assert_valid_SettingsPE(struct SettingsNeuronPE * settingsPE)
 }
 
 /** Setting global variables for the simulation. */
-void neuron_pe_config(struct SettingsNeuronPE *);
+void neuronLP_config(struct SettingsNeuronLP *);
 
 /** Neuron initialization. */
 void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp);

@@ -1,7 +1,7 @@
 #include "firing.h"
 #include "../message.h"
 #include "../storable_spikes.h"
-#include "../driver/lp_neuron.h"
+#include "../driver/neuron_lp.h"
 #include "ross.h"
 
 #include <stdio.h>
@@ -11,22 +11,22 @@ static size_t buffer_size;
 static size_t buffer_used = 0;
 static bool buffer_limit_hit = false;
 
-void initialize_record_firing(size_t buffer_size_) {
+void probes_firing_init(size_t buffer_size_) {
     buffer_size = buffer_size_;
     firing_spikes = malloc(buffer_size * sizeof(struct StorableSpike));
 }
 
 
-void record_firing(
+void probes_firing_record(
         struct NeuronLP * neuronLP,
         struct Message * msg,
         struct tw_lp * lp) {
-    (void) neuronLP;
+    (void) lp;
     assert(firing_spikes != NULL);
 
     if (msg->type == MESSAGE_TYPE_heartbeat && msg->fired) {
         if (buffer_used < buffer_size) {
-            firing_spikes[buffer_used].neuron    = lp->id;
+            firing_spikes[buffer_used].neuron    = neuronLP->doryta_id;
             firing_spikes[buffer_used].time      = msg->time_processed;
             firing_spikes[buffer_used].intensity = 1;
             buffer_used++;
@@ -37,11 +37,11 @@ void record_firing(
 }
 
 
-void save_record_firing(char const * path) {
+void probes_firing_save(char const * path) {
     assert(firing_spikes != NULL);
     unsigned long self = g_tw_mynode;
     if (buffer_limit_hit) {
-        fprintf(stderr, "Only the first %ld spikes have been recorded\n", buffer_size);
+        fprintf(stderr, "Only the first %ld `spikes` have been recorded\n", buffer_size);
     }
 
     // Finding name for file
@@ -59,12 +59,12 @@ void save_record_firing(char const * path) {
 
         fclose(fp);
     } else {
-        fprintf(stderr, "Unable to store spikes in file %s\n", filename);
+        fprintf(stderr, "Unable to store `spikes` in file %s\n", filename);
     }
 }
 
 
-void deinitialize_record_firing(void) {
+void probes_firing_deinit(void) {
     assert(firing_spikes != NULL);
     free(firing_spikes);
 }
