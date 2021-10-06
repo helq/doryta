@@ -1,5 +1,6 @@
 # This is to allow tests to include header files without ugly "../../.."
 set(DORYTA_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+set(DORYTA_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}" PARENT_SCOPE)
 
 # Setting up ROSS and additional utilities (Git stuff is used in
 # configuration header file, below)

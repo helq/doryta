@@ -13,11 +13,15 @@ The following are the instructions to download and compile:
 git clone --recursive https://github.com/helq/doryta
 mkdir doryta/build
 cd doryta/build
-cmake .. -DCMAKE_INSTALL_PREFIX="$(pwd -P)/"
-make install
+cmake .. -DBUILD_TESTING=OFF
+make
 ```
 
-After compiling, you will find the executable under the folder: `build/bin`
+After compiling, you will find the executable under the folder: `build/src`
+
+Optionally, you can run `make install` to copy doryta to the folder where binaries are
+stored in your computer. One place for easy access while developing doryta is `build/bin`.
+For this run cmake with the flag `-DCMAKE_INSTALL_PREFIX="$(pwd -P)/"`.
 
 # Execution
 
@@ -45,16 +49,16 @@ The documentation will be stored in `docs/html`.
 [doxygen]: https://www.doxygen.nl/
 [graphviz]: https://www.graphviz.org/
 
-# Developing
+# Testing
 
-Doryta is C17 (and thus C11) compliant. When doryta is compiled with C extensions, it
-makes use of them to further typecheck some expressions (eg, closures as defined in
-`src/utils/closure.h` define an opaque pointer `void *` which holds information to be
-processed by the closured function, `typeof` is used in here to extract the type of the
-data being passed and enforce that the closured function works with the data stored).
-
-To activate the extensions run cmake with:
+To run tests you have to compile them first and then run ctest:
 
 ```bash
-cmake .. -DCMAKE_C_EXTENSIONS=ON
+cmake .. -DBUILD_TESTING=ON
+make
+ctest
 ```
+
+Remember to run CMake again whenever a new test is added. CMake generates the rules to
+compile the tests and run them. Unfortunatelly, CMake is not triggered when new
+tests/foldersr are added to the `test` folder.
