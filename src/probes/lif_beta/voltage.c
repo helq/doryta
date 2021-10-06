@@ -63,7 +63,7 @@ void probes_lif_beta_voltages_save(char const * path) {
 
     if (fp != NULL) {
         for (size_t i = 0; i < buffer_used; i++) {
-            fprintf(fp, "%lu\t%f\t%f\n", spikes[i].neuron, spikes[i].time, spikes[i].voltage);
+            fprintf(fp, "%" PRIu64 "\t%f\t%f\n", spikes[i].neuron, spikes[i].time, spikes[i].voltage);
         }
 
         fclose(fp);
