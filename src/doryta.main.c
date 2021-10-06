@@ -203,7 +203,6 @@ int main(int argc, char *argv[]) {
     // set the global variable and initialize each LP's type
     g_tw_lp_types = doryta_lps;
     tw_lp_setup_types();
-    // note that g_tw_nlp gets set here by tw_define_lps
 
     // Allocating memory for probes
     probes_firing_init(5000);

@@ -1,5 +1,4 @@
 #include <ross.h>
-#include <doryta_config.h>
 #include "driver/neuron_lp.h"
 #include "layout/fully_connected_network.h"
 #include "layout/master.h"
@@ -67,13 +66,11 @@ int main(int argc, char *argv[]) {
     tw_init(&argc, &argv);
 
     // Do some error checking?
+    if (tw_nnodes() != 2) {
+        fprintf(stderr, "This must be run in 2 PEs.");
+    }
     if (g_tw_mynode == 0) {
       check_folder("output");
-    }
-
-    // Printing settings
-    if (g_tw_mynode == 0) {
-      printf("doryta git version: " MODEL_VERSION "\n");
     }
 
     // Spikes
@@ -176,7 +173,7 @@ int main(int argc, char *argv[]) {
     set_mapping_on_all_lps(layout_master_gid_to_pe);
 
     // Setting up ROSS variables
-    // number of LPs == number of neurons per PE + supporting neurons
+    // number of LPs == number of neurons per PE
     int const num_lps_in_pe = layout_master_total_lps_pe();
     tw_define_lps(num_lps_in_pe, sizeof(struct Message));
     // set the global variable and initialize each LP's type
