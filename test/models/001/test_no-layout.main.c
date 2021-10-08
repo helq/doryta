@@ -21,9 +21,9 @@ static tw_peid linear_map(tw_lpid gid) {
  */
 tw_lptype doryta_lps[] = {
     {   .init     = (init_f)    neuronLP_init,
-        .pre_run  = (pre_run_f) NULL,
-        .event    = (event_f)   neuronLP_event,
-        .revent   = (revent_f)  neuronLP_event_reverse,
+        .pre_run  = (pre_run_f) neuronLP_pre_run_needy,
+        .event    = (event_f)   neuronLP_event_needy,
+        .revent   = (revent_f)  neuronLP_event_reverse_needy,
         .commit   = (commit_f)  neuronLP_event_commit,
         .final    = (final_f)   neuronLP_final,
         .map      = (map_f)     linear_map,

@@ -1,4 +1,3 @@
 #!/usr/bin/bash
 
-diff -r "$1" "$2"
-exit $?
+exec diff -r "$1" "$2"

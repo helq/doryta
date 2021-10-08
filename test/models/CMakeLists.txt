@@ -27,6 +27,8 @@ subdirlist_macro(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Global bash script that checks whether two directories contain the same files
 set(bash_check_global "${CMAKE_CURRENT_SOURCE_DIR}/check-dirs.sh")
+set(bash_test_global "${CMAKE_CURRENT_SOURCE_DIR}/test.sh")
+set(bash_check_net_events "${CMAKE_CURRENT_SOURCE_DIR}/check-net-events.sh")
 
 # For each subdirectory inside test/models we create the rules to compiles all
 # `.main.c` files and how to test them. By default the main.c executable is
@@ -113,16 +115,19 @@ foreach(subdir ${SUBDIRS})
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${subdir})
     else()
         add_test(NAME test-${subdir}
-            COMMAND ${MPIEXEC} -np ${mpi_count} "../${executable_name}"
-                    --end=${doryta_end} --synch=3
+            COMMAND ${BASH_EXECUTABLE} ${bash_test_global}
+                $<TARGET_FILE:${executable_name}>  # $1       = binary
+                ${mpi_count}                       # -np $2
+                ${doryta_end}                      # --end=$3
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${subdir})
     endif()
 
     # Comparing output results if the folder `expected_output` is present
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/expected_output")
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/expected_output"
+       OR EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/check-output.sh")
         # The comparison is performed either by custom or global `check.sh`
-        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/expected_output/check.sh")
-            set(bash_check "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/expected_output/check.sh")
+        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/check-output.sh")
+            set(bash_check "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/check-output.sh")
         else()
             set(bash_check "${bash_check_global}")
         endif()
@@ -134,5 +139,18 @@ foreach(subdir ${SUBDIRS})
             "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/expected_output"
             "${CMAKE_CURRENT_BINARY_DIR}/${subdir}/output"
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${subdir})
+        set_tests_properties(test-${subdir}-checking-output
+            PROPERTIES DEPENDS test-${subdir})
+    endif()
+
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/net_events_expected.txt")
+        add_test(NAME test-${subdir}-checking-net-events
+            COMMAND
+            ${BASH_EXECUTABLE}
+            "${bash_check_net_events}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${subdir})
+        set_tests_properties(test-${subdir}-checking-net-events
+            PROPERTIES DEPENDS test-${subdir})
     endif()
 endforeach(subdir)

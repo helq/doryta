@@ -18,9 +18,9 @@
  */
 tw_lptype doryta_lps[] = {
     {   .init     = (init_f)    neuronLP_init,
-        .pre_run  = (pre_run_f) neuronLP_pre_run_needy,
-        .event    = (event_f)   neuronLP_event_needy,
-        .revent   = (revent_f)  neuronLP_event_reverse_needy,
+        .pre_run  = (pre_run_f) NULL,
+        .event    = (event_f)   neuronLP_event_spike_driven,
+        .revent   = (revent_f)  neuronLP_event_reverse_spike_driven,
         .commit   = (commit_f)  neuronLP_event_commit,
         .final    = (final_f)   neuronLP_final,
         .map      = (map_f)     NULL, // Set own mapping function. ROSS won't work without it! Use `set_mapping_on_all_lps` for that
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Spikes
-    struct StorableSpike *spikes[5] = {
+    struct StorableSpike *spikes_pe0[52] = {
         (struct StorableSpike[]) {
             {   .neuron = 0,
                 .time = 0.1,
@@ -94,6 +94,22 @@ int main(int argc, char *argv[]) {
             },
             {   .neuron = 0,
                 .time = 0.65,
+                .intensity = 1
+            },
+            {   .neuron = 0,
+                .time = 0.651,
+                .intensity = 1
+            },
+            {   .neuron = 0,
+                .time = 0.652,
+                .intensity = 1
+            },
+            {   .neuron = 0,
+                .time = 0.653,
+                .intensity = 1
+            },
+            {   .neuron = 0,
+                .time = 0.654,
                 .intensity = 1
             },
             {0}
@@ -103,35 +119,9 @@ int main(int argc, char *argv[]) {
         NULL,
         NULL
     };
-
-    struct StorableSpike *spikes_pe1[4] = {
-        NULL,
-        NULL,
-        (struct StorableSpike[]) {
-            {   .neuron = 5,
-                .time = 0.1,
-                .intensity = 1
-            },
-            {   .neuron = 5,
-                .time = 0.2,
-                .intensity = 1
-            },
-            {   .neuron = 5,
-                .time = 0.26,
-                .intensity = 1
-            },
-            {   .neuron = 5,
-                .time = 0.36,
-                .intensity = 1
-            },
-            {   .neuron = 5,
-                .time = 0.65,
-                .intensity = 1
-            },
-            {0}
-        },
-        NULL,
-    };
+    for (int i = 3; i < 52; i++) {
+        spikes_pe0[i] = NULL;
+    }
 
     probe_event_f probe_events[3] = {
         probes_firing_record, probes_lif_voltages_record, NULL};
@@ -142,21 +132,22 @@ int main(int argc, char *argv[]) {
       //.num_neurons_pe   = ...
       //.neurons          = ...
       //.synapses         = ...
-      .spikes           = g_tw_mynode == 0 ? spikes : (g_tw_mynode == 1 ? spikes_pe1 : NULL),
-      .beat             = 1.0/256,
-      .firing_delay     = 1,
-      .neuron_leak      = (neuron_leak_f) leak_lif_neuron,
-      .neuron_integrate = (neuron_integrate_f) integrate_lif_neuron,
-      .neuron_fire      = (neuron_fire_f) fire_lif_neuron,
+      .spikes            = g_tw_mynode == 0 ? spikes_pe0 : NULL,
+      .beat              = 1.0/256,
+      .firing_delay      = 1,
+      .neuron_leak       = (neuron_leak_f) leak_lif_neuron,
+      .neuron_leak_bigdt = (neuron_leak_big_f) leak_lif_big_neuron,
+      .neuron_integrate  = (neuron_integrate_f) integrate_lif_neuron,
+      .neuron_fire       = (neuron_fire_f) fire_lif_neuron,
       .store_neuron         = (neuron_state_op_f) store_lif_neuron_state,
       .reverse_store_neuron = (neuron_state_op_f) reverse_store_lif_neuron_state,
-      .print_neuron_struct  = (print_neuron_f) print_lif_neuron,
+      //.print_neuron_struct  = (print_neuron_f) print_lif_neuron,
       //.gid_to_doryta_id    = ...
       .probe_events     = probe_events,
     };
 
     // Defining layout structure (levels) and configuring neurons in current PE
-    layout_fcn_reserve(5, 0, tw_nnodes()-1);
+    layout_fcn_reserve(50, 0, tw_nnodes()-1);
     if (tw_nnodes() > 1) {
         layout_fcn_reserve(2, 1, 1);
     }

@@ -17,9 +17,9 @@ static tw_peid linear_map(tw_lpid gid) {
  */
 tw_lptype doryta_lps[] = {
     {   .init     = (init_f)    neuronLP_init,
-        .pre_run  = (pre_run_f) NULL,
-        .event    = (event_f)   neuronLP_event,
-        .revent   = (revent_f)  neuronLP_event_reverse,
+        .pre_run  = (pre_run_f) neuronLP_pre_run_needy,
+        .event    = (event_f)   neuronLP_event_needy,
+        .revent   = (revent_f)  neuronLP_event_reverse_needy,
         .commit   = (commit_f)  neuronLP_event_commit,
         .final    = (final_f)   neuronLP_final,
         .map      = (map_f)     linear_map,
@@ -49,6 +49,11 @@ static bool dummy_fire(struct DummyNeuron * dn) {
     return dn->potential > 0;
 }
 
+
+// Dummy store and restore are never really called. For that Optimistic mode
+// should be activated. For a single PE, the only mode is Sequential.
+// Nonetheless, this is the structure and their implementation (if they were to
+// be ever called for reversed computation to be performed)
 static_assert(sizeof(int8_t) <= MESSAGE_SIZE_REVERSE,
         "There is no space in Message to store the state of the dummy "
         "neuron. Make sure MESSAGE_SIZE_REVERSE is more than 0.");
