@@ -8,6 +8,16 @@ void leak_lif_neuron(struct LifNeuron * lf, float dt) {
 }
 
 
+void leak_lif_big_neuron(struct LifNeuron * lf, float delta, float dt) {
+    size_t iterations = delta / dt;
+    for (size_t i = 0; i < iterations; i++) {
+        lf->potential = lf->potential
+            + dt * (- lf->potential - lf->resting_potential
+                    + lf->current * lf->resistance) / lf->tau_m;
+    }
+}
+
+
 void integrate_lif_neuron(struct LifNeuron * lf, float spike_current) {
     /*if (spike_current > 0) */
     lf->current += spike_current;

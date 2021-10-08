@@ -18,16 +18,47 @@
  * - Multiple sets can be defined (for multiple LP types)
  */
 tw_lptype doryta_lps[] = {
-    {   .init     = (init_f)    neuronLP_init,
-        .pre_run  = (pre_run_f) NULL,
-        .event    = (event_f)   neuronLP_event,
-        .revent   = (revent_f)  neuronLP_event_reverse,
+    { // Neuron LP - needy mode
+        .init     = (init_f)    neuronLP_init,
+        .pre_run  = (pre_run_f) neuronLP_pre_run_needy,
+        .event    = (event_f)   neuronLP_event_needy,
+        .revent   = (revent_f)  neuronLP_event_reverse_needy,
         .commit   = (commit_f)  neuronLP_event_commit,
         .final    = (final_f)   neuronLP_final,
         .map      = (map_f)     NULL, // Set own mapping function. ROSS won't work without it! Use `set_mapping_on_all_lps` for that
         .state_sz = sizeof(struct NeuronLP)},
+    { // Neuron LP - spike-driven mode
+        .init     = (init_f)    neuronLP_init,
+        .pre_run  = (pre_run_f) NULL,
+        .event    = (event_f)   neuronLP_event_spike_driven,
+        .revent   = (revent_f)  neuronLP_event_reverse_spike_driven,
+        .commit   = (commit_f)  neuronLP_event_commit,
+        .final    = (final_f)   neuronLP_final,
+        .map      = (map_f)     NULL,
+        .state_sz = sizeof(struct NeuronLP)},
     {0},
 };
+
+
+/**
+ * Helper function to make all LPs use the same (GID -> local ID) mapping
+ * function.
+ */
+static void set_mapping_on_all_lps(map_f map) {
+    for (size_t i = 0; doryta_lps[i].event != NULL; i++) {
+        doryta_lps[i].map = map;
+    }
+}
+
+
+// The LP type determines the mode in which the neuron runs
+static tw_lpid model_typemap(tw_lpid gid) {
+    (void) gid;
+    // 0 - needy mode
+    // 1 - spike-driven mode
+    return 0;
+}
+
 
 /** Define command line arguments default values. */
 // static int init_pattern = 0;
@@ -69,17 +100,6 @@ static float initialize_weight_neurons(size_t neuron_from, size_t neuron_to) {
     (void) neuron_from;
     (void) neuron_to;
     return neuron_from == neuron_to ? 0 : 0.4;
-}
-
-
-/**
- * Helper function to make all LPs use the same (GID -> local ID) mapping
- * function.
- */
-static void set_mapping_on_all_lps(map_f map) {
-    for (size_t i = 0; doryta_lps[i].event != NULL; i++) {
-        doryta_lps[i].map = map;
-    }
 }
 
 
@@ -166,12 +186,13 @@ int main(int argc, char *argv[]) {
       //.num_neurons_pe   = ...
       //.neurons          = ...
       //.synapses         = ...
-      .spikes           = g_tw_mynode == 0 ? spikes : (g_tw_mynode == 1 ? spikes_pe1 : NULL),
-      .beat             = 1.0/256,
-      .firing_delay     = 1,
-      .neuron_leak      = (neuron_leak_f) leak_lif_neuron,
-      .neuron_integrate = (neuron_integrate_f) integrate_lif_neuron,
-      .neuron_fire      = (neuron_fire_f) fire_lif_neuron,
+      .spikes            = g_tw_mynode == 0 ? spikes : (g_tw_mynode == 1 ? spikes_pe1 : NULL),
+      .beat              = 1.0/256,
+      .firing_delay      = 1,
+      .neuron_leak       = (neuron_leak_f) leak_lif_neuron,
+      .neuron_leak_bigdt = (neuron_leak_big_f) leak_lif_big_neuron,
+      .neuron_integrate  = (neuron_integrate_f) integrate_lif_neuron,
+      .neuron_fire       = (neuron_fire_f) fire_lif_neuron,
       .store_neuron         = (neuron_state_op_f) store_lif_neuron_state,
       .reverse_store_neuron = (neuron_state_op_f) reverse_store_lif_neuron_state,
       .print_neuron_struct  = (print_neuron_f) print_lif_neuron,
@@ -200,6 +221,8 @@ int main(int argc, char *argv[]) {
     // number of LPs == number of neurons per PE + supporting neurons
     int const num_lps_in_pe = layout_master_total_lps_pe();
     tw_define_lps(num_lps_in_pe, sizeof(struct Message));
+    // to determine the type of LP
+    g_tw_lp_typemap = model_typemap;
     // set the global variable and initialize each LP's type
     g_tw_lp_types = doryta_lps;
     tw_lp_setup_types();

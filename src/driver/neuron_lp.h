@@ -40,16 +40,25 @@ struct SynapseCollection {
  * Invariants:
  * - `neuron_struct` cannot be null
  * - `to_contact` has to be valid (`num` == 0 iff `synapses` == NULL)
+ * - `last_heartbeat` is never negative
  */
 struct NeuronLP {
     size_t doryta_id; // This might not be the same as the GID for the neuron (it is defined as dorytaID because that is how it is caled in src/layout, but it might be anything the user wants)
     void *neuron_struct; /**< A pointer to the neuron state */
     struct SynapseCollection to_contact;
+
+    // spike-driven mode only parameters
+    struct {
+        double last_heartbeat;
+        bool next_heartbeat_sent;
+    };
 };
 
 static inline void initialize_NeuronLP(struct NeuronLP * neuronLP) {
     neuronLP->neuron_struct = NULL;
     neuronLP->to_contact = (struct SynapseCollection){0, NULL};
+    neuronLP->last_heartbeat = 0;
+    neuronLP->next_heartbeat_sent = false;
 }
 
 static inline bool is_valid_NeuronLP(struct NeuronLP * neuronLP) {
@@ -57,7 +66,8 @@ static inline bool is_valid_NeuronLP(struct NeuronLP * neuronLP) {
     bool const synapse_collection =
         (neuronLP->to_contact.num == 0)
         == (neuronLP->to_contact.synapses == NULL);
-    return struct_notnull && synapse_collection;
+    bool const positive_heartbeat = neuronLP->last_heartbeat >= 0;
+    return struct_notnull && synapse_collection && positive_heartbeat;
 }
 
 static inline void assert_valid_NeuronLP(struct NeuronLP * neuronLP) {
@@ -65,11 +75,13 @@ static inline void assert_valid_NeuronLP(struct NeuronLP * neuronLP) {
     assert(neuronLP->neuron_struct != NULL);
     assert((neuronLP->to_contact.num == 0)
             == (neuronLP->to_contact.synapses == NULL));
+    assert(neuronLP->last_heartbeat >= 0);
 #endif // NDEBUG
 }
 
 
 typedef void (*neuron_leak_f)      (void *, float);
+typedef void (*neuron_leak_big_f)  (void *, float, float);
 typedef void (*neuron_integrate_f) (void *, float);
 typedef bool (*neuron_fire_f)      (void *);
 typedef void (*probe_event_f)      (struct NeuronLP *, struct Message *, struct tw_lp *);
@@ -114,7 +126,8 @@ struct SettingsNeuronLP {
     struct StorableSpike    ** spikes;
     double                     beat; //<! Heartbeat frequency
     int                        firing_delay;
-    neuron_leak_f              neuron_leak;
+    neuron_leak_f              neuron_leak; //<! Leak operation over neuron for a step of size dt (beat)
+    neuron_leak_big_f          neuron_leak_bigdt; //<! Leak operation over neuron for an arbitrary interval of time t (it might use a dt (beat) as input too)
     neuron_integrate_f         neuron_integrate;
     neuron_fire_f              neuron_fire;
     neuron_state_op_f          store_neuron;
@@ -179,15 +192,33 @@ void neuronLP_config(struct SettingsNeuronLP *);
 /** Neuron initialization. */
 void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp);
 
-/** Forward event handler. */
-void neuronLP_event(
+/** Neuron pre-run handler (only to be used by needy mode). */
+void neuronLP_pre_run_needy(struct NeuronLP *neuronLP, struct tw_lp *lp);
+
+/** Forward event handler for needy mode. */
+void neuronLP_event_needy(
+        struct NeuronLP *neuronLP,
+        struct tw_bf *bit_field,
+        struct Message *message,
+        struct tw_lp *lp);
+
+/** Forward event handler for spike-driven mode. Only works if
+ * `neuron_leak_bigdt` is defined. */
+void neuronLP_event_spike_driven(
+        struct NeuronLP *neuronLP,
+        struct tw_bf *bit_field,
+        struct Message *message,
+        struct tw_lp *lp);
+
+/** Reverse event handler for needy mode. */
+void neuronLP_event_reverse_needy(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *message,
         struct tw_lp *lp);
 
 /** Reverse event handler. */
-void neuronLP_event_reverse(
+void neuronLP_event_reverse_spike_driven(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *message,

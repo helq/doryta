@@ -38,6 +38,8 @@ struct Message {
             float spike_current;
         };
     };
+    // Reverse only fields
+    double prev_heartbeat;
     // This reserves MESSAGE_SIZE_REVERSE bytes (enough for
     // MESSAGE_SIZE_REVERSE/4 double-precision floating point numbers,
     // MESSAGE_SIZE_REVERSE/8 64-bit integers, or really anything that can occupy

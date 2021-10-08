@@ -45,20 +45,25 @@ void neuronLP_config(struct SettingsNeuronLP * settings_in) {
     firing_delay_double = (settings.firing_delay - 0.5) * settings.beat;
 
     // TODO: This PE should communicate with all the others to see if the total
-    // number of neurons is what is supposed to be
+    // number of neurons is what is supposed to be (only to be run as an assert)
 }
 
 
-static inline void send_heartbeat(struct NeuronLP *neuronLP, struct tw_lp *lp) {
+static inline void send_heartbeat_at(struct NeuronLP *neuronLP, struct tw_lp *lp, double dt) {
     (void) neuronLP;
     uint64_t const self = lp->gid;
     struct tw_event * const event
-        = tw_event_new_user_prio(self, settings.beat, lp, HEARTBEAT_PRIORITY);
+        = tw_event_new_user_prio(self, dt, lp, HEARTBEAT_PRIORITY);
     // Updating when next heartbeat will occur
     struct Message * const msg = tw_event_data(event);
     initialize_Message(msg, MESSAGE_TYPE_heartbeat);
     assert_valid_Message(msg);
     tw_event_send(event);
+}
+
+
+static inline void send_heartbeat(struct NeuronLP *neuronLP, struct tw_lp *lp) {
+    send_heartbeat_at(neuronLP, lp, settings.beat);
 }
 
 
@@ -136,14 +141,20 @@ void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
         }
     }
 
-    // send initial heartbeat
-    send_heartbeat(neuronLP, lp);
     assert_valid_NeuronLP(neuronLP);
 }
 
 
+// Why isn't this executed by _init_ itself? An initial heartbeat is only
+// necessary on needy mode. On spike-driven mode, there's no initial spike
+void neuronLP_pre_run_needy(struct NeuronLP *neuronLP, struct tw_lp *lp) {
+    // send initial heartbeat
+    send_heartbeat(neuronLP, lp);
+}
+
+
 // Forward event handler
-void neuronLP_event(
+void neuronLP_event_needy(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *msg,
@@ -182,7 +193,7 @@ void neuronLP_event(
 // Reverse Event Handler
 // Notice that all operations are reversed using the data stored in either the reverse
 // message or the bit field
-void neuronLP_event_reverse(
+void neuronLP_event_reverse_needy(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *msg,
@@ -190,6 +201,85 @@ void neuronLP_event_reverse(
     (void) bit_field;
     (void) lp;
     settings.reverse_store_neuron(neuronLP->neuron_struct, msg->reserved_for_reverse);
+}
+
+
+static inline double find_prev_heartbeat_time(double now) {
+    double intpart;
+    modf(now / settings.beat, &intpart);
+    return intpart * settings.beat;
+}
+
+
+// Forward event handler
+void neuronLP_event_spike_driven(
+        struct NeuronLP *neuronLP,
+        struct tw_bf *bit_field,
+        struct Message *msg,
+        struct tw_lp *lp) {
+    assert(settings.neuron_leak_bigdt != NULL);
+    assert_valid_Message(msg);
+
+    bit_field->c0 = neuronLP->next_heartbeat_sent;
+
+    msg->prev_heartbeat = neuronLP->last_heartbeat;
+    msg->time_processed = tw_now(lp);
+    settings.store_neuron(neuronLP->neuron_struct, msg->reserved_for_reverse);
+
+    switch (msg->type) {
+        case MESSAGE_TYPE_heartbeat: {
+            // Same as needy mode, except for `last_heartbeat`
+            settings.neuron_leak(neuronLP->neuron_struct, settings.beat);
+            bool const fired = settings.neuron_fire(neuronLP->neuron_struct);
+            if (fired) {
+                send_spike(neuronLP, lp, firing_delay_double);
+                msg->fired = true;
+            }
+            neuronLP->last_heartbeat = tw_now(lp);
+            neuronLP->next_heartbeat_sent = false;
+            break;
+        }
+
+        case MESSAGE_TYPE_spike: {
+            // previous heartbeat is not last heartbeat. It is the timestamp
+            // for when the previous heartbeat to this spike message should
+            // have been
+            double const prev_heartbeat_time = find_prev_heartbeat_time(tw_now(lp));
+            double const beat = settings.beat;
+            assert(neuronLP->last_heartbeat <= prev_heartbeat_time);
+
+            // Getting neuron up-to-date since last heartbeat
+            if (! neuronLP->next_heartbeat_sent &&
+                neuronLP->last_heartbeat < prev_heartbeat_time)
+            {
+                double const delta = prev_heartbeat_time - neuronLP->last_heartbeat;
+                settings.neuron_leak_bigdt(neuronLP->neuron_struct, delta, beat);
+                neuronLP->last_heartbeat = prev_heartbeat_time;
+            }
+
+            settings.neuron_integrate(neuronLP->neuron_struct, msg->spike_current);
+
+            if (!neuronLP->next_heartbeat_sent) {
+                double const dt_to_next_beat = prev_heartbeat_time + beat - tw_now(lp);
+                send_heartbeat_at(neuronLP, lp, dt_to_next_beat);
+                neuronLP->next_heartbeat_sent = true;
+            }
+            break;
+        }
+    }
+}
+
+
+// Reverse Event Handler
+void neuronLP_event_reverse_spike_driven(
+        struct NeuronLP *neuronLP,
+        struct tw_bf *bit_field,
+        struct Message *msg,
+        struct tw_lp *lp) {
+    (void) lp;
+    settings.reverse_store_neuron(neuronLP->neuron_struct, msg->reserved_for_reverse);
+    neuronLP->last_heartbeat = msg->prev_heartbeat;
+    neuronLP->next_heartbeat_sent = bit_field->c0;
 }
 
 
