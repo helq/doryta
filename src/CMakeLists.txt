@@ -2,14 +2,10 @@
 set(DORYTA_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 set(DORYTA_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}" PARENT_SCOPE)
 
-# Setting up ROSS and additional utilities (Git stuff is used in
-# configuration header file, below)
-include_directories(
-  "${ROSS_SOURCE_DIR}"
-  "${ROSS_BINARY_DIR}"
-)
-# Uncomment in case of using RIO
-#include_directories(${RIO_SOURCE_DIR} ${RIO_BINARY_DIR})
+# Setting up external libraries (includes ROSS)
+include_directories("${external_includes}")
+
+# Git stuff is used in configuration header file
 list(APPEND CMAKE_MODULE_PATH "${ROSS_SOURCE_DIR}/cmake/")
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_RESPEC_MODEL GIT_SHA1_MODEL)
@@ -37,6 +33,7 @@ add_library(doryta_lib
   probes/lif/voltage.c
   probes/lif_beta/voltage.c
   utils/io.c
+  utils/pcg32_random.c
 )
 
 # Compiling ROSS doryta model
@@ -44,9 +41,7 @@ add_executable(doryta doryta.main.c)
 target_link_libraries(doryta
   PRIVATE
     doryta_lib
-    m
-    ROSS
-#   RIO # uncomment if using RIO
+    ${external_libraries}
 )
 
 # Including variables that indicate where the usr/bin is.

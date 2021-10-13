@@ -13,10 +13,5 @@ if [ $column_name != "net_events" ]; then
     exit 1
 fi
 
-net_events_expected=$(cat "$1/net_events_expected.txt")
-net_events_computed=$(tail -n1 ross.csv | awk -F',' '{ print $24 }')
-if [ $net_events_computed -ne $net_events_expected ]; then
-    echo "The number of expected Net Events ${net_events_expected}" \
-        "does not correspond to the computed Net Events ${net_events_computed}"
-    exit 1
-fi
+exec diff "$1/net_events_expected.txt" \
+          <(awk -F',' '(NR>1) { print $24 }' ross.csv)

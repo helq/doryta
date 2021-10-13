@@ -220,17 +220,19 @@ int main(int argc, char *argv[]) {
     tw_lp_setup_types();
 
     // Allocating memory for probes
-    probes_firing_init(5000);
-    probes_lif_voltages_init(5000);
+    probes_firing_init(50);
+    probes_lif_voltages_init(50);
 
     // Running simulation
     tw_run();
     // Simulation ends when the function exits
 
     // Deallocating/deinitializing everything
-    probes_firing_save("output/five-neurons-test");
+    char const * const output_file =
+        is_spike_driven ? "output/spike-driven-test" : "output/needy-test";
+    probes_firing_save(output_file);
     probes_firing_deinit();
-    probes_lif_voltages_save("output/five-neurons-test");
+    probes_lif_voltages_save(output_file);
     probes_lif_voltages_deinit();
 
     layout_master_free();
