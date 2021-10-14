@@ -27,7 +27,7 @@ subdirlist_macro(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
 # Global bash script that checks whether two directories contain the same files
 set(bash_check_global "${CMAKE_CURRENT_SOURCE_DIR}/check-dirs.sh")
 set(bash_test_global "${CMAKE_CURRENT_SOURCE_DIR}/test.sh")
-set(bash_test_pre "${CMAKE_CURRENT_SOURCE_DIR}/test-pre.sh")
+set(bash_test_pre "${CMAKE_CURRENT_SOURCE_DIR}/test-pre.sh")  # cleans prior executions
 set(bash_check_net_events "${CMAKE_CURRENT_SOURCE_DIR}/check-net-events.sh")
 
 # For each subdirectory inside test/models we create the rules to compiles all

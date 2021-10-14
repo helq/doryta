@@ -91,15 +91,16 @@ static tw_optdef const model_opts[] = {
 static void initialize_LIF(struct LifNeuron * lif, size_t doryta_id) {
     (void) doryta_id;
     pcg32_random_t rng;
-    uint32_t const initseq = (doryta_id + 1) * 2u;
-    pcg32_srandom_r(&rng, 42u, initseq);
+    uint32_t const initstate = doryta_id + 42u;
+    uint32_t const initseq = doryta_id + 54u;
+    pcg32_srandom_r(&rng, initstate, initseq);
 
     *lif = (struct LifNeuron) {
         .potential = 0,
         .current = 0,
         .resting_potential = 0,
         .reset_potential = 0,
-        .threshold = doryta_id == 0 ? 1.2 : 0.3 + pcg32_float_r(&rng) * 0.4,
+        .threshold = doryta_id == 0 ? 1.2 : 0.4 + pcg32_float_r(&rng) * 0.2,
         .tau_m = .2,
         .resistance = 30
     };
@@ -111,8 +112,17 @@ static float initialize_weight_neurons(size_t neuron_from, size_t neuron_to) {
     (void) neuron_to;
 
     pcg32_random_t rng;
-    uint32_t const initseq = (neuron_from + (neuron_to + 1) * 4325317u) * 3u;
-    pcg32_srandom_r(&rng, 42u, initseq);
+    // Yes, we are constrained to 2^16 neurons before we start repeating
+    // subsequences (there is a total of 64 bits for the generation of random
+    // numbers, so 16 bits seems too little, but what happens is that there are
+    // 2^32 different sequences with 2^32 elements each, precisely). Because we
+    // only care in this example for one number from the sequence we have the
+    // luxury of assuming that the 64bits of input are our seed. Trying to keep
+    // initstate and initseq different for every weight (synapse) and neuron
+    // should be enough
+    uint32_t const initstate = (neuron_from + 1) + (neuron_to + 1) * 65537u + 65536u; // 2^16
+    uint32_t const initseq = (neuron_from + 1) * (neuron_to + 1) + 2147483648; // 2^31
+    pcg32_srandom_r(&rng, initstate, initseq);
 
     float const intensity = 0.1 + pcg32_float_r(&rng) * 0.52;
 

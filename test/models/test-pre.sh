@@ -7,4 +7,8 @@ if [ -f "ross.csv" ]; then
   rm ross.csv
 fi
 
+if [ -d "output" ]; then
+  rm -r output
+fi
+
 exec bash -x "$@"
