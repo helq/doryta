@@ -138,7 +138,7 @@ foreach(subdir ${SUBDIRS})
 
         add_test(NAME test-${subdir}-checking-output
             COMMAND
-            ${BASH_EXECUTABLE}
+            ${BASH_EXECUTABLE} -x
             "${bash_check}"
             "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/expected_output"
             "${CMAKE_CURRENT_BINARY_DIR}/${subdir}/output"
@@ -150,7 +150,7 @@ foreach(subdir ${SUBDIRS})
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/net_events_expected.txt")
         add_test(NAME test-${subdir}-checking-net-events
             COMMAND
-            ${BASH_EXECUTABLE}
+            ${BASH_EXECUTABLE} -x
             "${bash_check_net_events}"
             "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/"
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${subdir})

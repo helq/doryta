@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ -F ross.csv ]; then
+if [ ! -f ross.csv ]; then
     echo "ross.csv is not present in directory"
     exit 1
 fi

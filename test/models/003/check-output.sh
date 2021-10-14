@@ -1,8 +1,13 @@
 #!/usr/bin/bash
 
-diff "$1/five-neurons-test-voltage-gid=0.txt" \
-     <(sort "$2"/five-neurons-test-voltage-gid={0,1}.txt) \
+# We sort the expected output again because `sort` is different on each
+# architecture. The same goes for the wildcard character (*); in principle,
+# instead of the wildcard character we could use `{0,1}` but old versions of
+# bash behave differently with that input.
+
+diff <(sort "$1/five-neurons-test-voltage-gid=0.txt") \
+     <(sort "$2"/five-neurons-test-voltage-gid=*.txt) \
    || exit $?
 
-exec diff "$1/five-neurons-test-spikes-gid=0.txt" \
-          <(sort "$2"/five-neurons-test-spikes-gid={0,1}.txt)
+exec diff <(sort "$1/five-neurons-test-spikes-gid=0.txt") \
+          <(sort "$2"/five-neurons-test-spikes-gid=*.txt)
