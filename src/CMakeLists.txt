@@ -24,7 +24,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(doryta_lib
   driver/neuron_lp.c
-  layout/fully_connected_network.c
+  layout/standard_layouts.c
   layout/master.c
   message.c
   neurons/lif.c

@@ -1,6 +1,6 @@
 #include <ross.h>
 #include "driver/neuron_lp.h"
-#include "layout/fully_connected_network.h"
+#include "layout/standard_layouts.h"
 #include "layout/master.h"
 #include "message.h"
 //#include "neurons/lif_beta.h"
@@ -148,10 +148,9 @@ int main(int argc, char *argv[]) {
     if (tw_nnodes() > 1) {
         layout_fcn_reserve(2, 1, 1);
     }
-    // Init master (allocates space for neurons and synapses)
-    layout_master_init(sizeof(struct LifNeuron));
-    // Initializes the neurons and synapses with the given functions
-    layout_fcn_init(
+    // Allocates space for neurons and synapses, and initializes the neurons
+    // and synapses with the given functions
+    layout_master_init(sizeof(struct LifNeuron),
             (neuron_init_f) initialize_LIF,
             (synapse_init_f) initialize_weight_neurons);
     // Modifying and loading neuron configuration (it will be trully loaded
