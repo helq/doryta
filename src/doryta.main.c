@@ -203,9 +203,9 @@ int main(int argc, char *argv[]) {
     };
 
     // Defining layout structure (levels) and configuring neurons in current PE
-    layout_fcn_reserve(5, 0, tw_nnodes()-1);
+    layout_std_fully_connected_network(5, 0, tw_nnodes()-1);
     if (tw_nnodes() > 1) {
-        layout_fcn_reserve(2, 1, 1);
+        layout_std_fully_connected_layer(2, 1, 1);
     }
     // Allocates space for neurons and synapses, and initializes the neurons
     // and synapses with the given functions

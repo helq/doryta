@@ -9,7 +9,7 @@
 // Parameters for each neuron group defined
 struct NeuronGroup {
     // global parameters
-    size_t total_neurons;
+    size_t num_neurons;
     size_t initial_pe;
     size_t final_pe;
     size_t total_pes;
@@ -54,7 +54,7 @@ static struct SynapseCollection * synapses = NULL;
 static uint64_t pe_gid_offset;
 
 
-size_t layout_master_reserve_neurons(
+size_t layout_master_neurons(
         size_t total_neurons, unsigned long initial_pe, unsigned long final_pe) {
     if (initial_pe >= tw_nnodes() || final_pe >= tw_nnodes()) {
         tw_error(TW_LOC, "Valid PE ids for initial and final PEs must be smaller"
@@ -96,7 +96,7 @@ size_t layout_master_reserve_neurons(
                 index_within_range : remainder_neurons);
 
     neuron_groups[num_neuron_groups] = (struct NeuronGroup){
-        .total_neurons = total_neurons,
+        .num_neurons = total_neurons,
         .initial_pe = initial_pe,
         .final_pe = final_pe,
         .total_pes = total_pes,
@@ -123,6 +123,13 @@ size_t layout_master_reserve_neurons(
     return to_ret;
 }
 
+struct NeuronGroupInfo layout_master_info_latest_group(void) {
+    assert(num_neuron_groups > 0);
+    return (struct NeuronGroupInfo) {
+        .id_offset = neuron_groups[num_neuron_groups - 1].global_neuron_offset,
+        .num_neurons = neuron_groups[num_neuron_groups - 1].num_neurons,
+    };
+}
 
 static void master_allocate(int sizeof_neuron);
 static void master_init_neurons(neuron_init_f, synapse_init_f);
@@ -186,7 +193,7 @@ static inline bool falls_id_in_interval(size_t doryta_id, int n_group) {
     return synapse_groups[n_group].from_start <= doryta_id
         && doryta_id <= synapse_groups[n_group].from_end;
 }
-static void synapse_iter_for_neuron(struct SynapseIterator * iter, size_t doryta_id) {
+static inline void synapse_iter_for_neuron(struct SynapseIterator * iter, size_t doryta_id) {
     // Finding first level where `doryta_id` appears in "from" interval
     int n_group;
     for (n_group = 0; n_group < num_synap_groups; n_group++) {
@@ -262,7 +269,8 @@ static void master_init_neurons(neuron_init_f neuron_init, synapse_init_f synaps
 
             // Connecting (collection) synapses to synapses
             synapses[neuron_counter].num = num_synapses_neuron;
-            synapses[neuron_counter].synapses = &naked_synapses[synapse_shift];
+            synapses[neuron_counter].synapses =
+                num_synapses_neuron == 0 ? NULL : &naked_synapses[synapse_shift];
 
             // Initializing neurons
             if (neuron_init != NULL) {
@@ -296,7 +304,7 @@ layout_master_configure(struct SettingsNeuronLP *settingsNeuronLP) {
 
     size_t total_neurons_across_all = 0;
     for (int i = 0; i < num_neuron_groups; i++) {
-        total_neurons_across_all += neuron_groups[i].total_neurons;
+        total_neurons_across_all += neuron_groups[i].num_neurons;
     }
     settingsNeuronLP->num_neurons = total_neurons_across_all;
     settingsNeuronLP->num_neurons_pe = total_neurons_in_pe;
@@ -389,7 +397,7 @@ static inline size_t local_id_to_doryta_id(size_t id, size_t pe) {
     size_t num_neurons_in_pe = 0;
 
     for (int i = 0; i < num_neuron_groups; i++) {
-        size_t const total_neurons = neuron_groups[i].total_neurons;
+        size_t const num_neurons = neuron_groups[i].num_neurons;
         size_t const initial_pe = neuron_groups[i].initial_pe;
         size_t const final_pe = neuron_groups[i].final_pe;
         size_t const total_pes = neuron_groups[i].total_pes;
@@ -404,10 +412,10 @@ static inline size_t local_id_to_doryta_id(size_t id, size_t pe) {
         size_t const index_within_range = initial_pe <= pe ?
             pe - initial_pe
             : pe + (max_pes - initial_pe);
-        size_t const remainder_neurons = total_neurons % total_pes;
+        size_t const remainder_neurons = num_neurons % total_pes;
         size_t const neurons_in_pe =
             pe_inside_range ?
-            total_neurons / total_pes + (index_within_range < remainder_neurons)
+            num_neurons / total_pes + (index_within_range < remainder_neurons)
             : 0;
 
         prev_num_neurons_in_pe = num_neurons_in_pe;
@@ -416,7 +424,7 @@ static inline size_t local_id_to_doryta_id(size_t id, size_t pe) {
         if (id < num_neurons_in_pe) {
             size_t const doryta_id_offset =
                 global_neuron_offset
-                + index_within_range * (total_neurons / total_pes)
+                + index_within_range * (num_neurons / total_pes)
                 + (index_within_range < remainder_neurons ?
                         index_within_range : remainder_neurons);
             return doryta_id_offset + (id - prev_num_neurons_in_pe);
@@ -442,7 +450,7 @@ static inline size_t get_local_offset_for_level_in_pe(size_t pe, int level) {
     size_t num_neurons_in_pe = 0;
 
     for (int i = 0; i < level; i++) {
-        size_t const total_neurons = neuron_groups[i].total_neurons;
+        size_t const num_neurons = neuron_groups[i].num_neurons;
         size_t const initial_pe = neuron_groups[i].initial_pe;
         size_t const final_pe = neuron_groups[i].final_pe;
         size_t const total_pes = neuron_groups[i].total_pes;
@@ -456,10 +464,10 @@ static inline size_t get_local_offset_for_level_in_pe(size_t pe, int level) {
         size_t const index_within_range = initial_pe <= pe ?
             pe - initial_pe
             : pe + (max_pes - initial_pe);
-        size_t const remainder_neurons = total_neurons % total_pes;
+        size_t const remainder_neurons = num_neurons % total_pes;
         size_t const neurons_in_pe =
             pe_inside_range ?
-            total_neurons / total_pes + (index_within_range < remainder_neurons)
+            num_neurons / total_pes + (index_within_range < remainder_neurons)
             : 0;
 
         num_neurons_in_pe += neurons_in_pe;
@@ -475,9 +483,9 @@ size_t layout_master_doryta_id_to_gid(size_t doryta_id) {
 
     // Finding level in which DorytaID recides
     for (level = 0; level < num_neuron_groups; level++) {
-        size_t const total_neurons = neuron_groups[level].total_neurons;
+        size_t const num_neurons = neuron_groups[level].num_neurons;
         size_t const global_neuron_offset = neuron_groups[level].global_neuron_offset;
-        if (doryta_id < global_neuron_offset + total_neurons) {
+        if (doryta_id < global_neuron_offset + num_neurons) {
             break;
         }
     }
@@ -485,12 +493,12 @@ size_t layout_master_doryta_id_to_gid(size_t doryta_id) {
 
     // Finding PE in which DorytaID lives
     size_t const global_neuron_offset = neuron_groups[level].global_neuron_offset;
-    size_t const total_neurons = neuron_groups[level].total_neurons;
+    size_t const num_neurons = neuron_groups[level].num_neurons;
     size_t const initial_pe = neuron_groups[level].initial_pe;
     size_t const total_pes = neuron_groups[level].total_pes;
 
-    size_t const neurons_per_pe = total_neurons / total_pes;
-    size_t const remainder_neurons = total_neurons % total_pes;
+    size_t const neurons_per_pe = num_neurons / total_pes;
+    size_t const remainder_neurons = num_neurons % total_pes;
 
     size_t const id_within_level = doryta_id - global_neuron_offset;
     size_t pe;

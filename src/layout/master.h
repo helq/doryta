@@ -7,13 +7,17 @@
 typedef void (*neuron_init_f) (void * neuron_struct, size_t neuron_id);
 typedef float (*synapse_init_f) (size_t neuron_from, size_t neuron_to);
 
+struct NeuronGroupInfo {
+    size_t id_offset;
+    size_t num_neurons;
+};
 
 /**
  * Reserves N neuron IDs across indicated PEs.
  * The number of neurons must be more than zero.
  * Returns the first doryta ID assigned to the lot.
  */
-size_t layout_master_reserve_neurons(
+size_t layout_master_neurons(
         size_t total_neurons, unsigned long initial_pe, unsigned long final_pe);
 
 /**
@@ -68,5 +72,10 @@ size_t layout_master_doryta_id_to_gid(size_t doryta_id);
  * Converts GID into DorytaID.
  */
 size_t layout_master_gid_to_doryta_id(size_t gid);
+
+/**
+ * Returns parameters of the last group/layer defined.
+ */
+struct NeuronGroupInfo layout_master_info_latest_group(void);
 
 #endif /* end of include guard */

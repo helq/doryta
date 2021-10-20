@@ -205,14 +205,14 @@ int main(int argc, char *argv[]) {
     // Defining layout structure (levels) and configuring neurons in current PE
     layout_std_fully_connected_network(5, 0, tw_nnodes()-1);
     if (tw_nnodes() > 1) {
-        layout_std_fully_connected_network(2, 1, 1);
+        layout_std_fully_connected_layer(2, 1, 1);
     }
     // Allocates space for neurons and synapses, and initializes the neurons
     // and synapses with the given functions
     layout_master_init(sizeof(struct LifNeuron),
             (neuron_init_f) initialize_LIF,
             (synapse_init_f) initialize_weight_neurons);
-    // Modifying and loading neuron configuration (it will be trully loaded
+    // Modifying and loading neuron configuration (it will be truly loaded
     // once the simulation starts)
     settings_neuron_lp = *layout_master_configure(&settings_neuron_lp);
     neuronLP_config(&settings_neuron_lp);
@@ -229,19 +229,17 @@ int main(int argc, char *argv[]) {
     tw_lp_setup_types();
 
     // Allocating memory for probes
-    probes_firing_init(50);
-    probes_lif_voltages_init(50);
+    probes_firing_init(5000);
+    probes_lif_voltages_init(5000);
 
     // Running simulation
     tw_run();
     // Simulation ends when the function exits
 
     // Deallocating/deinitializing everything
-    char const * const output_file =
-        is_spike_driven ? "output/spike-driven-test" : "output/needy-test";
-    probes_firing_save(output_file);
+    probes_firing_save("output/fully-connected-layer");
     probes_firing_deinit();
-    probes_lif_voltages_save(output_file);
+    probes_lif_voltages_save("output/fully-connected-layer");
     probes_lif_voltages_deinit();
 
     layout_master_free();
