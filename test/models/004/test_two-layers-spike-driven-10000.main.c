@@ -73,50 +73,22 @@ int main(int argc, char *argv[]) {
       check_folder("output");
     }
 
+    size_t neurons_in_pe = (10000 / tw_nnodes()) + 2;
+
     // Spikes
-    struct StorableSpike *spikes_pe0[5002] = {
-        (struct StorableSpike[]) {
-            {   .neuron = 0,
-                .time = 0.1,
-                .intensity = 1
-            },
-            {   .neuron = 0,
-                .time = 0.2,
-                .intensity = 1
-            },
-            {   .neuron = 0,
-                .time = 0.26,
-                .intensity = 1
-            },
-            {   .neuron = 0,
-                .time = 0.36,
-                .intensity = 1
-            },
-            {   .neuron = 0,
-                .time = 0.65,
-                .intensity = 1
-            },
-            {   .neuron = 0,
-                .time = 0.651,
-                .intensity = 1
-            },
-            {   .neuron = 0,
-                .time = 0.652,
-                .intensity = 1
-            },
-            {   .neuron = 0,
-                .time = 0.653,
-                .intensity = 1
-            },
-            {   .neuron = 0,
-                .time = 0.654,
-                .intensity = 1
-            },
-            {0}
-        },
-        NULL
-    };
-    for (int i = 3; i < 5002; i++) {
+    struct StorableSpike *spikes_pe0[neurons_in_pe];
+    spikes_pe0[0] = (struct StorableSpike[]) {
+            {   .neuron = 0, .time = 0.1,   .intensity = 1 },
+            {   .neuron = 0, .time = 0.2,   .intensity = 1 },
+            {   .neuron = 0, .time = 0.26,  .intensity = 1 },
+            {   .neuron = 0, .time = 0.36,  .intensity = 1 },
+            {   .neuron = 0, .time = 0.65,  .intensity = 1 },
+            {   .neuron = 0, .time = 0.651, .intensity = 1 },
+            {   .neuron = 0, .time = 0.652, .intensity = 1 },
+            {   .neuron = 0, .time = 0.653, .intensity = 1 },
+            {   .neuron = 0, .time = 0.654, .intensity = 1 },
+            {0} };
+    for (size_t i = 1; i < neurons_in_pe; i++) {
         spikes_pe0[i] = NULL;
     }
 
