@@ -29,6 +29,7 @@ add_library(doryta_lib
   message.c
   neurons/lif.c
   neurons/lif_beta.c
+  models/simple_example.c
   probes/firing.c
   probes/lif/voltage.c
   probes/lif_beta/voltage.c
