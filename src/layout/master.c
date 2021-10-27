@@ -391,7 +391,16 @@ unsigned long layout_master_gid_to_pe(uint64_t gid) {
 }
 
 
-static inline size_t local_id_to_doryta_id(size_t id, size_t pe) {
+size_t local_id_to_doryta_id(size_t id) {
+    // TODO: There is a possible optimization for neurons that lie in the
+    // same PE. In that case, there is no reason to reconstruct the whole
+    // neuron_groups structure for this PE, instead, just check for the value
+    // there
+
+    return local_id_to_doryta_id_for_pe(id, g_tw_mynode);
+}
+
+size_t local_id_to_doryta_id_for_pe(size_t id, size_t pe) {
     size_t const max_pes = tw_nnodes();
     size_t prev_num_neurons_in_pe = 0;
     size_t num_neurons_in_pe = 0;
@@ -438,7 +447,7 @@ static inline size_t local_id_to_doryta_id(size_t id, size_t pe) {
 
 size_t layout_master_gid_to_doryta_id(size_t gid) {
     size_t pe = layout_master_gid_to_pe(gid);
-    return local_id_to_doryta_id(gid % max_num_neurons_per_pe, pe);
+    return local_id_to_doryta_id_for_pe(gid % max_num_neurons_per_pe, pe);
 }
 
 

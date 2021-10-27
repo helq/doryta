@@ -146,17 +146,15 @@ int main(int argc, char *argv[]) {
     // note that g_tw_nlp gets set here by tw_define_lps
 
     // Allocating memory for probes
-    probes_firing_init(5000);
-    probes_lif_voltages_init(5000);
+    probes_firing_init(5000, "output/two-neurons-test");
+    probes_lif_voltages_init(5000, "output/two-neurons-test");
 
     // Running simulation
     tw_run();
     // Simulation ends when the function exits
 
     // Deallocating/deinitializing everything
-    probes_firing_save("output/two-neurons-test");
     probes_firing_deinit();
-    probes_lif_voltages_save("output/two-neurons-test");
     probes_lif_voltages_deinit();
 
     tw_end();

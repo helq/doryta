@@ -3,7 +3,8 @@
 #include "driver/neuron_lp.h"
 #include "message.h"
 #include "models/params.h"
-#include "models/simple_example.h"
+#include "models/hardcoded/five_neurons.h"
+#include "models/regular_io/load_neurons.h"
 #include "probes/firing.h"
 #include "probes/lif/voltage.h"
 #include "utils/io.h"
@@ -39,8 +40,9 @@ tw_lptype doryta_lps[] = {
 
 /** Define command line arguments default values. */
 static bool is_spike_driven = false;
-static bool run_simple_example = false;
-//static char * output_dir = "output";
+static bool run_five_neuron_example = false;
+static char output_dir[512] = "output"; // UNSAFE but the only way to do it!!
+static char model_path[512] = "\0";
 
 
 /**
@@ -69,10 +71,15 @@ static tw_optdef const model_opts[] = {
     TWOPT_FLAG("spikedriven", is_spike_driven,
             "Activate spike-driven mode (it generally runs faster) but doesn't "
             "allow 'positive' leak"),
-    //TWOPT_CHAR("outputdir", output_dir,
-    //        "Path to store the output of a model execution"),
+    TWOPT_CHAR("outputdir", output_dir,
+            "Path to store the output of a model execution"),
+    // TODO: add options for each probe and their params
+    //TWOPT_GROUP("Doryta Probes"),
+    //TWOPT_FLAG("tag", XXX, "description"),
     TWOPT_GROUP("Doryta Models"),
-    TWOPT_FLAG("simple-example", run_simple_example,
+    TWOPT_CHAR("load-model", model_path,
+            "Load model from file"),
+    TWOPT_FLAG("five-example", run_five_neuron_example,
             "Run a simple 5 (or 7) neurons network example (useful to check "
             "the binary is working properly)"),
     TWOPT_END(),
@@ -80,15 +87,6 @@ static tw_optdef const model_opts[] = {
 
 
 int main(int argc, char *argv[]) {
-    //output_dir = calloc(101, sizeof(char));
-    //{
-    //    char const * o_f = "output";
-    //    // basically strcpy
-    //    for (int i = 0; i < 100 && o_f[i] != '\0'; i++) {
-    //        output_dir[i] = o_f[i];
-    //    }
-    //}
-
     tw_opt_add(model_opts);
     tw_init(&argc, &argv);
 
@@ -98,15 +96,33 @@ int main(int argc, char *argv[]) {
 
     // ------ Checking arguments correctness and misc checks ------
     if (g_tw_mynode == 0) {
-        check_folder("output");
+        if (output_dir[0] == '\0') {
+            tw_error(TW_LOC, "Output directory name is empty");
+        }
+        check_folder(output_dir);
     }
-    if (!run_simple_example) {
-        tw_error(TW_LOC, "You have to specify a model to run");
+    int const num_models_selected = run_five_neuron_example + (model_path[0] != '\0');
+    if (num_models_selected != 1) {
+        if (g_tw_mynode == 0) {
+            fprintf(stderr, "Total loading model options selected: %d\n",
+                    num_models_selected);
+            fprintf(stderr, "Five neurons example: %s\n",
+                    run_five_neuron_example ? "ON" : "OFF");
+            fprintf(stderr, "Path to load model: '%s'\n", model_path);
+        }
+        tw_error(TW_LOC, "You have to specify ONE model to run");
     }
 
     // --------------- Allocating model and probes ----------------
     struct SettingsNeuronLP settings_neuron_lp;
-    struct ModelParams params = model_simple_example_init(&settings_neuron_lp);
+    struct ModelParams params;
+
+    if (run_five_neuron_example) {
+        params = model_five_neurons_init(&settings_neuron_lp);
+    }
+    if (model_path[0] != '\0') {
+        params = model_load_neurons_init(&settings_neuron_lp, model_path);
+    }
 
     probe_event_f probe_events[3] = {
         probes_firing_record, probes_lif_voltages_record, NULL};
@@ -125,20 +141,19 @@ int main(int argc, char *argv[]) {
     tw_lp_setup_types();
 
     // --------------- Allocating memory for probes ---------------
-    probes_firing_init(5000);
-    probes_lif_voltages_init(5000);
+    probes_firing_init(5000, "output/five-neurons-test");
+    probes_lif_voltages_init(5000, "output/five-neurons-test");
 
     // -------------------- Running simulation --------------------
     tw_run();
 
-    // ----------------- Saving results of probes -----------------
-    probes_firing_save("output/five-neurons-test");
-    probes_lif_voltages_save("output/five-neurons-test");
-
     // -------------- Deallocating model and probes ---------------
     probes_firing_deinit(); // probes store data on deinit
     probes_lif_voltages_deinit();
-    model_simple_example_deinit();
+
+    if (run_five_neuron_example) {
+        model_five_neurons_deinit();
+    }
 
     tw_end();
 

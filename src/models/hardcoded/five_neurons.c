@@ -1,12 +1,12 @@
-#include "simple_example.h"
+#include "five_neurons.h"
 #include <pcg_basic.h>
 #include <ross.h>
-#include "../driver/neuron_lp.h"
-#include "../layout/master.h"
-#include "../layout/standard_layouts.h"
-#include "../neurons/lif.h"
-#include "../storable_spikes.h"
-#include "../utils/pcg32_random.h"
+#include "../../driver/neuron_lp.h"
+#include "../../layout/master.h"
+#include "../../layout/standard_layouts.h"
+#include "../../neurons/lif.h"
+#include "../../storable_spikes.h"
+#include "../../utils/pcg32_random.h"
 
 
 static struct StorableSpike **spikes = NULL;
@@ -55,7 +55,7 @@ static float initialize_weight_neurons(size_t neuron_from, size_t neuron_to) {
 
 
 struct ModelParams
-model_simple_example_init(struct SettingsNeuronLP * settings_neuron_lp) {
+model_five_neurons_init(struct SettingsNeuronLP * settings_neuron_lp) {
     // Defining Spikes
     if (g_tw_mynode <= 1) {
         spikes = calloc(5, sizeof(struct StorableSpike*));
@@ -133,7 +133,7 @@ model_simple_example_init(struct SettingsNeuronLP * settings_neuron_lp) {
 }
 
 
-void model_simple_example_deinit(void) {
+void model_five_neurons_deinit(void) {
     layout_master_free();
 
     if (g_tw_mynode == 0) {

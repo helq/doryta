@@ -16,9 +16,11 @@ static struct StorableVoltage * spikes = NULL;
 static size_t buffer_size;
 static size_t buffer_used = 0;
 static bool buffer_limit_hit = false;
+static char const * output_path = NULL;
 
-void probes_lif_voltages_init(size_t buffer_size_) {
+void probes_lif_voltages_init(size_t buffer_size_, char const output_path_[]) {
     buffer_size = buffer_size_;
+    output_path = output_path_;
     spikes = malloc(buffer_size * sizeof(struct StorableVoltage));
 }
 
@@ -46,8 +48,8 @@ void probes_lif_voltages_record(
 }
 
 
-void probes_lif_voltages_save(char const * path) {
-    assert(spikes != NULL);
+static void voltages_save(void) {
+    assert(output_path != NULL);
     unsigned long self = g_tw_mynode;
     if (buffer_limit_hit) {
         fprintf(stderr, "Only the first %ld `voltages` have been recorded\n", buffer_size);
@@ -55,9 +57,9 @@ void probes_lif_voltages_save(char const * path) {
 
     // Finding name for file
     char const fmt[] = "%s-voltage-gid=%lu.txt";
-    int sz = snprintf(NULL, 0, fmt, path, self);
+    int sz = snprintf(NULL, 0, fmt, output_path, self);
     char filename[sz + 1]; // `+ 1` for terminating null byte
-    snprintf(filename, sizeof(filename), fmt, path, self);
+    snprintf(filename, sizeof(filename), fmt, output_path, self);
 
     FILE * fp = fopen(filename, "w");
 
@@ -75,5 +77,6 @@ void probes_lif_voltages_save(char const * path) {
 
 void probes_lif_voltages_deinit(void) {
     assert(spikes != NULL);
+    voltages_save();
     free(spikes);
 }

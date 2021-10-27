@@ -247,6 +247,8 @@ void neuronLP_event_spike_driven(
             double const prev_heartbeat_time = find_prev_heartbeat_time(tw_now(lp));
             double const beat = settings.beat;
             assert(neuronLP->last_heartbeat <= prev_heartbeat_time);
+            assert(msg->neuron_to == neuronLP->doryta_id);
+            assert(msg->neuron_to_gid == lp->gid);
 
             // Getting neuron up-to-date since last heartbeat
             if (! neuronLP->next_heartbeat_sent &&

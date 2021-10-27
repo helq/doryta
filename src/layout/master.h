@@ -74,6 +74,16 @@ size_t layout_master_doryta_id_to_gid(size_t doryta_id);
 size_t layout_master_gid_to_doryta_id(size_t gid);
 
 /**
+ * Converts LocalID into DorytaID
+ */
+size_t local_id_to_doryta_id(size_t id);
+
+/**
+ * Converts LocalID into DorytaID for an arbitrary PE
+ */
+size_t local_id_to_doryta_id_for_pe(size_t id, size_t pe);
+
+/**
  * Returns parameters of the last group/layer defined.
  */
 struct NeuronGroupInfo layout_master_info_latest_group(void);
