@@ -40,8 +40,8 @@ tw_lptype doryta_lps[] = {
 };
 
 /** Define command line arguments default values. */
-static bool is_spike_driven = false;
-static bool run_five_neuron_example = false;
+static unsigned int is_spike_driven = 0;
+static unsigned int run_five_neuron_example = 0;
 static char output_dir[512] = "output"; // UNSAFE but the only way to do it!!
 static char model_path[512] = "\0";
 static char spikes_path[512] = "\0";

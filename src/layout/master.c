@@ -195,6 +195,7 @@ static inline bool falls_id_in_interval(size_t doryta_id, int n_group) {
 }
 static inline void synapse_iter_for_neuron(struct SynapseIterator * iter, size_t doryta_id) {
     // Finding first level where `doryta_id` appears in "from" interval
+    iter->to_id = 0;
     int n_group;
     for (n_group = 0; n_group < num_synap_groups; n_group++) {
         if (falls_id_in_interval(doryta_id, n_group)) {
@@ -234,8 +235,9 @@ static void master_init_neurons(neuron_init_f neuron_init, synapse_init_f synaps
     for (int i = 0; i < num_neuron_groups; i++) {
         size_t const neurons_in_pe = neuron_groups[i].neurons_in_pe;
         size_t const doryta_id_offset = neuron_groups[i].doryta_id_offset;
+#ifndef NDEBUG
         size_t const local_id_offset = neuron_groups[i].local_id_offset;
-
+#endif
         for (size_t j = 0; j < neurons_in_pe; j++) {
             size_t const doryta_id = doryta_id_offset + j;
             assert(neuron_counter == local_id_offset + j);

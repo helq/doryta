@@ -21,7 +21,11 @@ model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
     if (format != 0x1) {
         tw_error(TW_LOC, "Input file corrupt or format unknown");
     }
+#ifndef NDEBUG
     int32_t const total_num_neurons = load_int32(fp);
+#else
+    load_int32(fp);
+#endif
     uint8_t const neuron_groups = load_uint8(fp);
     uint8_t const synapse_groups = load_uint8(fp);
     float const beat = load_float(fp);
