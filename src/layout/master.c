@@ -313,6 +313,13 @@ layout_master_configure(struct SettingsNeuronLP *settingsNeuronLP) {
 
 
 size_t layout_master_total_lps_pe(void) {
+    // For now, this function and the following are the same. This will change
+    // once Supporting LPs are defined
+    return layout_master_total_neurons_pe();
+}
+
+
+size_t layout_master_total_neurons_pe(void) {
     assert(initialized);
     // If this is not true, something went terribly wrong!
     assert(total_neurons_in_pe <= max_num_neurons_per_pe);
@@ -385,22 +392,27 @@ void layout_master_synapses_fully(size_t from_start, size_t from_end,
 
 // ========================== IDs conversion functions ==========================
 
+unsigned long layout_master_doryta_id_to_pe(size_t doryta_id) {
+    //return (unsigned long)gid / max_num_neurons_per_pe;
+    return layout_master_gid_to_pe(layout_master_doryta_id_to_gid(doryta_id));
+}
+
 unsigned long layout_master_gid_to_pe(uint64_t gid) {
     //return (unsigned long)gid / max_num_neurons_per_pe;
     return gid / max_num_neurons_per_pe;
 }
 
 
-size_t local_id_to_doryta_id(size_t id) {
+size_t layout_master_local_id_to_doryta_id(size_t id) {
     // TODO: There is a possible optimization for neurons that lie in the
     // same PE. In that case, there is no reason to reconstruct the whole
     // neuron_groups structure for this PE, instead, just check for the value
     // there
 
-    return local_id_to_doryta_id_for_pe(id, g_tw_mynode);
+    return layout_master_local_id_to_doryta_id_for_pe(id, g_tw_mynode);
 }
 
-size_t local_id_to_doryta_id_for_pe(size_t id, size_t pe) {
+size_t layout_master_local_id_to_doryta_id_for_pe(size_t id, size_t pe) {
     size_t const max_pes = tw_nnodes();
     size_t prev_num_neurons_in_pe = 0;
     size_t num_neurons_in_pe = 0;
@@ -447,9 +459,14 @@ size_t local_id_to_doryta_id_for_pe(size_t id, size_t pe) {
 
 size_t layout_master_gid_to_doryta_id(size_t gid) {
     size_t pe = layout_master_gid_to_pe(gid);
-    return local_id_to_doryta_id_for_pe(gid % max_num_neurons_per_pe, pe);
+    return layout_master_local_id_to_doryta_id_for_pe(gid % max_num_neurons_per_pe, pe);
 }
 
+size_t layout_master_doryta_id_to_local_id(size_t doryta_id) {
+    size_t gid = layout_master_doryta_id_to_gid(doryta_id);
+    size_t local_id = gid - pe_gid_offset;
+    return local_id;
+}
 
 static inline size_t get_local_offset_for_level_in_pe(size_t pe, int level) {
     assert(pe < tw_nnodes());

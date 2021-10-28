@@ -1,83 +1,9 @@
 #include "load_neurons.h"
-#include <arpa/inet.h>
-#include <pcg_basic.h>
-#include <ross.h>
 #include "../../driver/neuron_lp.h"
 #include "../../layout/master.h"
 #include "../../layout/standard_layouts.h"
 #include "../../neurons/lif.h"
-#include "../../storable_spikes.h"
-
-
-static struct StorableSpike **spikes = NULL;
-
-
-// Each one of them can print an error
-static inline uint8_t  load_uint8(FILE *fp) {
-    int res = fgetc(fp);
-    if (res == EOF) {
-        tw_error(TW_LOC, "Input file corrupt (note: premature EOF)");
-    }
-    return res;
-}
-/* Checks if the data was correctly read. If it didn't it fires a "ross" error.
- * `ret_code` is the value returned when executing `fread`, and `count` is
- * the expected number of objects to have read, which must be equal to `ret_code`.
- */
-static inline void check_if_failure(FILE * fp, size_t ret_code, size_t count) {
-    if (ret_code != count) { // Failure on reading file
-        char const * error_msg;
-        if (feof(fp)) {
-            error_msg = "Input file corrupt (note: premature EOF)";
-        } else if (ferror(fp)) {
-            error_msg = "Input file corrupt (note: error found while reading file)";
-        } else {
-            error_msg = "Unknown error when reading file";
-        }
-        tw_error(TW_LOC, error_msg);
-    }
-}
-static inline uint16_t load_uint16(FILE * fp) {
-    uint16_t res;
-    size_t ret_code = fread(&res, sizeof(res), 1, fp);
-    check_if_failure(fp, ret_code, 1);
-    return ntohs(res);
-}
-static inline uint32_t load_uint32(FILE * fp) {
-    uint32_t res;
-    size_t ret_code = fread(&res, sizeof(res), 1, fp);
-    check_if_failure(fp, ret_code, 1);
-    return ntohl(res);
-}
-static inline int32_t load_int32(FILE * fp) {
-    uint32_t res;
-    size_t ret_code = fread(&res, sizeof(res), 1, fp);
-    check_if_failure(fp, ret_code, 1);
-    return ntohl(res);
-}
-static inline float load_float(FILE * fp) {
-    union {
-        uint32_t ui32;
-        float flt;
-    } res;
-    size_t ret_code = fread(&res.ui32, sizeof(res.ui32), 1, fp);
-    check_if_failure(fp, ret_code, 1);
-    res.ui32 = ntohl(res.ui32);
-    return res.flt;
-}
-static inline void load_floats(FILE * fp, float * buffer, int32_t num) {
-    size_t ret_code = fread(buffer, sizeof(float), num, fp);
-    check_if_failure(fp, ret_code, num);
-    for (int32_t i = 0; i < num; i++) {
-        union {
-            uint32_t ui32;
-            float flt;
-        } val;
-        val.flt = buffer[i];
-        val.ui32 = ntohl(val.ui32);
-        buffer[i] = val.flt;
-    }
-}
+#include "../../utils/io.h"
 
 
 struct ModelParams
@@ -127,7 +53,7 @@ model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
       //.num_neurons_pe   = ...
       //.neurons          = ...
       //.synapses         = ...
-      .spikes            = spikes,
+      .spikes            = NULL,
       .beat              = beat,
       .firing_delay      = 1,
       .neuron_leak       = (neuron_leak_f) leak_lif_neuron,
@@ -153,7 +79,7 @@ model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
     for (size_t i = 0; i < settings_neuron_lp->num_neurons_pe; i++) {
         // READ SYNAPSE params and its synapses, storing them directly on
         // CONTINUE FROM HERE!
-        int32_t const doryta_id = local_id_to_doryta_id(i);
+        int32_t const doryta_id = layout_master_local_id_to_doryta_id(i);
         //printf("PE %lu - neuron id %d - total_num_neurons %d\n", g_tw_mynode, doryta_id, num_synapses);
         assert((int32_t) doryta_id < total_num_neurons);
 

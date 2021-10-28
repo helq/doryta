@@ -5,6 +5,7 @@
 #include "models/params.h"
 #include "models/hardcoded/five_neurons.h"
 #include "models/regular_io/load_neurons.h"
+#include "models/regular_io/load_spikes.h"
 #include "probes/firing.h"
 #include "probes/lif/voltage.h"
 #include "utils/io.h"
@@ -43,6 +44,7 @@ static bool is_spike_driven = false;
 static bool run_five_neuron_example = false;
 static char output_dir[512] = "output"; // UNSAFE but the only way to do it!!
 static char model_path[512] = "\0";
+static char spikes_path[512] = "\0";
 
 
 /**
@@ -82,6 +84,9 @@ static tw_optdef const model_opts[] = {
     TWOPT_FLAG("five-example", run_five_neuron_example,
             "Run a simple 5 (or 7) neurons network example (useful to check "
             "the binary is working properly)"),
+    TWOPT_GROUP("Doryta Spikes"),
+    TWOPT_CHAR("load-spikes", spikes_path,
+            "Load spikes from file"),
     TWOPT_END(),
 };
 
@@ -122,6 +127,10 @@ int main(int argc, char *argv[]) {
     }
     if (model_path[0] != '\0') {
         params = model_load_neurons_init(&settings_neuron_lp, model_path);
+    }
+
+    if (spikes_path[0] != '\0') {
+        model_load_spikes_init(&settings_neuron_lp, spikes_path);
     }
 
     probe_event_f probe_events[3] = {

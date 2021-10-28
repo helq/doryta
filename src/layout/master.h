@@ -59,9 +59,19 @@ layout_master_configure(struct SettingsNeuronLP *settingsNeuronLP);
 size_t layout_master_total_lps_pe(void);
 
 /**
+ * Returns the total number of lps (neurons and supporting lps) in this PE
+ */
+size_t layout_master_total_neurons_pe(void);
+
+/**
  * Returns PE to which a GID has been assigned to.
  */
 unsigned long layout_master_gid_to_pe(uint64_t gid);
+
+/**
+ * Returns PE to which a DorytaID has been assigned to.
+ */
+unsigned long layout_master_doryta_id_to_pe(size_t doryta_id);
 
 /**
  * Converts DorytaID into GID.
@@ -76,12 +86,17 @@ size_t layout_master_gid_to_doryta_id(size_t gid);
 /**
  * Converts LocalID into DorytaID
  */
-size_t local_id_to_doryta_id(size_t id);
+size_t layout_master_local_id_to_doryta_id(size_t id);
+
+/**
+ * Converts DorytaID into LocalID
+ */
+size_t layout_master_doryta_id_to_local_id(size_t id);
 
 /**
  * Converts LocalID into DorytaID for an arbitrary PE
  */
-size_t local_id_to_doryta_id_for_pe(size_t id, size_t pe);
+size_t layout_master_local_id_to_doryta_id_for_pe(size_t id, size_t pe);
 
 /**
  * Returns parameters of the last group/layer defined.

@@ -31,6 +31,7 @@ add_library(doryta_lib
   neurons/lif_beta.c
   models/hardcoded/five_neurons.c
   models/regular_io/load_neurons.c
+  models/regular_io/load_spikes.c
   probes/firing.c
   probes/lif/voltage.c
   probes/lif_beta/voltage.c
