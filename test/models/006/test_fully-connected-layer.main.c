@@ -229,8 +229,8 @@ int main(int argc, char *argv[]) {
     tw_lp_setup_types();
 
     // Allocating memory for probes
-    probes_firing_init(5000, "output/fully-connected-layer");
-    probes_lif_voltages_init(5000, "output/fully-connected-layer");
+    probes_firing_init(5000, "output", "fully-connected-layer", false);
+    probes_lif_voltages_init(5000, "output", "fully-connected-layer");
 
     // Running simulation
     tw_run();

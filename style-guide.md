@@ -1,3 +1,5 @@
+# On the development in C
+
 TL;DR: if you modify this project, please mantain the style the code has. Some pointers at
 what that style entails:
 
@@ -45,3 +47,21 @@ all questions, you are ready to go. Good luck!
     times? Does it change if the declaration is in the global scope or inside a function?
 - What are each of the three types of linkage for?
 <!--(external, internal and none)-->
+
+# On the structure of the repository
+
+We follow the pitchfork layout guide, which can be found in
+<https://github.com/vector-of-bool/pitchfork>.
+
+# On the development of Python scripts
+
+All scripts should:
+
+- be pep8 compliant,
+- pass latest (at the moment of their conception) [MyPy][] typing check,
+- avoid dependencies (it's better to have everything self contained),
+- keep at minimum hardcoded variables, and
+- documented, have a README or appear as an example in the global README (ie, no script
+    should exist without reference to what it does).
+
+[MyPy]: http://mypy-lang.org/

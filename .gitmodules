@@ -2,3 +2,6 @@
 	path = external/ROSS
 	url = https://github.com/ROSS-org/ROSS
 	branch = tiebreaker-wuser
+[submodule "data/models"]
+	path = data/models
+	url = https://github.com/helq/doryta-models

@@ -2,10 +2,10 @@
 #include <doryta_config.h>
 #include "driver/neuron_lp.h"
 #include "message.h"
-#include "models/params.h"
-#include "models/hardcoded/five_neurons.h"
-#include "models/regular_io/load_neurons.h"
-#include "models/regular_io/load_spikes.h"
+#include "model-loaders/params.h"
+#include "model-loaders/hardcoded/five_neurons.h"
+#include "model-loaders/regular_io/load_neurons.h"
+#include "model-loaders/regular_io/load_spikes.h"
 #include "probes/firing.h"
 #include "probes/lif/voltage.h"
 #include "utils/io.h"
@@ -40,11 +40,22 @@ tw_lptype doryta_lps[] = {
 };
 
 /** Define command line arguments default values. */
+// Bools
+// NOTE: bools cannot be of type bool because ROSS assumes int as input only
 static unsigned int is_spike_driven = 0;
 static unsigned int run_five_neuron_example = 0;
-static char output_dir[512] = "output"; // UNSAFE but the only way to do it!!
-static char model_path[512] = "\0";
-static char spikes_path[512] = "\0";
+static unsigned int is_firing_probe_active = 0;
+static unsigned int is_voltage_probe_active = 0;
+static unsigned int probe_firing_output_neurons_only = 0;
+// Ints
+static unsigned int probe_firing_buffer_size = 5000;
+static unsigned int probe_voltage_buffer_size = 5000;
+// Strings
+// Yes, caping the size to 512 is UNSAFE but the only way to do it!!
+static char output_dir[512] = "output";
+static char model_path[512] = {'\0'};
+static char spikes_path[512] = {'\0'};
+static char probes_filename[512] = "model-name";
 
 
 /**
@@ -70,14 +81,11 @@ static tw_lpid model_typemap(tw_lpid gid) {
 /** Custom to doryta command line options. */
 static tw_optdef const model_opts[] = {
     TWOPT_GROUP("Doryta General Options"),
-    TWOPT_FLAG("spikedriven", is_spike_driven,
+    TWOPT_FLAG("spike-driven", is_spike_driven,
             "Activate spike-driven mode (it generally runs faster) but doesn't "
             "allow 'positive' leak"),
-    TWOPT_CHAR("outputdir", output_dir,
+    TWOPT_CHAR("output-dir", output_dir,
             "Path to store the output of a model execution"),
-    // TODO: add options for each probe and their params
-    //TWOPT_GROUP("Doryta Probes"),
-    //TWOPT_FLAG("tag", XXX, "description"),
     TWOPT_GROUP("Doryta Models"),
     TWOPT_CHAR("load-model", model_path,
             "Load model from file"),
@@ -87,6 +95,20 @@ static tw_optdef const model_opts[] = {
     TWOPT_GROUP("Doryta Spikes"),
     TWOPT_CHAR("load-spikes", spikes_path,
             "Load spikes from file"),
+    TWOPT_GROUP("Doryta Probes"),
+    TWOPT_CHAR("probes-filename", probes_filename, "Filename for probes to use"),
+    TWOPT_FLAG("probe-firing", is_firing_probe_active,
+            "This probe records when a neuron fires/sends a spike"),
+    TWOPT_FLAG("probe-firing-output-only", probe_firing_output_neurons_only,
+            "Record only neurons with no output synapses (these often are the last layer in a "
+            "multilayer NN)"),
+    TWOPT_UINT("probe-firing-buffer", probe_firing_buffer_size,
+            "Buffer size for firing probe. If the buffer fills, nothing else will stored in it"),
+    TWOPT_FLAG("probe-voltage", is_voltage_probe_active,
+            "This probe records the voltage of a LIF neuron as it changes in "
+            "time (won't work as expected with spike-driven activated)"),
+    TWOPT_UINT("probe-voltage-buffer", probe_voltage_buffer_size,
+            "Buffer size for firing probe. If the buffer fills, nothing else will stored in it"),
     TWOPT_END(),
 };
 
@@ -96,7 +118,20 @@ int main(int argc, char *argv[]) {
     tw_init(&argc, &argv);
 
     if (g_tw_mynode == 0) {
-      printf("doryta git version: " MODEL_VERSION "\n");
+      printf("\ndoryta git version: " MODEL_VERSION "\n");
+      printf("=============== Params passed to doryta ===============\n");
+      printf("spike-driven          = %s\n",   is_spike_driven ? "ON" : "OFF");
+      printf("output-dir            = '%s'\n", output_dir);
+      printf("load-model            = '%s'\n", model_path);
+      printf("five-example          = %s\n",   run_five_neuron_example ? "ON" : "OFF");
+      printf("load-spikes           = '%s'\n", spikes_path);
+      printf("probes-filename       = '%s'\n", probes_filename);
+      printf("probe-firing          = %s\n",   is_firing_probe_active ? "ON" : "OFF");
+      printf("probe-firing-output-only = %s\n", probe_firing_output_neurons_only ? "ON" : "OFF");
+      printf("probe-firing-buffer   = %d\n",   probe_firing_buffer_size);
+      printf("probe-voltage         = %s\n",   is_voltage_probe_active ? "ON" : "OFF");
+      printf("probe-voltage-buffer  = %d\n",   probe_voltage_buffer_size);
+      printf("=======================================================\n\n");
     }
 
     // ------ Checking arguments correctness and misc checks ------
@@ -108,20 +143,14 @@ int main(int argc, char *argv[]) {
     }
     int const num_models_selected = run_five_neuron_example + (model_path[0] != '\0');
     if (num_models_selected != 1) {
-        if (g_tw_mynode == 0) {
-            fprintf(stderr, "Total loading model options selected: %d\n",
-                    num_models_selected);
-            fprintf(stderr, "Five neurons example: %s\n",
-                    run_five_neuron_example ? "ON" : "OFF");
-            fprintf(stderr, "Path to load model: '%s'\n", model_path);
-        }
         tw_error(TW_LOC, "You have to specify ONE model to run");
     }
 
-    // --------------- Allocating model and probes ----------------
+    // ------------- Initializing model, spikes and probes (partially) -------------
     struct SettingsNeuronLP settings_neuron_lp;
     struct ModelParams params;
 
+    // Loading Model
     if (run_five_neuron_example) {
         params = model_five_neurons_init(&settings_neuron_lp);
     }
@@ -129,12 +158,25 @@ int main(int argc, char *argv[]) {
         params = model_load_neurons_init(&settings_neuron_lp, model_path);
     }
 
+    // Loading Spikes
     if (spikes_path[0] != '\0') {
         model_load_spikes_init(&settings_neuron_lp, spikes_path);
     }
 
-    probe_event_f probe_events[3] = {
-        probes_firing_record, probes_lif_voltages_record, NULL};
+    // Loading probe recording mechanism
+    probe_event_f probe_events[3] = {NULL};
+    {
+        int i = 0;
+        if (is_firing_probe_active) {
+            probe_events[i] = probes_firing_record;
+            i++;
+        }
+        if (is_voltage_probe_active) {
+            probe_events[i] = probes_lif_voltages_record;
+            i++;
+        }
+        probe_events[i] = NULL;
+    }
     settings_neuron_lp.probe_events = probe_events;
 
     // ---------------------- Setting up LPs ----------------------
@@ -150,18 +192,37 @@ int main(int argc, char *argv[]) {
     tw_lp_setup_types();
 
     // --------------- Allocating memory for probes ---------------
-    probes_firing_init(5000, "output/five-neurons-test");
-    probes_lif_voltages_init(5000, "output/five-neurons-test");
+    if (is_firing_probe_active) {
+        probes_firing_init(probe_firing_buffer_size, output_dir, probes_filename,
+                probe_firing_output_neurons_only);
+    }
+    if (is_voltage_probe_active) {
+        probes_lif_voltages_init(probe_voltage_buffer_size, output_dir, probes_filename);
+    }
 
     // -------------------- Running simulation --------------------
     tw_run();
 
     // -------------- Deallocating model and probes ---------------
-    probes_firing_deinit(); // probes store data on deinit
-    probes_lif_voltages_deinit();
+    // --- DeInit of Probes ---
+    if (is_firing_probe_active) {
+        probes_firing_deinit(); // probes store data on deinit
+    }
+    if (is_voltage_probe_active) {
+        probes_lif_voltages_deinit();
+    }
 
+    // --- DeInit of Spikes ---
+    if (spikes_path[0] != '\0') {
+        model_load_spikes_deinit();
+    }
+
+    // --- DeInit of Neurons ---
     if (run_five_neuron_example) {
         model_five_neurons_deinit();
+    }
+    if (model_path[0] != '\0') {
+        model_load_neurons_deinit();
     }
 
     tw_end();

@@ -9,13 +9,14 @@ void leak_lif_neuron(struct LifNeuron * lf, float dt) {
 
 
 void leak_lif_big_neuron(struct LifNeuron * lf, float delta, float dt) {
+    assert(lf->current == 0);
     size_t iterations = delta / dt;
-    if (lf->current == 0 && lf->potential == lf->resting_potential) {
-        // Neuron already arrived at resting potential, no need to compute
-        // anything
-        return;
-    }
     for (size_t i = 0; i < iterations; i++) {
+        if (lf->potential == lf->resting_potential) {
+            // Neuron already arrived at resting potential, no
+            // need to keep computing
+            return;
+        }
         lf->potential = lf->potential
             + dt * (- lf->potential + lf->resting_potential
                     + lf->current * lf->resistance) / lf->tau_m;

@@ -230,9 +230,9 @@ int main(int argc, char *argv[]) {
 
     // Allocating memory for probes
     char const * const output_file =
-        is_spike_driven ? "output/spike-driven-test" : "output/needy-test";
-    probes_firing_init(50, output_file);
-    probes_lif_voltages_init(50, output_file);
+        is_spike_driven ? "spike-driven-test" : "needy-test";
+    probes_firing_init(50, "output", output_file, false);
+    probes_lif_voltages_init(50, "output", output_file);
 
     // Running simulation
     tw_run();

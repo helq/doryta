@@ -10,7 +10,13 @@ struct NeuronLP;
 struct Message;
 struct tw_lp;
 
-void probes_firing_init(size_t buffer_size, char const []);
+/** This probe records when a neuron has fired. If `only_output_neurons` is true,
+ * it will only record neurons that have no output synapses to others (often, the
+ * last layer of a NN).
+ */
+void probes_firing_init(
+        size_t buffer_size, char const output_path[],
+        char const filename[], bool only_output_neurons);
 
 void probes_firing_record(struct NeuronLP *, struct Message *, struct tw_lp *);
 

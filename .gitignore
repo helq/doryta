@@ -5,6 +5,9 @@ build/
 # Clang files (used by clang-check)
 compile_commands.json
 
+# IDE litter
+.vscode
+
 # Neomake (Nvim pluggin) files
 *@neomake_*
 

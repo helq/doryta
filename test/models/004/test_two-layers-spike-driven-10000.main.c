@@ -141,8 +141,8 @@ int main(int argc, char *argv[]) {
     // note that g_tw_nlp gets set here by tw_define_lps
 
     // Allocating memory for probes
-    probes_firing_init(5000, "output/five-neurons-test");
-    probes_lif_voltages_init(50000, "output/five-neurons-test");
+    probes_firing_init(5000, "output", "five-neurons-test", false);
+    probes_lif_voltages_init(50000, "output", "five-neurons-test");
 
     // Running simulation
     tw_run();
