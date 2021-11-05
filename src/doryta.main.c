@@ -55,7 +55,7 @@ static unsigned int probe_voltage_buffer_size = 5000;
 static char output_dir[512] = "output";
 static char model_path[512] = {'\0'};
 static char spikes_path[512] = {'\0'};
-static char probes_filename[512] = "model-name";
+static char model_filename[512] = "model-name";
 
 
 /**
@@ -86,6 +86,7 @@ static tw_optdef const model_opts[] = {
             "allow 'positive' leak"),
     TWOPT_CHAR("output-dir", output_dir,
             "Path to store the output of a model execution"),
+    TWOPT_CHAR("model-filename", model_filename, "Model file name. To be used by all output"),
     TWOPT_GROUP("Doryta Models"),
     TWOPT_CHAR("load-model", model_path,
             "Load model from file"),
@@ -96,7 +97,6 @@ static tw_optdef const model_opts[] = {
     TWOPT_CHAR("load-spikes", spikes_path,
             "Load spikes from file"),
     TWOPT_GROUP("Doryta Probes"),
-    TWOPT_CHAR("probes-filename", probes_filename, "Filename for probes to use"),
     TWOPT_FLAG("probe-firing", is_firing_probe_active,
             "This probe records when a neuron fires/sends a spike"),
     TWOPT_FLAG("probe-firing-output-only", probe_firing_output_neurons_only,
@@ -113,33 +113,50 @@ static tw_optdef const model_opts[] = {
 };
 
 
+void fprint_doryta_params(FILE * fp) {
+    fprintf(fp, "doryta git version: " MODEL_VERSION "\n");
+    fprintf(fp, "=============== Params passed to doryta ===============\n");
+    fprintf(fp, "spike-driven          = %s\n",   is_spike_driven ? "ON" : "OFF");
+    fprintf(fp, "output-dir            = '%s'\n", output_dir);
+    fprintf(fp, "model-filename        = '%s'\n", model_filename);
+    fprintf(fp, "load-model            = '%s'\n", model_path);
+    fprintf(fp, "five-example          = %s\n",   run_five_neuron_example ? "ON" : "OFF");
+    fprintf(fp, "load-spikes           = '%s'\n", spikes_path);
+    fprintf(fp, "probe-firing          = %s\n",   is_firing_probe_active ? "ON" : "OFF");
+    fprintf(fp, "probe-firing-output-only = %s\n", probe_firing_output_neurons_only ? "ON" : "OFF");
+    fprintf(fp, "probe-firing-buffer   = %d\n",   probe_firing_buffer_size);
+    fprintf(fp, "probe-voltage         = %s\n",   is_voltage_probe_active ? "ON" : "OFF");
+    fprintf(fp, "probe-voltage-buffer  = %d\n",   probe_voltage_buffer_size);
+    fprintf(fp, "=======================================================\n");
+}
+
+
 int main(int argc, char *argv[]) {
     tw_opt_add(model_opts);
     tw_init(&argc, &argv);
 
     if (g_tw_mynode == 0) {
-      printf("\ndoryta git version: " MODEL_VERSION "\n");
-      printf("=============== Params passed to doryta ===============\n");
-      printf("spike-driven          = %s\n",   is_spike_driven ? "ON" : "OFF");
-      printf("output-dir            = '%s'\n", output_dir);
-      printf("load-model            = '%s'\n", model_path);
-      printf("five-example          = %s\n",   run_five_neuron_example ? "ON" : "OFF");
-      printf("load-spikes           = '%s'\n", spikes_path);
-      printf("probes-filename       = '%s'\n", probes_filename);
-      printf("probe-firing          = %s\n",   is_firing_probe_active ? "ON" : "OFF");
-      printf("probe-firing-output-only = %s\n", probe_firing_output_neurons_only ? "ON" : "OFF");
-      printf("probe-firing-buffer   = %d\n",   probe_firing_buffer_size);
-      printf("probe-voltage         = %s\n",   is_voltage_probe_active ? "ON" : "OFF");
-      printf("probe-voltage-buffer  = %d\n",   probe_voltage_buffer_size);
-      printf("=======================================================\n\n");
+        printf("\n");
+        fprint_doryta_params(stdout);
+        printf("\n");
     }
 
-    // ------ Checking arguments correctness and misc checks ------
+    // ------ Checking arguments correctness, save params and misc checks ------
     if (g_tw_mynode == 0) {
+        // Checking correctness
         if (output_dir[0] == '\0') {
             tw_error(TW_LOC, "Output directory name is empty");
         }
         check_folder(output_dir);
+
+        // Saving params to file
+        int sz = snprintf(NULL, 0, "%s/doryta-params.txt", output_dir);
+        char filename[sz + 1];
+        snprintf(filename, sizeof(filename), "%s/doryta-params.txt", output_dir);
+
+        FILE * fp = fopen(filename, "w");
+        fprint_doryta_params(fp);
+        fclose(fp);
     }
     int const num_models_selected = run_five_neuron_example + (model_path[0] != '\0');
     if (num_models_selected != 1) {
@@ -193,11 +210,11 @@ int main(int argc, char *argv[]) {
 
     // --------------- Allocating memory for probes ---------------
     if (is_firing_probe_active) {
-        probes_firing_init(probe_firing_buffer_size, output_dir, probes_filename,
+        probes_firing_init(probe_firing_buffer_size, output_dir, model_filename,
                 probe_firing_output_neurons_only);
     }
     if (is_voltage_probe_active) {
-        probes_lif_voltages_init(probe_voltage_buffer_size, output_dir, probes_filename);
+        probes_lif_voltages_init(probe_voltage_buffer_size, output_dir, model_filename);
     }
 
     // -------------------- Running simulation --------------------

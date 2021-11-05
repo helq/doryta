@@ -25,6 +25,12 @@ For this run cmake with the flag `-DCMAKE_INSTALL_PREFIX="$(pwd -P)/"`.
 
 # Execution
 
+Asuming you have downloaded the example models with
+`git clone --depth=1 https://github.com/helq/doryta-models data/models`, you can simply
+run doryta with:
+
+...
+
 An example of running in one or two cores:
 
 ```bash
@@ -34,6 +40,12 @@ mpirun -np 2 bin/doryta --sync=3 --end=1
 ```
 
 Inside the directory `output/` there will be output files from the simulation.
+
+Running a complete inference of doryta on MNIST dataset:
+
+```bash
+mpirun -np 2 src/doryta --spike-driven --load-model=../data/models/whetstone/simple-mnist-no-bias.doryta.bin --synch=3 --load-spikes=../data/models/whetstone/spikified-mnist/spikified-images-all.bin --extramem=1000000 --end=2 --probe-firing --probe-firing-output-only --output-dir=output-all
+```
 
 # Documentation
 
@@ -49,6 +61,14 @@ The documentation will be stored in `docs/html`.
 [doxygen]: https://www.doxygen.nl/
 [graphviz]: https://www.graphviz.org/
 
+# Release binary
+
+To get the clean, non-debug, faster implementation use:
+
+```bash
+cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+```
+
 # Testing
 
 To run tests you have to compile them first and then run ctest:
@@ -61,4 +81,4 @@ ctest
 
 Remember to run CMake again whenever a new test is added. CMake generates the rules to
 compile the tests and run them. Unfortunatelly, CMake is not triggered when new
-tests/foldersr are added to the `test` folder.
+tests/folders are added to the `test` folder.
