@@ -33,7 +33,7 @@ struct DummyNeuron {
 };
 
 
-static void dummy_leak(struct DummyNeuron * dn, float d_time) {
+static void dummy_leak(struct DummyNeuron * dn, double d_time) {
     (void) dn;
     (void) d_time;
 }

@@ -1,14 +1,14 @@
 #include "lif.h"
 #include <stdio.h>
 
-void leak_lif_neuron(struct LifNeuron * lf, float dt) {
+void leak_lif_neuron(struct LifNeuron * lf, double dt) {
     lf->potential = lf->potential
         + dt * (- lf->potential + lf->resting_potential
                 + lf->current * lf->resistance) / lf->tau_m;
 }
 
 
-void leak_lif_big_neuron(struct LifNeuron * lf, float delta, float dt) {
+void leak_lif_big_neuron(struct LifNeuron * lf, double delta, double dt) {
     assert(lf->current == 0);
     size_t iterations = delta / dt;
     for (size_t i = 0; i < iterations; i++) {

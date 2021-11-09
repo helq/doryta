@@ -1,7 +1,7 @@
 #include "lif_beta.h"
 #include <stdio.h>
 
-void leak_lif_beta_neuron(struct LifBetaNeuron * lf, float dt) {
+void leak_lif_beta_neuron(struct LifBetaNeuron * lf, double dt) {
     (void) dt;
     lf->potential = lf->beta * lf->potential;
 }

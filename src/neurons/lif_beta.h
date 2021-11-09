@@ -47,7 +47,7 @@ static_assert(sizeof(struct StorageInMessageLifBeta) <= MESSAGE_SIZE_REVERSE,
         WARNING_MESSAGE(MESSAGE_SIZE_REVERSE));
 
 
-void leak_lif_beta_neuron(struct LifBetaNeuron *, float);
+void leak_lif_beta_neuron(struct LifBetaNeuron *, double);
 
 void integrate_lif_beta_neuron(struct LifBetaNeuron *, float current);
 

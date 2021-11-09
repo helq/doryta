@@ -80,8 +80,8 @@ static inline void assert_valid_NeuronLP(struct NeuronLP * neuronLP) {
 }
 
 
-typedef void (*neuron_leak_f)      (void *, float);
-typedef void (*neuron_leak_big_f)  (void *, float, float);
+typedef void (*neuron_leak_f)      (void *, double);
+typedef void (*neuron_leak_big_f)  (void *, double, double);
 typedef void (*neuron_integrate_f) (void *, float);
 typedef bool (*neuron_fire_f)      (void *);
 typedef void (*probe_event_f)      (struct NeuronLP *, struct Message *, struct tw_lp *);
