@@ -44,7 +44,7 @@ Inside the directory `output/` there will be output files from the simulation.
 Running a complete inference of doryta on MNIST dataset:
 
 ```bash
-mpirun -np 2 src/doryta --spike-driven --load-model=../data/models/whetstone/simple-mnist-no-bias.doryta.bin --synch=3 --load-spikes=../data/models/whetstone/spikified-mnist/spikified-images-all.bin --extramem=1000000 --end=2 --probe-firing --probe-firing-output-only --output-dir=output-all
+mpirun -np 2 src/doryta --spike-driven --load-model=../data/models/whetstone/simple-mnist.doryta.bin --synch=3 --load-spikes=../data/models/whetstone/spikified-mnist/spikified-images-all.bin --extramem=1000000 --end=10001 --probe-firing --probe-firing-output-only --probe-firing-buffer=100000 --output-dir=output-all
 ```
 
 # Documentation

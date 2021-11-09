@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Tuple, Union
+from typing import Any, Tuple
 
 import numpy as np
 import fileinput
 from glob import glob
+import sys
 
 
-def extracting_inference_from_doryta_spikes(path: str) -> Any:
+def extracting_inference_from_doryta_spikes(path: str) -> Tuple[Any, Any, Any, Any]:
     shift = 28*28 + 256 + 64  # Ugly, hardcoded, but there is only one model so far
 
     spikes = np.loadtxt(fileinput.input(glob(f"{path}/*-spikes-gid=*.txt")))  # type: ignore
@@ -26,62 +27,89 @@ def extracting_inference_from_doryta_spikes(path: str) -> Any:
     spikes_per_class = np.array(np.split(spikes[:, 0], indices[1:]), dtype=object)  # type: ignore
 
     find_max = np.vectorize(lambda x: np.argmax(np.bincount(x // 10)))
-    inferenced = - np.ones((num_imgs,), dtype=int)
+    # inferenced = - np.ones((num_imgs,), dtype=int)
+    inferenced = np.zeros((num_imgs,), dtype=int)
     inferenced[time_stamps] = find_max(spikes_per_class)
-    return inferenced, time_stamps, spikes_per_class
+    return inferenced, spikes, time_stamps, spikes_per_class
 
 
 def get_real_classification(path: str) -> Any:
     return np.fromfile(path, dtype='b')  # type: ignore
 
 
-# Copied from data/models/whetstone/code
-def load_data(
-) -> Tuple[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]]:  # type: ignore
-    from tensorflow.keras.datasets import mnist
-    from tensorflow.keras.utils import to_categorical
+def prediction_using_whetstone(model_path: str, indices: slice) -> Tuple[Any, Any]:
+    # Yeah, this is ugly, very ugly, but it's better than duplicating code
+    import importlib.util
+    import os
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # this suppresses Keras/tf warnings
+    # This is to be able to import the Simple MNIST script as a module
+    spec = importlib.util.spec_from_file_location(
+        "snn_models.whetstone.simple_mnist",
+        "data/models/whetstone/code/modified-simple-mnist.py")
+    # This is to be able to import whetsone
+    whetstone_path = "data/models/whetstone/code/"
+    if whetstone_path not in sys.path:
+        sys.path.append(whetstone_path)
+    if spec is None:
+        raise Exception("Not able to load module where simple MNIST whetstone model is defined")
 
-    # Loading and preprocessing data
-    numClasses = 10
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+    simple_mnist = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(simple_mnist)  # type: ignore
+    model, model_intermediate = simple_mnist.load_models(model_path)  # type: ignore
 
-    x_train = x_train.astype('float32')
-    x_train /= 255
-    x_test = x_test.astype('float32')
-    x_test /= 255
-
-    y_train = to_categorical(y_train, numClasses)
-    y_test = to_categorical(y_test, numClasses)
-
-    x_train = np.reshape(x_train, (60000, 28*28))
-    x_test = np.reshape(x_test, (10000, 28*28))
-    return (x_train, y_train), (x_test, y_test)
-
-
-def prediction_using_whetstone(model_path: str) -> Any:
-    from tensorflow.keras.models import load_model
-
-    model = load_model(model_path)
-    (x_train, y_train), (x_test, y_test) = load_data()
-    imgs = (x_test[...] > .5).astype(float)
-    return model.predict(imgs).argmax(axis=1)
+    (x_train, y_train), (x_test, y_test) = simple_mnist.load_data()  # type: ignore
+    imgs = (x_test[indices] > .5).astype(float)
+    return model.predict(imgs).argmax(axis=1), model_intermediate.predict(imgs)
 
 
 if __name__ == '__main__':
-    path_results = "build/output-all"
-    path_real_tags = "data/models/whetstone/spikified-mnist/spikified-images-all.tags.bin"
     path_to_keras_model = "data/models/whetstone/keras-simple-mnist"
+    path_real_tags = "data/models/whetstone/spikified-mnist/spikified-images-all.tags.bin"
 
-    inferenced, time_stamps, spikes_per_class = \
+    # indices_test = slice(950, 970)
+    # path_results = "build/output-950-to-970-AIMOS-trial=6"
+    indices_test = slice(10000)
+    path_results = "build/output-all"
+
+    print(f"Execution path being analyzed: `{path_results}`")
+
+    # ====== Extracting inference results from Doryta run ======
+    inferenced, spikes, time_stamps, spikes_per_class = \
         extracting_inference_from_doryta_spikes(path_results)
-    print("Spike inference:", inferenced)
+    print("Doryta inference labels:", inferenced)
 
+    # ====== Finding the classification LABELS from dataset ======
     test_values = get_real_classification(path_real_tags)
+    test_values = test_values[indices_test]
     assert(inferenced.size == test_values.size)
-    print("Total correctly inferenced:", (inferenced == test_values).sum())
+    print("Total correctly inferenced (Doryta):", (inferenced == test_values).sum())
 
-    whetstone_prediction = prediction_using_whetstone(path_to_keras_model)
-    print("Total differently classified:", (inferenced != whetstone_prediction).sum())
+    # ====== Using Keras/Whetstone to classify data ======
+    whetstone_prediction, whetstone_prediction_inter = \
+        prediction_using_whetstone(path_to_keras_model, indices_test)
+
+    # ====== Checking discrepancies between Keras and Doryta ======
+    assert(whetstone_prediction.size == test_values.size)
+    print("Discrepancy between Doryta and Whetstone:", (inferenced != whetstone_prediction).sum())
 
     different_classification = np.argwhere((inferenced != whetstone_prediction)).flatten()
-    print("Ten first differently classified images:", different_classification[:10])
+    print("Image IDs for the first 20 discrepant images:", different_classification[:20] +
+          (indices_test.start
+           if isinstance(indices_test, slice) and indices_test.start
+           else 0))
+
+    sz_imgs = indices_test.stop - (0 if indices_test.start is None else indices_test.start)
+    spikes_as_ones = np.zeros((sz_imgs, 100))
+    spikes_as_ones.flat[spikes[:, 0] + spikes[:, 1] * 100] = 1  # type: ignore
+
+    pred_spikes_as_ones = whetstone_prediction_inter[-1]
+
+    print("Do all output spikes coincide between doryta and keras?",
+          np.all(pred_spikes_as_ones == spikes_as_ones))
+
+    doryta_spikes = spikes_as_ones.astype(bool)
+    keras_spikes = pred_spikes_as_ones.astype(bool)
+    only_in_doryta = np.argwhere(np.bitwise_and(np.bitwise_not(keras_spikes), doryta_spikes))
+    only_in_keras = np.argwhere(np.bitwise_and(np.bitwise_not(doryta_spikes), keras_spikes))
+    print("Total spikes only in doryta:", only_in_doryta.size)
+    print("Total spikes only in keras/whetstone:", only_in_keras.size)
