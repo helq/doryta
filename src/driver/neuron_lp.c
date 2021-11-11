@@ -201,6 +201,10 @@ void neuronLP_event_reverse_needy(
     (void) bit_field;
     (void) lp;
     settings.reverse_store_neuron(neuronLP->neuron_struct, msg->reserved_for_reverse);
+    if (msg->type == MESSAGE_TYPE_heartbeat) {
+        msg->fired = false;
+    }
+    msg->time_processed = -1;
 }
 
 
@@ -282,6 +286,10 @@ void neuronLP_event_reverse_spike_driven(
     settings.reverse_store_neuron(neuronLP->neuron_struct, msg->reserved_for_reverse);
     neuronLP->last_heartbeat = msg->prev_heartbeat;
     neuronLP->next_heartbeat_sent = bit_field->c0;
+    if (msg->type == MESSAGE_TYPE_heartbeat) {
+        msg->fired = false;
+    }
+    msg->time_processed = -1;
 }
 
 

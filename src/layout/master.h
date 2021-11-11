@@ -59,7 +59,7 @@ layout_master_configure(struct SettingsNeuronLP *settingsNeuronLP);
 size_t layout_master_total_lps_pe(void);
 
 /**
- * Returns the total number of lps (neurons and supporting lps) in this PE
+ * Returns the total number of neurons in this PE
  */
 size_t layout_master_total_neurons_pe(void);
 
