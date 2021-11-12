@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 void leak_lif_neuron(struct LifNeuron * lf, double dt) {
+    // V(t + dt) = V(t) + dt * (-(V(t) - Ve) + I(t) R / (R * C))
     lf->potential = lf->potential
         + dt * (- lf->potential + lf->resting_potential
                 + lf->current * lf->resistance) / lf->tau_m;
@@ -9,18 +10,11 @@ void leak_lif_neuron(struct LifNeuron * lf, double dt) {
 
 
 void leak_lif_big_neuron(struct LifNeuron * lf, double delta, double dt) {
+    (void) dt;
     assert(lf->current == 0);
-    size_t iterations = delta / dt;
-    for (size_t i = 0; i < iterations; i++) {
-        if (lf->potential == lf->resting_potential) {
-            // Neuron already arrived at resting potential, no
-            // need to keep computing
-            return;
-        }
-        lf->potential = lf->potential
-            + dt * (- lf->potential + lf->resting_potential
-                    + lf->current * lf->resistance) / lf->tau_m;
-    }
+    // V(t) = Ve + exp(-t / (R * C)) * (Vi - Ve)
+    lf->potential = lf->resting_potential
+        + exp(- delta / lf->tau_m) * (lf->potential - lf->resting_potential);
 }
 
 

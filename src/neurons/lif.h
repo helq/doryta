@@ -23,9 +23,9 @@ struct LifNeuron {
     float potential;          // V
     float current;            // I(t)
     float resting_potential;  // V_e
-    float reset_potential;    // V_e
+    float reset_potential;    // V_r
     float threshold;          // V_th
-    float tau_m;              // C * R
+    float tau_m;              // R * C
     float resistance;         // R
 };
 

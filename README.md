@@ -82,3 +82,13 @@ ctest
 Remember to run CMake again whenever a new test is added. CMake generates the rules to
 compile the tests and run them. Unfortunatelly, CMake is not triggered when new
 tests/folders are added to the `test` folder.
+
+# Gotchas
+
+The nature of approximating the behaviour of a neuron by simulating their behaviour one
+step at the time means that there will innevitably errors, approximation errors. To
+approximate better we tend to use smaller deltas. Too small of a delta and we might get
+into trouble. The spike driven mode uses a different function to determine the change of
+state of a neuron over a long period of time, and because it assumes a smooth transition,
+not chunky, delta jumps, it will produce slightly different results on the "voltage" of
+the neuron and very few spurious spikes (model dependent).

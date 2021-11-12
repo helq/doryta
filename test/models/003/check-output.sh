@@ -5,9 +5,9 @@
 # instead of the wildcard character we could use `{0,1}` but old versions of
 # bash behave differently with that input.
 
-diff <(sort "$1/five-neurons-test-voltage-gid=0.txt") \
-     <(sort "$2"/five-neurons-test-voltage-gid=*.txt) \
+diff <(sort "$1/five-neurons-test-spikes-gid=0.txt") \
+     <(sort "$2"/five-neurons-test-spikes-gid=*.txt) \
    || exit $?
 
-exec diff <(sort "$1/five-neurons-test-spikes-gid=0.txt") \
-          <(sort "$2"/five-neurons-test-spikes-gid=*.txt)
+exec diff <(sort "$1/five-neurons-test-voltage-gid=0.txt") \
+     <(sort "$2"/five-neurons-test-voltage-gid=*.txt)
