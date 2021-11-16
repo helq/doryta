@@ -55,6 +55,10 @@ static float initialize_weight_neurons(size_t neuron_from, size_t neuron_to) {
 
 struct ModelParams
 model_five_neurons_init(struct SettingsNeuronLP * settings_neuron_lp) {
+    if (tw_nnodes() > 2) {
+        tw_error(TW_LOC, "The five-neuron model runs on either 1 or 2 MPI Ranks, not more than that.");
+    }
+
     // Defining Spikes
     if (g_tw_mynode <= 1) {
         spikes = calloc(5, sizeof(struct StorableSpike*));
