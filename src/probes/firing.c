@@ -1,5 +1,4 @@
 #include "firing.h"
-#include "../message.h"
 #include "../storable_spikes.h"
 #include "../driver/neuron_lp.h"
 #include "ross.h"

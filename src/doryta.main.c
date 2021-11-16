@@ -1,8 +1,6 @@
 #include <ross.h>
 #include <doryta_config.h>
 #include "driver/neuron_lp.h"
-#include "message.h"
-#include "model-loaders/params.h"
 #include "model-loaders/hardcoded/five_neurons.h"
 #include "model-loaders/regular_io/load_neurons.h"
 #include "model-loaders/regular_io/load_spikes.h"
@@ -41,7 +39,8 @@ tw_lptype doryta_lps[] = {
 
 /** Define command line arguments default values. */
 // Bools
-// NOTE: bools cannot be of type bool because ROSS assumes int as input only
+// NOTE: bools cannot be of type bool because ROSS assumes all arguments to be
+// ints except for chars
 static unsigned int is_spike_driven = 0;
 static unsigned int run_five_neuron_example = 0;
 static unsigned int is_firing_probe_active = 0;

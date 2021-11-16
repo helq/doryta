@@ -2,8 +2,6 @@
 #define DORYTA_NEOURNS_LIF_H
 
 #include "../message.h"
-#include <stdbool.h>
-#include <assert.h>
 
 // This header file must define at least three functions to be
 // called later by the neuron handler:

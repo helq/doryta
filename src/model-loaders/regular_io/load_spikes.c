@@ -1,7 +1,6 @@
 #include "load_spikes.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "../../driver/neuron_lp.h"
 #include "../../storable_spikes.h"
 #include "../../layout/master.h"
 #include "../../utils/io.h"

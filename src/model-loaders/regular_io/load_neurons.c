@@ -1,5 +1,4 @@
 #include "load_neurons.h"
-#include "../../driver/neuron_lp.h"
 #include "../../layout/master.h"
 #include "../../layout/standard_layouts.h"
 #include "../../neurons/lif.h"

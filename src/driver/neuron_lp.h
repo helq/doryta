@@ -5,11 +5,6 @@
  * Functions implementing a neuron as a discrete event simulator
  */
 
-#include <stdbool.h>
-#include <assert.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <math.h>
 #include "../message.h"
 
 // There is no need to import ROSS headers just to define those structs
@@ -95,7 +90,7 @@ typedef void (*neuron_state_op_f)  (void *, char[MESSAGE_SIZE_REVERSE]);
  * It is assumed that `neurons` and `synapses` contain a correct
  * initialization of the given neuron type, and that they match with the LPs'
  * local IDs. What this means is that `neurons[0]` is assigned to LP with
- * local ID 0. The same happens with `synapses[0]`
+ * local ID 0. The same happens with `synapses[0]`.
  *
  * Invariants:
  * - `num_neurons_pe` > 0
@@ -116,25 +111,68 @@ typedef void (*neuron_state_op_f)  (void *, char[MESSAGE_SIZE_REVERSE]);
  * - If `spikes` is not null, it points to `num_neurons` spikes (array of pointers ending in a null element)
  */
 struct SettingsNeuronLP {
+    /** Total number of neurons across all PEs. */
     size_t                     num_neurons;
+    /** Total number of neurons on this PEs. */
     size_t                     num_neurons_pe;
     // Yes, this is not ideal, best would be to have everything contained
     // within the neuron, but ROSS has no separation for memory allocation
     // and execution. (Both are performed at `tw_run`.)
+    /** Pointers to neurons of the given type. One pointer per neuron, for a
+     * total of `num_neurons_pe`. No neuron can be NULL. */
     void                    ** neurons;
+    /** Outgoing synapses for each neuron in this PE. As with `neurons`, this
+     * must be an array of exactly `num_neurons_pe` elements, or the program
+     * might segfault. */
     struct SynapseCollection * synapses;
+    /** Input spikes for each neuron in PE. The first pointer corresponds to an
+     * array to arrays. The second pointer corresponds to the array of spikes
+     * for a specific neuron. The array of spikes must finalize in zero. An
+     * `intensity` of zero indicates the end of the array. The pointer of
+     * pointers can be NULL, and individual arrays of spikes (per neuron) can
+     * be NULL. */
     struct StorableSpike    ** spikes;
-    double                     beat; //<! Heartbeat frequency
+    /** Heartbeat frequency. A positive number, hopefully small enough to
+     * simulate the real-valued behaviour of neurons in continuous time. It's a
+     * simulation, thus it is discretized. The value of the heartbeat should be
+     * a power of 2. There is no warranty that the execution will be
+     * deterministic if the heartbeat is not a power of 2. */
+    double                     beat;
+    /** Indicates how many "heartbeat" timestepts to wait since a spike that
+     * triggers firing is received. The smallest value is 1. */
     int                        firing_delay;
-    neuron_leak_f              neuron_leak; //<! Leak operation over neuron for a step of size dt (beat)
-    neuron_leak_big_f          neuron_leak_bigdt; //<! Leak operation over neuron for an arbitrary interval of time t (it might use a dt (beat) as input too)
+    /** Performs the _leak_ operation on a neuron with a delta step of `dt` (a
+     * heartbeat lenght). */
+    neuron_leak_f              neuron_leak;
+    /** Performs the _leak_ operation on a neuron, assuming no input current
+     * (no spikes), over an arbitrary period of time. A third parameter is
+     * given, the heartbeat, in case the equation describing the neuron cannot
+     * be analytically solved and must be approximated by a simulation (a
+     * loop). This function is only called on _spike driven_ mode. */
+    neuron_leak_big_f          neuron_leak_bigdt;
+    /** Performs the _integrate_ operation on a neuron. This often equates to a
+     * single addition operation. */
     neuron_integrate_f         neuron_integrate;
+    /** Performs the _fire_ operation. This determines whether the condition
+     * for firing in the neuron has been met, changes the state of the neuron
+     * to its state after firing and returns the true if it fired. */
     neuron_fire_f              neuron_fire;
+    /** This operation is given the neuron state and a pointer to a reserved
+     * space of size `MESSAGE_SIZE_REVERSE`. The operation must save the full
+     * (modifiable) state of the neuron into the reserved space. */
     neuron_state_op_f          store_neuron;
+    /** This operation is the inverse of `store_neuron`. It must modify the
+     * state of the neuron given the data stored. */
     neuron_state_op_f          reverse_store_neuron;
+    /** An optional function in charge of printing in one line the state of the
+     * neuron at the end of the simulation. Use only for debug purposes as the
+     * output get clogged with large models with many neurons. */
     print_neuron_f             print_neuron_struct;
-    id_to_id                   gid_to_doryta_id; //<! Getting neuron ID (aka, DorytaID)
-    probe_event_f            * probe_events; //<! A list of functions to call to record/trace the computation
+    /** This function takes a GID and produces a neuron ID (aka, DorytaID). */
+    id_to_id                   gid_to_doryta_id;
+    /** A list of functions to call to record/trace the computation. It can be
+     * NULL. The array must be NULL terminated. */
+    probe_event_f            * probe_events;
 };
 
 static inline bool is_valid_SettingsPE(struct SettingsNeuronLP * settingsPE) {

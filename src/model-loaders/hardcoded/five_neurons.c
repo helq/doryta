@@ -1,7 +1,6 @@
 #include "five_neurons.h"
 #include <pcg_basic.h>
 #include <ross.h>
-#include "../../driver/neuron_lp.h"
 #include "../../layout/master.h"
 #include "../../layout/standard_layouts.h"
 #include "../../neurons/lif.h"

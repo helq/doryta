@@ -1,6 +1,4 @@
 #include "master.h"
-#include <assert.h>
-#include <stdbool.h>
 #include <ross.h>
 
 #define MAX_NEURON_GROUPS 20

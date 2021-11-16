@@ -1,5 +1,6 @@
 #include "lif.h"
 #include <stdio.h>
+#include <tgmath.h>
 
 void leak_lif_neuron(struct LifNeuron * lf, double dt) {
     // V(t + dt) = V(t) + dt * (-(V(t) - Ve) + I(t) R / (R * C))
@@ -12,6 +13,7 @@ void leak_lif_neuron(struct LifNeuron * lf, double dt) {
 void leak_lif_big_neuron(struct LifNeuron * lf, double delta, double dt) {
     (void) dt;
     assert(lf->current == 0);
+    assert(lf->threshold > lf->resting_potential);
     // V(t) = Ve + exp(-t / (R * C)) * (Vi - Ve)
     lf->potential = lf->resting_potential
         + exp(- delta / lf->tau_m) * (lf->potential - lf->resting_potential);

@@ -1,7 +1,6 @@
 #ifndef DORYTA_SRC_LAYOUT_MASTER_H
 #define DORYTA_SRC_LAYOUT_MASTER_H
 
-#include <stddef.h>
 #include "../driver/neuron_lp.h"
 
 typedef void (*neuron_init_f) (void * neuron_struct, size_t neuron_id);

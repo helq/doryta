@@ -1,7 +1,5 @@
 #include "neuron_lp.h"
-#include "../message.h"
 #include "../storable_spikes.h"
-#include <stdbool.h>
 #include <ross.h>
 
 // If spikes and heartbeats "occur" at the same time (ie, they are scheduled
@@ -73,6 +71,10 @@ static inline void send_spike(
         for (size_t i = 0; i < neuronLP->to_contact.num; i++) {
             struct Synapse const synap =
                 neuronLP->to_contact.synapses[i];
+
+            if (synap.weight) { // Don't send spikes if the weight is zero
+                continue;
+            }
 
             struct tw_event * const event =
                 tw_event_new_user_prio(synap.gid_to_send, diff, lp, SPIKE_PRIORITY);
