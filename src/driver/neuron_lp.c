@@ -72,10 +72,6 @@ static inline void send_spike(
             struct Synapse const synap =
                 neuronLP->to_contact.synapses[i];
 
-            if (synap.weight) { // Don't send spikes if the weight is zero
-                continue;
-            }
-
             struct tw_event * const event =
                 tw_event_new_user_prio(synap.gid_to_send, diff, lp, SPIKE_PRIORITY);
             struct Message * const msg = tw_event_data(event);
