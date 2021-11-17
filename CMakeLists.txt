@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.21)
 project(doryta)
 
 set(CMAKE_C_STANDARD 17)
-option(CMAKE_C_EXTENSIONS OFF)
 option(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_subdirectory(external)

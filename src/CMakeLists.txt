@@ -8,7 +8,8 @@ include_directories("${external_includes}")
 # Git stuff is used in configuration header file
 list(APPEND CMAKE_MODULE_PATH "${ROSS_SOURCE_DIR}/cmake/")
 include(GetGitRevisionDescription)
-get_git_head_revision(GIT_RESPEC_MODEL GIT_SHA1_MODEL)
+get_git_head_revision(GIT_RESPEC_ROSS_MODEL GIT_SHA1_ROSS_MODEL)
+string(SUBSTRING ${GIT_SHA1_ROSS_MODEL} 0 7 GIT_SHORT_SHA1)
 
 # Building configuration header file
 configure_file(

@@ -148,11 +148,6 @@ int main(int argc, char *argv[]) {
       check_folder("output");
     }
 
-    // Printing settings
-    if (g_tw_mynode == 0) {
-      printf("doryta git version: " MODEL_VERSION "\n");
-    }
-
     // This must be run in two PEs precisely
     if (tw_nnodes() != 2) {
         tw_error(TW_LOC, "This model must be run on two PEs");

@@ -7,6 +7,7 @@
 #include "probes/firing.h"
 #include "probes/lif/voltage.h"
 #include "utils/io.h"
+#include "version.h"
 
 
 /** Defining LP types.
@@ -113,7 +114,7 @@ static tw_optdef const model_opts[] = {
 
 
 void fprint_doryta_params(FILE * fp) {
-    fprintf(fp, "doryta git version: " MODEL_VERSION "\n");
+    fprintf(fp, "doryta version: " DORYTA_VERSION "-" GIT_VERSION "\n");
     fprintf(fp, "=============== Params passed to doryta ===============\n");
     fprintf(fp, "spike-driven          = %s\n",   is_spike_driven ? "ON" : "OFF");
     fprintf(fp, "output-dir            = '%s'\n", output_dir);

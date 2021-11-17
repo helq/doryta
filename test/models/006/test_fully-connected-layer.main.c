@@ -139,11 +139,6 @@ int main(int argc, char *argv[]) {
       check_folder("output");
     }
 
-    // Printing settings
-    if (g_tw_mynode == 0) {
-      printf("doryta git version: " MODEL_VERSION "\n");
-    }
-
     // Spikes
     struct StorableSpike *spikes[5] = {
         (struct StorableSpike[]) {

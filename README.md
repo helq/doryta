@@ -8,31 +8,18 @@ Doryta (not an acronym) is a spiking neural network (SNN) simulator written in C
 # Compilation
 
 Doryta requires CMake and a C compiler with support for [MPI][]. To download and compile
-in as little steps, run the following instructions:
+in as little steps, run the instructions below. (In order to keep Doryta as lean as
+possible, all example models are stored in a separate git submodule repo. That's why the
+slightly longer and complicated sequence of commands.)
 
 [MPI]: https://www.mpich.org/
 
 ```bash
-git clone --recursive https://github.com/helq/doryta
-mkdir doryta/build
-cd doryta/build
-cmake .. -DBUILD_TESTING=OFF
-make -j4
-```
-
-In order to keep Doryta as lean as possible, all example models are stored in a separate
-git submodule repo. The commands above will (potentially) take a long time to execute
-(depending on your network connection) and will certainly take many unnecessary MBs in
-storage. The following sequence of commands will download only the necessary data to
-compile:
-
-```bash
 git clone https://github.com/helq/doryta
 cd doryta
-git submodule init
-git submodule update --depth=1
-mkdir build
-cd build
+git submodule update --init --depth=1
+patch -p1 -d external/ROSS < tools/patches/ROSS.patch
+mkdir build && cd build
 cmake .. -DBUILD_TESTING=OFF
 make -j4
 ```
