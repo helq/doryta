@@ -79,38 +79,32 @@ mpirun -np 2 src/doryta --spike-driven --synch=3 --extramem=1000000 \
     --probe-firing --probe-firing-output-only --probe-firing-buffer=100000 --end=19.5
 ```
 
-[TO CONTINUE HERE: modify python script to use argparse, indicate in here how to run the
-script and what it is doing below the surface. Continue]
+The output will be stored under the path `output-20`. The script
+`tools/whetstone-mnist/check_doryta_inference.py` checks this output with the expected
+output from whetstone.
 
 ## Needy vs Spike-driven modes
 
-[Explain that the MNIST example above has been run under the spike-driven mode which
-runs faster than the needy mode but by its nature doesn't store any voltage data, so it
-cannot be analysed with the other python tool, that can be changed, just remove the
-spike-driven flag and add the probe voltage flag with enough buffer to contain all the
-execution history, mention gotchas from below]
+Doryta comes with two modes of execution: needy and spike-driven. In _Needy_ mode, Doryta
+will update the state of each neuron every delta time just as any other ordinary
+simulation framework. In _spike-driven_ mode, Doryta will only update the state of the
+neuron when it receives a spike, and it's, thus, much faster than _needy_. The main
+assumption for _spike-driven_ to behave as _needy_ is that there must NEVER be positive
+leak on the system, ie, neurons cannot spike on their own if there don't have a input
+stimulous (spike).
 
-The nature of approximating the behaviour of a neuron by simulating their behaviour one
-step at the time means that there will innevitably errors, approximation errors. To
-approximate better we tend to use smaller deltas. Too small of a delta and we might get
-into trouble. The spike driven mode uses a different function to determine the change of
-state of a neuron over a long period of time, and because it assumes a smooth transition,
-not chunky, delta jumps, it will produce slightly different results on the "voltage" of
-the neuron and very few spurious spikes (model dependent).
+The MNIST example (above) uses the _spike-driven_ mode, which runs faster than the _needy_
+mode, but it doesn't compute the step by step change on voltage. This means that we cannot
+analyze the voltage behaviour of neurons. If you want to analyze the voltage change,
+remove the `--spike-driven` flag, activate the voltage probe (`--probe-voltage`) and
+assign enough buffer space (`--probe-voltage-buffer`) to store voltage for all neurons on
+the determined time step.
 
-# Documentation
-
-To generate the documentation, install [doxygen][] and dot (included in [graphviz][]), and
-then run:
-
-```bash
-doxygen docs/Doxyfile
-```
-
-The documentation will be stored in `docs/html`.
-
-[doxygen]: https://www.doxygen.nl/
-[graphviz]: https://www.graphviz.org/
+_Note on custom models_: There might be some discrepancies when running a model on the
+spike-driven mode opposed to needy mode. To reduce such discrepancies, we recommend to
+make the heartbeat interval (the delta of the approximation) small enough. By the very
+nature of simulation, breaking a continuous equation into discrete steps, there will
+always be a tradeoff between computation time and fidelity.
 
 # Release binary
 
@@ -126,8 +120,8 @@ To run tests you have to compile them first and then run ctest:
 
 ```bash
 cmake .. -DBUILD_TESTING=ON
-make
-ctest
+make -j4
+ctest -j4
 ```
 
 Remember to run CMake again whenever a new test is added. CMake generates the rules to
