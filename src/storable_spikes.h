@@ -9,6 +9,7 @@
  * `intensity` usually is `1`
  *
  * Invariants:
+ * - `neuron` can only be positive
  * - `time` cannot be negative
  * - `intensity` cannot be zero (removing this invariant will
  *   break code, invalid, zero-ed `StorableSpike`s are used as a
@@ -16,18 +17,20 @@
  *   spikes)
  */
 struct StorableSpike {
-    uint64_t neuron;
+    int32_t neuron;
     double time;
     double intensity;
 };
 
 static inline bool is_valid_StorableSpike(struct StorableSpike * spike) {
-    return spike->time >= 0
+    return spike->neuron >= 0
+        && spike->time >= 0
         && spike->intensity != 0;
 }
 
 static inline void assert_valid_StorableSpike(struct StorableSpike * spike) {
 #ifndef NDEBUG
+    assert(spike->neuron >= 0);
     assert(spike->time >= 0);
     assert(spike->intensity != 0);
 #endif // NDEBUG

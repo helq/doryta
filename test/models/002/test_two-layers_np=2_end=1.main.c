@@ -29,7 +29,7 @@ tw_lptype doryta_lps[] = {
 };
 
 
-static void initialize_LIF(struct LifNeuron * lif, size_t doryta_id) {
+static void initialize_LIF(struct LifNeuron * lif, int32_t doryta_id) {
     (void) doryta_id;
     *lif = (struct LifNeuron) {
         .potential = 0,
@@ -43,7 +43,7 @@ static void initialize_LIF(struct LifNeuron * lif, size_t doryta_id) {
 }
 
 
-static float initialize_weight_neurons(size_t neuron_from, size_t neuron_to) {
+static float initialize_weight_neurons(int32_t neuron_from, int32_t neuron_to) {
     (void) neuron_from;
     (void) neuron_to;
     return neuron_from == neuron_to ? 0 : 0.4;

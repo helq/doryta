@@ -19,7 +19,7 @@ struct StorableSpike;
  */
 struct Synapse {
     uint64_t gid_to_send;
-    uint64_t doryta_id_to_send;
+    int32_t doryta_id_to_send;
     float weight;
 };
 
@@ -27,7 +27,7 @@ struct Synapse {
  * Beware: make sure `num` is correctly initialized!
  */
 struct SynapseCollection {
-    size_t num;
+    int32_t num;
     struct Synapse * synapses; /**< An array containing all connections to other */
 };
 
@@ -38,7 +38,7 @@ struct SynapseCollection {
  * - `last_heartbeat` is never negative
  */
 struct NeuronLP {
-    size_t doryta_id; // This might not be the same as the GID for the neuron (it is defined as dorytaID because that is how it is caled in src/layout, but it might be anything the user wants)
+    int32_t doryta_id; // This might not be the same as the GID for the neuron (it is defined as dorytaID because that is how it is caled in src/layout, but it might be anything the user wants)
     void *neuron_struct; /**< A pointer to the neuron state */
     struct SynapseCollection to_contact;
 
@@ -80,7 +80,7 @@ typedef void (*neuron_leak_big_f)  (void *, double, double);
 typedef void (*neuron_integrate_f) (void *, float);
 typedef bool (*neuron_fire_f)      (void *);
 typedef void (*probe_event_f)      (struct NeuronLP *, struct Message *, struct tw_lp *);
-typedef size_t (*id_to_id)         (size_t);
+typedef int32_t (*id_to_dorytaid)  (size_t);
 typedef void (*print_neuron_f)     (void *);
 typedef void (*neuron_state_op_f)  (void *, char[MESSAGE_SIZE_REVERSE]);
 
@@ -112,9 +112,9 @@ typedef void (*neuron_state_op_f)  (void *, char[MESSAGE_SIZE_REVERSE]);
  */
 struct SettingsNeuronLP {
     /** Total number of neurons across all PEs. */
-    size_t                     num_neurons;
+    int                     num_neurons;
     /** Total number of neurons on this PEs. */
-    size_t                     num_neurons_pe;
+    int                     num_neurons_pe;
     // Yes, this is not ideal, best would be to have everything contained
     // within the neuron, but ROSS has no separation for memory allocation
     // and execution. (Both are performed at `tw_run`.)
@@ -169,7 +169,7 @@ struct SettingsNeuronLP {
      * output get clogged with large models with many neurons. */
     print_neuron_f             print_neuron_struct;
     /** This function takes a GID and produces a neuron ID (aka, DorytaID). */
-    id_to_id                   gid_to_doryta_id;
+    id_to_dorytaid             gid_to_doryta_id;
     /** A list of functions to call to record/trace the computation. It can be
      * NULL. The array must be NULL terminated. */
     probe_event_f            * probe_events;
@@ -196,7 +196,7 @@ static inline bool is_valid_SettingsPE(struct SettingsNeuronLP * settingsPE) {
           && beat_validity && firing_delay_validity)) {
         return false;
     }
-    for (size_t i = 0; i < settingsPE->num_neurons_pe; i++) {
+    for (int i = 0; i < settingsPE->num_neurons_pe; i++) {
         if (settingsPE->neurons[i] == NULL) {
             return false;
         }
@@ -218,7 +218,7 @@ static inline void assert_valid_SettingsPE(struct SettingsNeuronLP * settingsPE)
     assert(!isnan(settingsPE->beat));
     assert(!isinf(settingsPE->beat));
     assert(1 <= settingsPE->firing_delay);
-    for (size_t i = 0; i < settingsPE->num_neurons_pe; i++) {
+    for (int i = 0; i < settingsPE->num_neurons_pe; i++) {
         assert(settingsPE->neurons[i] != NULL);
     }
 #endif // NDEBUG

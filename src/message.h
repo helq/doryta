@@ -31,10 +31,10 @@ struct Message {
             bool fired;
         };
         struct { // message type = spike
-            size_t neuron_from; // DorytaID
-            size_t neuron_to;   // DorytaID
-            size_t neuron_from_gid;
-            size_t neuron_to_gid;
+            int32_t neuron_from; // DorytaID
+            int32_t neuron_to;   // DorytaID
+            int64_t neuron_from_gid;
+            int64_t neuron_to_gid;
             float spike_current;
         };
     };
@@ -78,8 +78,10 @@ static inline bool is_valid_Message(struct Message * msg) {
     if (msg->type == MESSAGE_TYPE_spike) {
          correct_spike = correct_spike
                        && !isnan(msg->spike_current)
-                       && msg->neuron_from < g_tw_total_lps
-                       && msg->neuron_to < g_tw_total_lps;
+                       && 0 <= msg->neuron_from
+                       && 0 <= msg->neuron_to
+                       && (uint64_t) msg->neuron_from < g_tw_total_lps
+                       && (uint64_t) msg->neuron_to < g_tw_total_lps;
     }
     return correct_spike;
 }
@@ -88,8 +90,10 @@ static inline void assert_valid_Message(struct Message * msg) {
 #ifndef NDEBUG
     if (msg->type == MESSAGE_TYPE_spike) {
         assert(!isnan(msg->spike_current));
-        assert(msg->neuron_from < g_tw_total_lps);
-        assert(msg->neuron_to < g_tw_total_lps);
+        assert(0 <= msg->neuron_from);
+        assert(0 <= msg->neuron_to);
+        assert((uint64_t) msg->neuron_from < g_tw_total_lps);
+        assert((uint64_t) msg->neuron_to < g_tw_total_lps);
     }
 #endif // NDEBUG
 }

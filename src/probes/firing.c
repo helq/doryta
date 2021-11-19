@@ -68,7 +68,7 @@ static void firing_save(void) {
 
     if (fp != NULL) {
         for (size_t i = 0; i < buffer_used; i++) {
-            fprintf(fp, "%" PRIu64 "\t%f\n", firing_spikes[i].neuron, firing_spikes[i].time);
+            fprintf(fp, "%" PRIi32 "\t%f\n", firing_spikes[i].neuron, firing_spikes[i].time);
         }
 
         fclose(fp);

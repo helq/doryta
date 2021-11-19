@@ -79,12 +79,12 @@ model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
     // Assumes that increasing the local id also increases the doryta id,
     // which is true for layout/master
     int32_t i_in_file = 0;
-    for (size_t i = 0; i < settings_neuron_lp->num_neurons_pe; i++) {
+    for (int32_t i = 0; i < settings_neuron_lp->num_neurons_pe; i++) {
         // READ SYNAPSE params and its synapses, storing them directly on
         // CONTINUE FROM HERE!
         int32_t const doryta_id = layout_master_local_id_to_doryta_id(i);
         //printf("PE %lu - neuron id %d - total_num_neurons %d\n", g_tw_mynode, doryta_id, num_synapses);
-        assert((int32_t) doryta_id < total_num_neurons);
+        assert(doryta_id < total_num_neurons);
 
         // Seeking up to where doryta_id is stored
         // TODO: This loop is slow and wasteful with more than one PE. A single

@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 struct StorableVoltage {
-    uint64_t neuron;
+    int neuron;
     double time;
     float voltage;
 };
@@ -64,7 +64,7 @@ static void voltages_save(void) {
 
     if (fp != NULL) {
         for (size_t i = 0; i < buffer_used; i++) {
-            fprintf(fp, "%" PRIu64 "\t%f\t%f\n", spikes[i].neuron, spikes[i].time, spikes[i].voltage);
+            fprintf(fp, "%" PRIi32 "\t%f\t%f\n", spikes[i].neuron, spikes[i].time, spikes[i].voltage);
         }
 
         fclose(fp);

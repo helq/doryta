@@ -3,12 +3,12 @@
 
 #include "../driver/neuron_lp.h"
 
-typedef void (*neuron_init_f) (void * neuron_struct, size_t neuron_id);
-typedef float (*synapse_init_f) (size_t neuron_from, size_t neuron_to);
+typedef void (*neuron_init_f) (void * neuron_struct, int32_t neuron_id);
+typedef float (*synapse_init_f) (int32_t neuron_from, int32_t neuron_to);
 
 struct NeuronGroupInfo {
-    size_t id_offset;
-    size_t num_neurons;
+    int32_t id_offset;
+    int32_t num_neurons;
 };
 
 /**
@@ -16,8 +16,8 @@ struct NeuronGroupInfo {
  * The number of neurons must be more than zero.
  * Returns the first doryta ID assigned to the lot.
  */
-size_t layout_master_neurons(
-        size_t total_neurons, unsigned long initial_pe, unsigned long final_pe);
+int32_t layout_master_neurons(
+        int32_t total_neurons, unsigned long initial_pe, unsigned long final_pe);
 
 /**
  * Connects a range of neurons input (from) to a range of neurons output (to).
@@ -25,8 +25,8 @@ size_t layout_master_neurons(
  * connection/synapse is created, inclusive. `to_start` and `to_end` identify
  * the neuron range to connect.
  */
-void layout_master_synapses_fully(size_t from_start, size_t from_end,
-        size_t to_start, size_t to_end);
+void layout_master_synapses_fully(int32_t from_start, int32_t from_end,
+        int32_t to_start, int32_t to_end);
 
 /**
  * Defines custom mapping, and allocates memory for neurons and synapses.
@@ -70,32 +70,32 @@ unsigned long layout_master_gid_to_pe(uint64_t gid);
 /**
  * Returns PE to which a DorytaID has been assigned to.
  */
-unsigned long layout_master_doryta_id_to_pe(size_t doryta_id);
+unsigned long layout_master_doryta_id_to_pe(int32_t doryta_id);
 
 /**
  * Converts DorytaID into GID.
  */
-size_t layout_master_doryta_id_to_gid(size_t doryta_id);
+size_t layout_master_doryta_id_to_gid(int32_t doryta_id);
 
 /**
  * Converts GID into DorytaID.
  */
-size_t layout_master_gid_to_doryta_id(size_t gid);
+int32_t layout_master_gid_to_doryta_id(size_t gid);
 
 /**
  * Converts LocalID into DorytaID
  */
-size_t layout_master_local_id_to_doryta_id(size_t id);
+int32_t layout_master_local_id_to_doryta_id(size_t id);
 
 /**
  * Converts DorytaID into LocalID
  */
-size_t layout_master_doryta_id_to_local_id(size_t id);
+size_t layout_master_doryta_id_to_local_id(int32_t doryta_id);
 
 /**
  * Converts LocalID into DorytaID for an arbitrary PE
  */
-size_t layout_master_local_id_to_doryta_id_for_pe(size_t id, size_t pe);
+int32_t layout_master_local_id_to_doryta_id_for_pe(size_t id, size_t pe);
 
 /**
  * Returns parameters of the last group/layer defined.

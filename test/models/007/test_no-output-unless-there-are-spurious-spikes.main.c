@@ -68,7 +68,7 @@ static tw_peid linear_map(tw_lpid gid) {
 }
 
 
-static size_t identity_map(size_t gid) {
+static int32_t identity_map(size_t gid) {
     return gid;
 }
 

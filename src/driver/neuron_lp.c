@@ -68,7 +68,7 @@ static inline void send_heartbeat(struct NeuronLP *neuronLP, struct tw_lp *lp) {
 static inline void send_spike(
         struct NeuronLP *neuronLP, struct tw_lp *lp, double diff) {
     if (neuronLP->to_contact.num > 0) {
-        for (size_t i = 0; i < neuronLP->to_contact.num; i++) {
+        for (int32_t i = 0; i < neuronLP->to_contact.num; i++) {
             struct Synapse const synap =
                 neuronLP->to_contact.synapses[i];
 
@@ -116,7 +116,7 @@ void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     assert(settings_initialized);
 
     uint64_t const local_id = lp->id;
-    assert(local_id < settings.num_neurons_pe);
+    assert(local_id < (uint64_t) settings.num_neurons_pe);
 
     // Initializing NeuronLP from parameters defined by the
     initialize_NeuronLP(neuronLP);
@@ -250,7 +250,7 @@ void neuronLP_event_spike_driven(
             double const beat = settings.beat;
             assert(neuronLP->last_heartbeat <= prev_heartbeat_time);
             assert(msg->neuron_to == neuronLP->doryta_id);
-            assert(msg->neuron_to_gid == lp->gid);
+            assert((uint64_t) msg->neuron_to_gid == lp->gid);
 
             // Getting neuron up-to-date since last heartbeat
             if (! neuronLP->next_heartbeat_sent &&
@@ -313,10 +313,10 @@ void neuronLP_event_commit(
 // Reporting any final statistics for this LP in the file previously opened
 void neuronLP_final(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     (void) lp;
-    uint64_t const self = neuronLP->doryta_id;
+    int32_t const self = neuronLP->doryta_id;
     // TODO: define a variable (VERBOSE or something) and run this code based on that
     if (settings.print_neuron_struct != NULL) {
-        printf("LP (neuron): %" PRIu64 ". ", self);
+        printf("LP (neuron): %" PRIi32 ". ", self);
         settings.print_neuron_struct(neuronLP->neuron_struct);
     }
 

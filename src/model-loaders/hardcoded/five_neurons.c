@@ -11,7 +11,7 @@
 static struct StorableSpike **spikes = NULL;
 
 
-static void initialize_LIF(struct LifNeuron * lif, size_t doryta_id) {
+static void initialize_LIF(struct LifNeuron * lif, int32_t doryta_id) {
     (void) doryta_id;
     pcg32_random_t rng;
     uint32_t const initstate = doryta_id + 42u;
@@ -30,7 +30,7 @@ static void initialize_LIF(struct LifNeuron * lif, size_t doryta_id) {
 }
 
 
-static float initialize_weight_neurons(size_t neuron_from, size_t neuron_to) {
+static float initialize_weight_neurons(int32_t neuron_from, int32_t neuron_to) {
     (void) neuron_from;
     (void) neuron_to;
 

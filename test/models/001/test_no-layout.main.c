@@ -7,7 +7,7 @@
 #include "storable_spikes.h"
 #include "utils/io.h"
 
-static size_t identity_map(size_t gid) {
+static int32_t identity_map(size_t gid) {
     return gid;
 }
 

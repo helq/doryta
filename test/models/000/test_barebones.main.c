@@ -3,7 +3,7 @@
 #include "message.h"
 #include "storable_spikes.h"
 
-static size_t identity_map(size_t gid) {
+static int32_t identity_map(size_t gid) {
     return gid;
 }
 
