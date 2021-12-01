@@ -28,6 +28,8 @@ void model_load_spikes_init(struct SettingsNeuronLP * settings_neuron_lp,
     } else if (format == 0x2) {
         load_format_2(fp);
     } else {
+        // TODO: New format that extends 0x2 with optional spike intensity and
+        // explicitely stores the biggest possible id the data can have
         tw_error(TW_LOC, "Input file corrupt or format unknown");
     }
     settings_neuron_lp->spikes = spikes;
@@ -80,10 +82,14 @@ static inline void load_format_2(FILE * fp) {
     int const num_neurons_pe = layout_master_total_neurons_pe();
     spikes = calloc(num_neurons_pe, sizeof(struct StorableSpike*));
 
-    // TODO: this is the maximum number of spikes to load in a single PE. It's
-    // exceedingly wasteful. It's the simplest and fastest procedure we have so
-    // far
-    naked_spikes = calloc(total_spikes + total_neurons, sizeof(struct StorableSpike));
+    // TODO: `spikes_in_pe` does not actually contain the number of spikes to store in PE.
+    // This is an upper limit and it's very wasteful, but it's easy to compute.
+    // In the future there could be two loops, one computing the actual amount
+    // of necessary memory and another loading that into memory, or a better
+    // file structure. Check `j` variable below
+    int32_t const spikes_in_pe = total_spikes
+        + (total_neurons < num_neurons_pe ? total_neurons : num_neurons_pe);
+    naked_spikes = calloc(spikes_in_pe, sizeof(struct StorableSpike));
 
     int j = 0;
     for (int32_t i = 0; i < total_neurons; i++) {
@@ -106,6 +112,9 @@ static inline void load_format_2(FILE * fp) {
             fseek(fp, num_spikes * sizeof(float), SEEK_CUR);
         }
     }
+    // At the end of the iteration, j contains the actual space used by the
+    // current PE
+    assert(j <= spikes_in_pe);
 }
 
 

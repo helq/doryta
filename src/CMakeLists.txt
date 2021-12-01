@@ -31,6 +31,7 @@ add_library(doryta_lib
   neurons/lif.c
   neurons/lif_beta.c
   model-loaders/hardcoded/five_neurons.c
+  model-loaders/hardcoded/gameoflife.c
   model-loaders/regular_io/load_neurons.c
   model-loaders/regular_io/load_spikes.c
   probes/firing.c

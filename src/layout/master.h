@@ -28,6 +28,32 @@ int32_t layout_master_neurons(
 void layout_master_synapses_fully(int32_t from_start, int32_t from_end,
         int32_t to_start, int32_t to_end);
 
+
+struct Conv2dParams {
+    int32_t input_width;
+    int kernel_width;
+    int kernel_height;
+    int padding_width;
+    int padding_height;
+    //int stride_width;
+    //int stride_height;
+};
+
+
+/** Connects a range of neurons input (from) to a range of neurons output (to),
+ * assuming both ranges can be layered as rectangles/matrices.
+ * `from_end - from_start` must be a multiple of `input_width`. The height of
+ * the input layer is `from_end - from_start / input_width`. The size of the
+ * receiving layer must match the padding type with respect to the kernel size
+ * and padding size. Padding is symetric (the input is padded equaly on the
+ * left and the right, for padding_width, and top and bottom, for
+ * padding_height).
+ */
+void layout_master_synapses_conv2d(
+        int32_t from_start, int32_t from_end,
+        int32_t to_start, int32_t to_end,
+        struct Conv2dParams const *);
+
 /**
  * Defines custom mapping, and allocates memory for neurons and synapses.
  *

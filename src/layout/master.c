@@ -38,7 +38,10 @@ struct SynapseGroup {
             int to_height;
             int kernel_width;
             int kernel_height;
-            bool padding_same;
+            //int stride_width;
+            //int stride_height;
+            int padding_width;
+            int padding_height;
         };
     };
 };
@@ -198,50 +201,135 @@ static void master_allocate(int sizeof_neuron) {
 }
 
 
+/** This struct and the functions below implement an iterator which yields the
+ * IDs for all neurons the `doryta_id` connects to.
+ */
 struct SynapseIterator {
     int32_t doryta_id;
     int n_group;
-    int32_t to_id;
+    int32_t to_id; //<! A DorytaID to which the current (`doryta_id`) neuron points
+
+    union {
+        struct {  // synapse_groups[n_group].conn_type == CONNECTION_TYPE_conv2
+            int input_x; // position of doryta_id in current layer along x axis
+            int input_y; // position of doryta_id in current layer along y axis
+            int i; // variables to use in inner-loop
+            int j;
+        };
+    };
 };
 
-static inline bool falls_id_in_interval(int32_t doryta_id, int n_group) {
-    return synapse_groups[n_group].from_start <= doryta_id
-        && doryta_id <= synapse_groups[n_group].from_end;
+/* These functions are in charge of determining the next ID withing the
+ * current group_id to which doryta_id points to.
+ */
+
+/**
+ */
+static inline bool in_group_is_there_next(struct SynapseIterator * iter) {
+    if (iter->n_group < 0) {
+        return false;
+    }
+    if (synapse_groups[iter->n_group].conn_type == CONNECTION_TYPE_fully) {
+        return iter->to_id < synapse_groups[iter->n_group].to_end;
+    } else { // conn_type == CONNECTION_TYPE_conv2
+        assert(synapse_groups[iter->n_group].conn_type == CONNECTION_TYPE_conv2);
+        return iter->i < synapse_groups[iter->n_group].kernel_height;
+    }
 }
-static inline void synapse_iter_for_neuron(struct SynapseIterator * iter, int32_t doryta_id) {
-    // Finding first level where `doryta_id` appears in "from" interval
-    iter->to_id = 0;
-    int n_group;
-    for (n_group = 0; n_group < num_synap_groups; n_group++) {
-        if (falls_id_in_interval(doryta_id, n_group)) {
-            iter->to_id = synapse_groups[n_group].to_start;
-            break;
+/** Finds next DorytaID which the neuron points to. It is allowed to produced
+ * an invalid id if the loop has arrived to the end, in which case,
+ * `in_group_is_there_next` must return false.
+ */
+static inline void in_group_next_id(struct SynapseIterator * iter) {
+    if (synapse_groups[iter->n_group].conn_type == CONNECTION_TYPE_fully) {
+        iter->to_id++;
+    } else { // conn_type == CONNECTION_TYPE_conv2
+        assert(synapse_groups[iter->n_group].conn_type == CONNECTION_TYPE_conv2);
+        struct SynapseGroup const * const params = &synapse_groups[iter->n_group];
+
+        bool found = false;
+        // We traverse the kernel matrix one element at the time and check
+        // whether the given pixel would be within the output layer or not. If
+        // it does, we compute its DorytaID and store it in `to_id`
+        while (!found && iter->i < params->kernel_height) {
+            int32_t const output_x = iter->input_x + iter->i
+                - params->kernel_height + params->padding_height + 1;
+            int32_t const output_y = iter->input_y + iter->j
+                - params->kernel_width + params->padding_width + 1;
+
+            // if the neuron output (x,y) is valid, then (x,y) will be next `to_id` in the list
+            // that means, that we have found the next "synapse" the current neuron connects to
+            if (0 <= output_x && output_x < params->to_height
+             && 0 <= output_y && output_y < params->to_width) {
+                iter->to_id = params->to_start + params->to_width * output_x + output_y;
+                found = true;
+            }
+
+            iter->j++;
+            if (iter->j >= params->kernel_width) {
+                iter->j = 0;
+                iter->i++;
+            }
         }
     }
-
-    iter->n_group = n_group;
-    iter->doryta_id = doryta_id;
 }
+/** Sets up initial conditions to allow "yielder"/producer loop, and it MUST
+ * set up initial DorytaID in to_id.
+ */
+static inline void in_group_first_id(struct SynapseIterator * iter) {
+    if (synapse_groups[iter->n_group].conn_type == CONNECTION_TYPE_fully) {
+        iter->to_id = synapse_groups[iter->n_group].to_start;
+    } else { // conn_type == CONNECTION_TYPE_conv2
+        assert(synapse_groups[iter->n_group].conn_type == CONNECTION_TYPE_conv2);
+
+        struct SynapseGroup const * const params = &synapse_groups[iter->n_group];
+        int32_t const shifted = iter->doryta_id - params->from_start;
+        iter->input_x = shifted / params->from_width;
+        iter->input_y = shifted % params->from_width;
+        iter->i = 0;
+        iter->j = 0;
+        in_group_next_id(iter);
+    }
+}
+
+/** These functions are in charge of iterating through all groups, one by one,
+ * and returning the current next ID. */
 static inline bool synapse_iter_end(struct SynapseIterator * iter) {
     return iter->n_group == num_synap_groups;
 }
 static inline int32_t synapse_iter_next(struct SynapseIterator * iter) {
     assert(iter->n_group < num_synap_groups);
     int32_t const toret = iter->to_id;
-    if (iter->to_id < synapse_groups[iter->n_group].to_end) {
-        iter->to_id++;
+
+    // iter->n_group >= 0 wouldn't be needed if `synapse_iter_init` found the
+    // first value in the iteration instead of relying on `synapse_iter_next`.
+    // Nonetheless, we do it because it reduces the amount of repeated code.
+    // The complexity falls within this function, mostly
+    if (in_group_is_there_next(iter)) {
+        in_group_next_id(iter);
     } else {
         // Finding next level where `doryta_id` appears in "from" interval
         int n_group = iter->n_group + 1;
         for (; n_group < num_synap_groups; n_group++) {
-            if (falls_id_in_interval(iter->doryta_id, n_group)) {
-                iter->to_id = synapse_groups[n_group].to_start;
+            if (synapse_groups[n_group].from_start <= iter->doryta_id
+             && iter->doryta_id <= synapse_groups[n_group].from_end) {
                 break;
             }
         }
         iter->n_group = n_group;
+        if (!synapse_iter_end(iter)) {
+            in_group_first_id(iter);
+        }
     }
     return toret;
+}
+static inline void synapse_iter_init(struct SynapseIterator * iter, int32_t doryta_id) {
+    // Finding first level where `doryta_id` appears in "from" interval
+
+    iter->n_group = -1;
+    iter->doryta_id = doryta_id;
+    iter->to_id = -1;
+    synapse_iter_next(iter);
 }
 
 static void master_init_neurons(neuron_init_f neuron_init, synapse_init_f synapse_init) {
@@ -259,11 +347,13 @@ static void master_init_neurons(neuron_init_f neuron_init, synapse_init_f synaps
 
             // Initializing synapses
             struct SynapseIterator iter;
-            synapse_iter_for_neuron(&iter, doryta_id);
+            synapse_iter_init(&iter, doryta_id);
             int32_t num_synapses_neuron = 0;
             struct Synapse * synapses_neuron = &naked_synapses[synapse_shift];
             while (!synapse_iter_end(&iter)) {
                 int32_t const to_doryta_id = synapse_iter_next(&iter);
+                assert(to_doryta_id >= 0);
+                assert(to_doryta_id < total_neurons_globally);
 
                 synapses_neuron->doryta_id_to_send = to_doryta_id;
                 synapses_neuron->gid_to_send =
@@ -298,7 +388,7 @@ static void master_init_neurons(neuron_init_f neuron_init, synapse_init_f synaps
         }
     }
     assert(total_neurons_in_pe == neuron_counter);
-    assert(total_synapses == synapse_shift);
+    assert(total_synapses >= synapse_shift);
 }
 
 
@@ -369,30 +459,38 @@ static size_t neurons_within_pe(size_t start, size_t end) {
     return total_overlap;
 }
 
-void layout_master_synapses_fully(int32_t from_start, int32_t from_end,
+static inline void check_from_to_inputs(int32_t from_start, int32_t from_end,
         int32_t to_start, int32_t to_end) {
     if(num_synap_groups >= MAX_SYNAPSE_GROUPS) {
         tw_error(TW_LOC, "Only up to %d synapse groups are allowed", MAX_SYNAPSE_GROUPS);
     }
 
     /*
-     *printf("PE %lu - `from` interval [%" PRIu64 ", %" PRIu64 "]. Max neuron ID = %" PRIu64 "\n",
+     *printf("PE %lu - `from` interval [%" PRIi32 ", %" PRIi32 "]. Max neuron ID = %" PRIi32 "\n",
      *            g_tw_mynode, from_start, from_end, total_neurons_globally-1);
-     *printf("PE %lu - `to` interval [%" PRIu64 ", %" PRIu64 "]. Max neuron ID = %" PRIu64 "\n",
+     *printf("PE %lu - `to` interval [%" PRIi32 ", %" PRIi32 "]. Max neuron ID = %" PRIi32 "\n",
      *            g_tw_mynode, to_start, to_end, total_neurons_globally-1);
      */
 
     if (from_end < from_start || from_start >= total_neurons_globally
-            || from_end >= total_neurons_globally) {
-        tw_error(TW_LOC, "Incorrect `from` interval [%" PRIu64 ", %" PRIu64 "]. Max neuron ID = %" PRIu64,
+            || from_end >= total_neurons_globally
+            || from_start < 0 || from_end < 0) {
+        tw_error(TW_LOC, "Incorrect `from` interval [%" PRIi32 ", %" PRIi32 "]. Max neuron ID = %" PRIi32,
                 from_start, from_end, total_neurons_globally-1);
     }
 
     if (to_end < to_start || to_start >= total_neurons_globally
-            || to_end >= total_neurons_globally) {
-        tw_error(TW_LOC, "Incorrect `to` interval [%" PRIu64 ", %" PRIu64 "]. Max neuron ID = %" PRIu64,
+            || to_end >= total_neurons_globally
+            || to_start < 0 || to_end < 0) {
+        tw_error(TW_LOC, "Incorrect `to` interval [%" PRIi32 ", %" PRIi32 "]. Max neuron ID = %" PRIi32,
                 to_start, to_end, total_neurons_globally-1);
     }
+}
+
+
+void layout_master_synapses_fully(int32_t from_start, int32_t from_end,
+        int32_t to_start, int32_t to_end) {
+    check_from_to_inputs(from_start, from_end, to_start, to_end);
 
     synapse_groups[num_synap_groups] = (struct SynapseGroup) {
         .conn_type  = CONNECTION_TYPE_fully,
@@ -405,6 +503,90 @@ void layout_master_synapses_fully(int32_t from_start, int32_t from_end,
 
     total_synapses += neurons_within_pe(from_start, from_end)
                         * (to_end - to_start + 1);
+}
+
+
+static inline void check_positive(int32_t num, char const * name) {
+    if (num <= 0) {
+        tw_error(TW_LOC, "The paramater %s in conv2d must be a positive number. "
+                "Current value %" PRIi32, name, num);
+    }
+}
+
+static inline void check_nonnegative(int32_t num, char const * name) {
+    if (num < 0) {
+        tw_error(TW_LOC, "The paramater %s in conv2d must be a non-negative number. "
+                "Current value %" PRIi32, name, num);
+    }
+}
+
+static inline void check_params(struct Conv2dParams const * params) {
+    check_positive(params->input_width,   "input_width");
+    check_positive(params->kernel_width,  "kernel_width");
+    check_positive(params->kernel_height, "kernel_height");
+    //check_positive(params->stride_width,  "stride_width");
+    //check_positive(params->stride_height, "stride_height");
+    check_nonnegative(params->padding_width,  "padding_width");
+    check_nonnegative(params->padding_height, "padding_height");
+}
+
+
+void layout_master_synapses_conv2d(
+        int32_t from_start, int32_t from_end,
+        int32_t to_start, int32_t to_end,
+        struct Conv2dParams const * params) {
+    check_from_to_inputs(from_start, from_end, to_start, to_end);
+    check_params(params);
+
+    int32_t const total_input_neurons = from_end - from_start + 1;
+
+    // Checking that input shape is actually a rectangle
+    if (total_input_neurons % params->input_width != 0) {
+        tw_error(TW_LOC, "A total of %" PRIi32
+                " neurons for a conv2d layer cannot have width of %" PRIi32,
+                total_input_neurons, params->input_width);
+    }
+
+    int32_t const total_output_neurons = from_end - from_start + 1;
+    int32_t const from_height = total_input_neurons / params->input_width;
+
+    int32_t to_width = params->input_width - params->kernel_width + 2 * params->padding_width + 1;
+    int32_t to_height = from_height - params->kernel_height + 2 * params->padding_height + 1;
+
+    if (total_output_neurons != to_width * to_height) {
+        tw_error(TW_LOC, "The output layer should have size %" PRIi32
+                ", but the size of the output layer is %" PRIi32,
+                to_width * to_height, total_output_neurons);
+    }
+
+    int32_t const kernel_size = params->kernel_width * params->kernel_height;
+
+    synapse_groups[num_synap_groups] = (struct SynapseGroup) {
+        .conn_type  = CONNECTION_TYPE_conv2,
+        .from_start = from_start,
+        .from_end   = from_end,
+        .to_start   = to_start,
+        .to_end     = to_end,
+
+        .from_width     = params->input_width,
+        .from_height    = from_height,
+        .to_width       = to_width,
+        .to_height      = to_height,
+        .kernel_width   = params->kernel_width,
+        .kernel_height  = params->kernel_height,
+        //.stride_width  = params->stride_width,
+        //.stride_height = params->stride_height
+        .padding_width  = params->padding_width,
+        .padding_height = params->padding_height
+    };
+    num_synap_groups++;
+
+    // This is wasteful (memory-wise) in the case of "same" and "valid"
+    // padding, as the neurons on the edges of the input layer will use less
+    // synapses. Finding out the precise number of synapses for a given PE is
+    // too complicated and I rather spend some memory than computing and effort
+    // time.
+    total_synapses += neurons_within_pe(from_start, from_end) * kernel_size;
 }
 
 

@@ -12,7 +12,6 @@ static struct StorableSpike **spikes = NULL;
 
 
 static void initialize_LIF(struct LifNeuron * lif, int32_t doryta_id) {
-    (void) doryta_id;
     pcg32_random_t rng;
     uint32_t const initstate = doryta_id + 42u;
     uint32_t const initseq = doryta_id + 54u;
@@ -31,9 +30,6 @@ static void initialize_LIF(struct LifNeuron * lif, int32_t doryta_id) {
 
 
 static float initialize_weight_neurons(int32_t neuron_from, int32_t neuron_to) {
-    (void) neuron_from;
-    (void) neuron_to;
-
     pcg32_random_t rng;
     // Yes, we are constrained to 2^16 neurons before we start repeating
     // subsequences (there is a total of 64 bits for the generation of random

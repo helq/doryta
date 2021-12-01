@@ -2,6 +2,7 @@
 #include <doryta_config.h>
 #include "driver/neuron_lp.h"
 #include "model-loaders/hardcoded/five_neurons.h"
+#include "model-loaders/hardcoded/gameoflife.h"
 #include "model-loaders/regular_io/load_neurons.h"
 #include "model-loaders/regular_io/load_spikes.h"
 #include "probes/firing.h"
@@ -44,6 +45,7 @@ tw_lptype doryta_lps[] = {
 // ints except for chars
 static unsigned int is_spike_driven = 0;
 static unsigned int run_five_neuron_example = 0;
+static unsigned int gol = 0;
 static unsigned int is_firing_probe_active = 0;
 static unsigned int is_voltage_probe_active = 0;
 static unsigned int probe_firing_output_neurons_only = 0;
@@ -93,6 +95,8 @@ static tw_optdef const model_opts[] = {
     TWOPT_FLAG("five-example", run_five_neuron_example,
             "Run a simple 5 (or 7) neurons network example (useful to check "
             "the binary is working properly)"),
+    TWOPT_FLAG("gol-model", gol,
+            "Defines a 20x20 Game Of Life grid using Conv2D layers"),
     TWOPT_GROUP("Doryta Spikes"),
     TWOPT_CHAR("load-spikes", spikes_path,
             "Load spikes from file"),
@@ -121,6 +125,7 @@ void fprint_doryta_params(FILE * fp) {
     fprintf(fp, "model-filename        = '%s'\n", model_filename);
     fprintf(fp, "load-model            = '%s'\n", model_path);
     fprintf(fp, "five-example          = %s\n",   run_five_neuron_example ? "ON" : "OFF");
+    fprintf(fp, "gol                   = %s\n",   gol ? "ON" : "OFF");
     fprintf(fp, "load-spikes           = '%s'\n", spikes_path);
     fprintf(fp, "probe-firing          = %s\n",   is_firing_probe_active ? "ON" : "OFF");
     fprintf(fp, "probe-firing-output-only = %s\n", probe_firing_output_neurons_only ? "ON" : "OFF");
@@ -158,7 +163,7 @@ int main(int argc, char *argv[]) {
         fprint_doryta_params(fp);
         fclose(fp);
     }
-    int const num_models_selected = run_five_neuron_example + (model_path[0] != '\0');
+    int const num_models_selected = gol + run_five_neuron_example + (model_path[0] != '\0');
     if (num_models_selected != 1) {
         tw_error(TW_LOC, "You have to specify ONE model to run");
     }
@@ -170,6 +175,9 @@ int main(int argc, char *argv[]) {
     // Loading Model
     if (run_five_neuron_example) {
         params = model_five_neurons_init(&settings_neuron_lp);
+    }
+    if (gol) {
+        params = model_GoL_neurons_init(&settings_neuron_lp);
     }
     if (model_path[0] != '\0') {
         params = model_load_neurons_init(&settings_neuron_lp, model_path);
