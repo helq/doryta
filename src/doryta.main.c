@@ -6,6 +6,7 @@
 #include "model-loaders/regular_io/load_neurons.h"
 #include "model-loaders/regular_io/load_spikes.h"
 #include "probes/firing.h"
+#include "probes/stats.h"
 #include "probes/lif/voltage.h"
 #include "utils/io.h"
 #include "version.h"
@@ -48,6 +49,7 @@ static unsigned int run_five_neuron_example = 0;
 static unsigned int gol = 0;
 static unsigned int is_firing_probe_active = 0;
 static unsigned int is_voltage_probe_active = 0;
+static unsigned int is_stats_probe_active = 0;
 static unsigned int probe_firing_output_neurons_only = 0;
 // Ints
 static unsigned int probe_firing_buffer_size = 5000;
@@ -113,6 +115,9 @@ static tw_optdef const model_opts[] = {
             "time (won't work as expected with spike-driven activated)"),
     TWOPT_UINT("probe-voltage-buffer", probe_voltage_buffer_size,
             "Buffer size for firing probe. If the buffer fills, nothing else will stored in it"),
+    TWOPT_FLAG("probe-stats", is_stats_probe_active,
+            "This probe records basic stats for each neuron (number of leak, "
+            "integrate and fire operations)"),
     TWOPT_END(),
 };
 
@@ -132,6 +137,7 @@ void fprint_doryta_params(FILE * fp) {
     fprintf(fp, "probe-firing-buffer   = %d\n",   probe_firing_buffer_size);
     fprintf(fp, "probe-voltage         = %s\n",   is_voltage_probe_active ? "ON" : "OFF");
     fprintf(fp, "probe-voltage-buffer  = %d\n",   probe_voltage_buffer_size);
+    fprintf(fp, "probe-stats           = %s\n",   is_stats_probe_active ? "ON" : "OFF");
     fprintf(fp, "=======================================================\n");
 }
 
@@ -189,7 +195,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Loading probe recording mechanism
-    probe_event_f probe_events[3] = {NULL};
+    probe_event_f probe_events[4] = {NULL};
     {
         int i = 0;
         if (is_firing_probe_active) {
@@ -198,6 +204,10 @@ int main(int argc, char *argv[]) {
         }
         if (is_voltage_probe_active) {
             probe_events[i] = probes_lif_voltages_record;
+            i++;
+        }
+        if (is_stats_probe_active) {
+            probe_events[i] = probes_stats_record;
             i++;
         }
         probe_events[i] = NULL;
@@ -224,6 +234,9 @@ int main(int argc, char *argv[]) {
     if (is_voltage_probe_active) {
         probes_lif_voltages_init(probe_voltage_buffer_size, output_dir, model_filename);
     }
+    if (is_stats_probe_active) {
+        probes_stats_init(settings_neuron_lp.num_neurons_pe, output_dir, model_filename);
+    }
 
     // -------------------- Running simulation --------------------
     tw_run();
@@ -235,6 +248,9 @@ int main(int argc, char *argv[]) {
     }
     if (is_voltage_probe_active) {
         probes_lif_voltages_deinit();
+    }
+    if (is_stats_probe_active) {
+        probes_stats_deinit();
     }
 
     // --- DeInit of Spikes ---

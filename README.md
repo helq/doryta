@@ -70,6 +70,18 @@ The output will be stored under the path `output-20`. The script
 `tools/whetstone-mnist/check_doryta_inference.py` checks this output with the expected
 output from whetstone.
 
+## Game of Life example
+
+A step of game of life can be simulated using two layers of convolutional neural networks.
+Luckily the translation into Spiking NNs is straightforward, and, even more, the output of
+the network can be fed back to the input layer, which means that doryta can simulate the
+game of life out of the box. To run a built-in example of GoL, run the following
+instruction:
+
+```bash
+src/doryta --gol-model --load-spikes=../data/models/gol/gol-blinker.bin --probe-firing --spike-driven
+```
+
 ## Needy vs Spike-driven modes
 
 Doryta comes with two modes of execution: needy and spike-driven. In _Needy_ mode, Doryta

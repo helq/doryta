@@ -581,11 +581,11 @@ void layout_master_synapses_conv2d(
     };
     num_synap_groups++;
 
-    // This is wasteful (memory-wise) in the case of "same" and "valid"
-    // padding, as the neurons on the edges of the input layer will use less
-    // synapses. Finding out the precise number of synapses for a given PE is
-    // too complicated and I rather spend some memory than computing and effort
-    // time.
+    // This is wasteful (memory-wise) in the case of insuficient padding, as
+    // the neurons on the edges of the input layer will use less synapses than
+    // the neurons in the center of the image. Finding out the precise number
+    // of synapses for a given PE is too complicated and I rather spend some
+    // memory than computing and effort time.
     total_synapses += neurons_within_pe(from_start, from_end) * kernel_size;
 }
 

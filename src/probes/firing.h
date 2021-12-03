@@ -1,5 +1,5 @@
-#ifndef DORYTA_PROBES_SPIKES_H
-#define DORYTA_PROBES_SPIKES_H
+#ifndef DORYTA_PROBES_FIRING_H
+#define DORYTA_PROBES_FIRING_H
 
 #include <assert.h>
 #include <stdbool.h>

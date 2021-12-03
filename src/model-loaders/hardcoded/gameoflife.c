@@ -7,7 +7,7 @@
 unsigned int tw_nnodes(void);
 
 
-// Birth cell:
+// Life cell:
 //   should be activated with 3 spikes
 // Kill cell:
 //   should be activated with 4 spikes
@@ -36,7 +36,7 @@ static void initialize_LIF(struct LifNeuron * lif, int32_t doryta_id) {
 }
 
 // The kernels to implement:
-// Board -> Birth
+// Board -> Life
 //   [1, 1, 1,
 //    1, 1, 1,
 //    1, 1, 1]
@@ -44,20 +44,20 @@ static void initialize_LIF(struct LifNeuron * lif, int32_t doryta_id) {
 //   [1, 1, 1,
 //    1, 0, 1,
 //    1, 1, 1]
-// Birth -> Board
-//   [1]
+// Life -> Board
+//   [[1], [-1]]
 // Kill -> Board
 //   [-1]
 static float initialize_weight_neurons(int32_t neuron_from, int32_t neuron_to) {
     float weight = 0.0;
     if (neuron_from < 400) {  // From Board cell
         assert(neuron_to >= 400);
-        if (neuron_to < 800) {  // To Birth cell
+        if (neuron_to < 800) {  // To Life cell
             weight = 1;
         } else if (neuron_to < 1200) { // To Kill cell
             weight = neuron_to - 800 == neuron_from ? 0 : 1;
         }
-    } else if (neuron_from < 800) { // From Birth cell
+    } else if (neuron_from < 800) { // From Life cell
         assert(neuron_to < 400);
         weight = 1;
     } else if (neuron_from < 1200) { // From Kill cell
@@ -91,9 +91,12 @@ model_GoL_neurons_init(struct SettingsNeuronLP * settings_neuron_lp) {
     };
 
     unsigned long const last_node = tw_nnodes()-1;
-    layout_master_neurons(400, 0, last_node); // Game of Life board
-    layout_master_neurons(400, 0, last_node); // Fire if birth
-    layout_master_neurons(400, 0, last_node); // Fire if kill
+    // GoL board
+    layout_master_neurons(400, 0, last_node);
+    // Fire if life (either birth or sustain life)
+    layout_master_neurons(400, 0, last_node);
+    // Fire if kill (more than 4 neighbors, either kill or prevent birth)
+    layout_master_neurons(400, 0, last_node);
     struct Conv2dParams const conv2d_params = {
             .input_width    = 20,
             .kernel_width   = 3,
