@@ -1,4 +1,4 @@
-#include "neuron_lp.h"
+#include "neuron.h"
 #include "../storable_spikes.h"
 #include <ross.h>
 
@@ -36,7 +36,7 @@ bool settings_initialized = false;
 double firing_delay_double = -1;
 
 
-void neuronLP_config(struct SettingsNeuronLP * settings_in) {
+void driver_neuron_config(struct SettingsNeuronLP * settings_in) {
     assert_valid_SettingsPE(settings_in);
     settings = *settings_in;
     settings_initialized = true;
@@ -112,7 +112,7 @@ static inline void send_spike_from_StorableSpike(
 
 
 // LP initialization. Called once for each LP
-void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
+void driver_neuron_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     assert(settings_initialized);
 
     uint64_t const local_id = lp->id;
@@ -145,14 +145,14 @@ void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
 
 // Why isn't this executed by _init_ itself? An initial heartbeat is only
 // necessary on needy mode. On spike-driven mode, there's no initial spike
-void neuronLP_pre_run_needy(struct NeuronLP *neuronLP, struct tw_lp *lp) {
+void driver_neuron_pre_run_needy(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     // send initial heartbeat
     send_heartbeat(neuronLP, lp);
 }
 
 
 // Forward event handler
-void neuronLP_event_needy(
+void driver_neuron_event_needy(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *msg,
@@ -191,7 +191,7 @@ void neuronLP_event_needy(
 // Reverse Event Handler
 // Notice that all operations are reversed using the data stored in either the reverse
 // message or the bit field
-void neuronLP_event_reverse_needy(
+void driver_neuron_event_reverse_needy(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *msg,
@@ -214,7 +214,7 @@ static inline double find_prev_heartbeat_time(double now) {
 
 
 // Forward event handler
-void neuronLP_event_spike_driven(
+void driver_neuron_event_spike_driven(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *msg,
@@ -275,7 +275,7 @@ void neuronLP_event_spike_driven(
 
 
 // Reverse Event Handler
-void neuronLP_event_reverse_spike_driven(
+void driver_neuron_event_reverse_spike_driven(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *msg,
@@ -294,7 +294,7 @@ void neuronLP_event_reverse_spike_driven(
 // Commit event handler
 // This function is only called when it can be make sure that the message won't be
 // roll back. Either the commit or reverse handler will be called, not both
-void neuronLP_event_commit(
+void driver_neuron_event_commit(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *msg,
@@ -311,7 +311,7 @@ void neuronLP_event_commit(
 
 // The finalization function
 // Reporting any final statistics for this LP in the file previously opened
-void neuronLP_final(struct NeuronLP *neuronLP, struct tw_lp *lp) {
+void driver_neuron_final(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     (void) lp;
     int32_t const self = neuronLP->doryta_id;
     // TODO: define a variable (VERBOSE or something) and run this code based on that

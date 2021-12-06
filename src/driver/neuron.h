@@ -1,5 +1,5 @@
-#ifndef DORYTA_DRIVER_NEURON_LP_H
-#define DORYTA_DRIVER_NEURON_LP_H
+#ifndef DORYTA_DRIVER_NEURON_H
+#define DORYTA_DRIVER_NEURON_H
 
 /** @file
  * Functions implementing a neuron as a discrete event simulator
@@ -225,16 +225,16 @@ static inline void assert_valid_SettingsPE(struct SettingsNeuronLP * settingsPE)
 }
 
 /** Setting global variables for the simulation. */
-void neuronLP_config(struct SettingsNeuronLP *);
+void driver_neuron_config(struct SettingsNeuronLP *);
 
 /** Neuron initialization. */
-void neuronLP_init(struct NeuronLP *neuronLP, struct tw_lp *lp);
+void driver_neuron_init(struct NeuronLP *neuronLP, struct tw_lp *lp);
 
 /** Neuron pre-run handler (only to be used by needy mode). */
-void neuronLP_pre_run_needy(struct NeuronLP *neuronLP, struct tw_lp *lp);
+void driver_neuron_pre_run_needy(struct NeuronLP *neuronLP, struct tw_lp *lp);
 
 /** Forward event handler for needy mode. */
-void neuronLP_event_needy(
+void driver_neuron_event_needy(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *message,
@@ -242,34 +242,34 @@ void neuronLP_event_needy(
 
 /** Forward event handler for spike-driven mode. Only works if
  * `neuron_leak_bigdt` is defined. */
-void neuronLP_event_spike_driven(
+void driver_neuron_event_spike_driven(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *message,
         struct tw_lp *lp);
 
 /** Reverse event handler for needy mode. */
-void neuronLP_event_reverse_needy(
+void driver_neuron_event_reverse_needy(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *message,
         struct tw_lp *lp);
 
 /** Reverse event handler. */
-void neuronLP_event_reverse_spike_driven(
+void driver_neuron_event_reverse_spike_driven(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *message,
         struct tw_lp *lp);
 
 /** Commit event handler. */
-void neuronLP_event_commit(
+void driver_neuron_event_commit(
         struct NeuronLP *neuronLP,
         struct tw_bf *bit_field,
         struct Message *message,
         struct tw_lp *lp);
 
 /** Cleaning and printing info before shut down. */
-void neuronLP_final(struct NeuronLP *neuronLP, struct tw_lp *lp);
+void driver_neuron_final(struct NeuronLP *neuronLP, struct tw_lp *lp);
 
 #endif /* end of include guard */

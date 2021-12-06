@@ -27,9 +27,9 @@ struct LifBetaNeuron {
 
 
 /** This struct determines how to store data inside the `reserved_for_reverse`
- * variable in `Message`. To be used by `store_lif_neuron_state`,
- * `reverse_store_lif_neuron_state` and any function which wishes to access to
- * the state of the message BEFORE it was processed!
+ * variable in `Message`. To be used by `neurons_lif_beta_store_state`,
+ * `neurons_lif_beta_reverse_store_state` and any function which wishes to
+ * access to the state of the message BEFORE it was processed!
  *
  * Remember that the data used to reverse the state of the neuron cannot be
  * bigger than MESSAGE_SIZE_REVERSE
@@ -45,20 +45,20 @@ static_assert(sizeof(struct StorageInMessageLifBeta) <= MESSAGE_SIZE_REVERSE,
         WARNING_MESSAGE(MESSAGE_SIZE_REVERSE));
 
 
-void leak_lif_beta_neuron(struct LifBetaNeuron *, double);
+void neurons_lif_beta_leak(struct LifBetaNeuron *, double);
 
-void integrate_lif_beta_neuron(struct LifBetaNeuron *, float current);
+void neurons_lif_beta_integrate(struct LifBetaNeuron *, float current);
 
-bool fire_lif_beta_neuron(struct LifBetaNeuron *);
+bool neurons_lif_beta_fire(struct LifBetaNeuron *);
 
-void store_lif_beta_neuron_state(
+void neurons_lif_beta_store_state(
         struct LifBetaNeuron *,
         struct StorageInMessageLifBeta *);
 
-void reverse_store_lif_beta_neuron_state(
+void neurons_lif_beta_reverse_store_state(
         struct LifBetaNeuron *,
         struct StorageInMessageLifBeta *);
 
-void print_lif_beta_neuron(struct LifBetaNeuron *);
+void neurons_lif_beta_print(struct LifBetaNeuron *);
 
 #endif /* end of include guard */

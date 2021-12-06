@@ -29,8 +29,8 @@ struct LifNeuron {
 
 
 /** This struct determines how to store data inside the `reserved_for_reverse`
- * variable in `Message`. To be used by `store_lif_neuron_state`,
- * `reverse_store_lif_neuron_state` and any function which wishes to access to
+ * variable in `Message`. To be used by neurons_lif_`store_state`,
+ * neurons_lif_`reverse_store_state` and any function which wishes to access to
  * the state of the message BEFORE it was processed!
  *
  * Remember that the data used to reverse the state of the neuron cannot be
@@ -48,22 +48,22 @@ static_assert(sizeof(struct StorageInMessageLif) <= MESSAGE_SIZE_REVERSE,
         WARNING_MESSAGE(MESSAGE_SIZE_REVERSE));
 
 
-void leak_lif_neuron(struct LifNeuron *, double);
+void neurons_lif_leak(struct LifNeuron *, double);
 
-void leak_lif_big_neuron(struct LifNeuron *, double, double);
+void neurons_lif_big_leak(struct LifNeuron *, double, double);
 
-void integrate_lif_neuron(struct LifNeuron *, float current);
+void neurons_lif_integrate(struct LifNeuron *, float current);
 
-bool fire_lif_neuron(struct LifNeuron *);
+bool neurons_lif_fire(struct LifNeuron *);
 
-void store_lif_neuron_state(
+void neurons_lif_store_state(
         struct LifNeuron *,
         struct StorageInMessageLif * storage);
 
-void reverse_store_lif_neuron_state(
+void neurons_lif_reverse_store_state(
         struct LifNeuron *,
         struct StorageInMessageLif * storage);
 
-void print_lif_neuron(struct LifNeuron * lif);
+void neurons_lif_print(struct LifNeuron * lif);
 
 #endif /* end of include guard */

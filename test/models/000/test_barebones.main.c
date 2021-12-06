@@ -1,5 +1,5 @@
 #include <ross.h>
-#include "driver/neuron_lp.h"
+#include "driver/neuron.h"
 #include "message.h"
 #include "storable_spikes.h"
 
@@ -16,12 +16,12 @@ static tw_peid linear_map(tw_lpid gid) {
  * - Multiple sets can be defined (for multiple LP types)
  */
 tw_lptype doryta_lps[] = {
-    {   .init     = (init_f)    neuronLP_init,
-        .pre_run  = (pre_run_f) neuronLP_pre_run_needy,
-        .event    = (event_f)   neuronLP_event_needy,
-        .revent   = (revent_f)  neuronLP_event_reverse_needy,
-        .commit   = (commit_f)  neuronLP_event_commit,
-        .final    = (final_f)   neuronLP_final,
+    {   .init     = (init_f)    driver_neuron_init,
+        .pre_run  = (pre_run_f) driver_neuron_pre_run_needy,
+        .event    = (event_f)   driver_neuron_event_needy,
+        .revent   = (revent_f)  driver_neuron_event_reverse_needy,
+        .commit   = (commit_f)  driver_neuron_event_commit,
+        .final    = (final_f)   driver_neuron_final,
         .map      = (map_f)     linear_map,
         .state_sz = sizeof(struct NeuronLP)},
     {0},
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
       .probe_events     = NULL,
     };
 
-    neuronLP_config(&settings_neuron_lp);
+    driver_neuron_config(&settings_neuron_lp);
 
     // Setting up ROSS variables
     int const num_lps_in_pe = 2;

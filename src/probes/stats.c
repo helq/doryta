@@ -1,5 +1,5 @@
 #include "stats.h"
-#include "../driver/neuron_lp.h"
+#include "../driver/neuron.h"
 #include "ross.h"
 
 #include <stdio.h>

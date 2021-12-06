@@ -24,7 +24,7 @@ set_source_files_properties(
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(doryta_lib
-  driver/neuron_lp.c
+  driver/neuron.c
   layout/standard_layouts.c
   layout/master.c
   message.c

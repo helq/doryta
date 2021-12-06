@@ -11,7 +11,7 @@
 
 #include <ross.h>
 #include <doryta_config.h>
-#include "driver/neuron_lp.h"
+#include "driver/neuron.h"
 #include "message.h"
 #include "probes/firing.h"
 #include "storable_spikes.h"
@@ -25,22 +25,22 @@
  */
 tw_lptype doryta_lps[] = {
     { // Neuron LP - needy mode
-        .init     = (init_f)    neuronLP_init,
-        .pre_run  = (pre_run_f) neuronLP_pre_run_needy,
-        .event    = (event_f)   neuronLP_event_needy,
-        .revent   = (revent_f)  neuronLP_event_reverse_needy,
-        .commit   = (commit_f)  neuronLP_event_commit,
-        .final    = (final_f)   neuronLP_final,
+        .init     = (init_f)    driver_neuron_init,
+        .pre_run  = (pre_run_f) driver_neuron_pre_run_needy,
+        .event    = (event_f)   driver_neuron_event_needy,
+        .revent   = (revent_f)  driver_neuron_event_reverse_needy,
+        .commit   = (commit_f)  driver_neuron_event_commit,
+        .final    = (final_f)   driver_neuron_final,
         .map      = (map_f)     NULL, // Set own mapping function. ROSS won't work without it! Use `set_mapping_on_all_lps` for that
         .state_sz = sizeof(struct NeuronLP)},
 
     { // Neuron LP - spike-driven mode
-        .init     = (init_f)    neuronLP_init,
+        .init     = (init_f)    driver_neuron_init,
         .pre_run  = (pre_run_f) NULL,
-        .event    = (event_f)   neuronLP_event_spike_driven,
-        .revent   = (revent_f)  neuronLP_event_reverse_spike_driven,
-        .commit   = (commit_f)  neuronLP_event_commit,
-        .final    = (final_f)   neuronLP_final,
+        .event    = (event_f)   driver_neuron_event_spike_driven,
+        .revent   = (revent_f)  driver_neuron_event_reverse_spike_driven,
+        .commit   = (commit_f)  driver_neuron_event_commit,
+        .final    = (final_f)   driver_neuron_final,
         .map      = (map_f)     NULL,
         .state_sz = sizeof(struct NeuronLP)},
 
@@ -215,7 +215,7 @@ int main(int argc, char *argv[]) {
 
     // Modifying and loading neuron configuration (it will be trully loaded
     // once the simulation starts)
-    neuronLP_config(&settings_neuron_lp);
+    driver_neuron_config(&settings_neuron_lp);
     set_mapping_on_all_lps(linear_map);
 
     // Setting up ROSS variables

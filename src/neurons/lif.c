@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <tgmath.h>
 
-void leak_lif_neuron(struct LifNeuron * lf, double dt) {
+void neurons_lif_leak(struct LifNeuron * lf, double dt) {
     // V(t + dt) = V(t) + dt * (-(V(t) - Ve) + I(t) R / (R * C))
     lf->potential = lf->potential
         + dt * (- lf->potential + lf->resting_potential
@@ -10,7 +10,7 @@ void leak_lif_neuron(struct LifNeuron * lf, double dt) {
 }
 
 
-void leak_lif_big_neuron(struct LifNeuron * lf, double delta, double dt) {
+void neurons_lif_big_leak(struct LifNeuron * lf, double delta, double dt) {
     (void) dt;
     assert(lf->current == 0);
     assert(lf->threshold > lf->resting_potential);
@@ -20,13 +20,13 @@ void leak_lif_big_neuron(struct LifNeuron * lf, double delta, double dt) {
 }
 
 
-void integrate_lif_neuron(struct LifNeuron * lf, float spike_current) {
+void neurons_lif_integrate(struct LifNeuron * lf, float spike_current) {
     /*if (spike_current > 0) */
     lf->current += spike_current;
 }
 
 
-bool fire_lif_neuron(struct LifNeuron * lf) {
+bool neurons_lif_fire(struct LifNeuron * lf) {
     bool const to_fire = lf->potential > lf->threshold;
     if (to_fire) {
         lf->potential = lf->reset_potential;
@@ -38,7 +38,7 @@ bool fire_lif_neuron(struct LifNeuron * lf) {
 }
 
 
-void store_lif_neuron_state(
+void neurons_lif_store_state(
         struct LifNeuron * lf,
         struct StorageInMessageLif * storage) {
     storage->potential = lf->potential;
@@ -46,7 +46,7 @@ void store_lif_neuron_state(
 }
 
 
-void reverse_store_lif_neuron_state(
+void neurons_lif_reverse_store_state(
         struct LifNeuron * lf,
         struct StorageInMessageLif * storage) {
     lf->potential = storage->potential;
@@ -54,7 +54,7 @@ void reverse_store_lif_neuron_state(
 }
 
 
-void print_lif_neuron(struct LifNeuron * lif) {
+void neurons_lif_print(struct LifNeuron * lif) {
     printf("potential = %f "
            "current = %f "
            "resting_potential = %f "

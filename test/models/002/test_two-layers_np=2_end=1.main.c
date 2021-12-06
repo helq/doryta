@@ -1,5 +1,5 @@
 #include <ross.h>
-#include "driver/neuron_lp.h"
+#include "driver/neuron.h"
 #include "layout/standard_layouts.h"
 #include "layout/master.h"
 #include "message.h"
@@ -17,12 +17,12 @@
  * - Multiple sets can be defined (for multiple LP types)
  */
 tw_lptype doryta_lps[] = {
-    {   .init     = (init_f)    neuronLP_init,
-        .pre_run  = (pre_run_f) neuronLP_pre_run_needy,
-        .event    = (event_f)   neuronLP_event_needy,
-        .revent   = (revent_f)  neuronLP_event_reverse_needy,
-        .commit   = (commit_f)  neuronLP_event_commit,
-        .final    = (final_f)   neuronLP_final,
+    {   .init     = (init_f)    driver_neuron_init,
+        .pre_run  = (pre_run_f) driver_neuron_pre_run_needy,
+        .event    = (event_f)   driver_neuron_event_needy,
+        .revent   = (revent_f)  driver_neuron_event_reverse_needy,
+        .commit   = (commit_f)  driver_neuron_event_commit,
+        .final    = (final_f)   driver_neuron_final,
         .map      = (map_f)     NULL, // Set own mapping function. ROSS won't work without it! Use `set_mapping_on_all_lps` for that
         .state_sz = sizeof(struct NeuronLP)},
     {0},
@@ -145,12 +145,12 @@ int main(int argc, char *argv[]) {
       .spikes           = g_tw_mynode == 0 ? spikes : (g_tw_mynode == 1 ? spikes_pe1 : NULL),
       .beat             = 1.0/256,
       .firing_delay     = 1,
-      .neuron_leak      = (neuron_leak_f) leak_lif_neuron,
-      .neuron_integrate = (neuron_integrate_f) integrate_lif_neuron,
-      .neuron_fire      = (neuron_fire_f) fire_lif_neuron,
-      .store_neuron         = (neuron_state_op_f) store_lif_neuron_state,
-      .reverse_store_neuron = (neuron_state_op_f) reverse_store_lif_neuron_state,
-      .print_neuron_struct  = (print_neuron_f) print_lif_neuron,
+      .neuron_leak      = (neuron_leak_f) neurons_lif_leak,
+      .neuron_integrate = (neuron_integrate_f) neurons_lif_integrate,
+      .neuron_fire      = (neuron_fire_f) neurons_lif_fire,
+      .store_neuron         = (neuron_state_op_f) neurons_lif_store_state,
+      .reverse_store_neuron = (neuron_state_op_f) neurons_lif_reverse_store_state,
+      .print_neuron_struct  = (print_neuron_f) neurons_lif_print,
       //.gid_to_doryta_id    = ...
       .probe_events     = probe_events,
     };
@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
     // Modifying and loading neuron configuration (it will be trully loaded
     // once the simulation starts)
     settings_neuron_lp = *layout_master_configure(&settings_neuron_lp);
-    neuronLP_config(&settings_neuron_lp);
+    driver_neuron_config(&settings_neuron_lp);
     set_mapping_on_all_lps(layout_master_gid_to_pe);
 
     // Setting up ROSS variables

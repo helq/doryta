@@ -1,5 +1,5 @@
 #include "voltage.h"
-#include "../../driver/neuron_lp.h"
+#include "../../driver/neuron.h"
 #include "../../neurons/lif_beta.h"
 #include "ross.h"
 
