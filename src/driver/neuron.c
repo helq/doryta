@@ -314,10 +314,29 @@ void driver_neuron_event_commit(
 void driver_neuron_final(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     (void) lp;
     int32_t const self = neuronLP->doryta_id;
-    // TODO: define a variable (VERBOSE or something) and run this code based on that
-    if (settings.print_neuron_struct != NULL) {
-        printf("LP (neuron): %" PRIi32 ". ", self);
-        settings.print_neuron_struct(neuronLP->neuron_struct);
+    if (settings.save_state_handler != NULL) {
+        FILE * fp = settings.save_state_handler;
+        fprintf(fp, "LP (neuron): %" PRIi32 ". ", self);
+        if (neuronLP->last_heartbeat > 0) {
+            fprintf(fp, "Last heartbeat: %f ", neuronLP->last_heartbeat);
+        }
+        if (settings.print_neuron_struct != NULL) {
+            settings.print_neuron_struct(fp, neuronLP->neuron_struct);
+        }
+        fprintf(fp, "\n");
+
+        if (neuronLP->to_contact.num > 0) {
+            fprintf(fp, "LP (neuron): %" PRIi32 ". Synapses:", self);
+            for (int i = 0; i < neuronLP->to_contact.num; i++) {
+                fprintf(fp, " %" PRIi32 ": %f",
+                        neuronLP->to_contact.synapses[i].doryta_id_to_send,
+                        neuronLP->to_contact.synapses[i].weight);
+                if (i < neuronLP->to_contact.num - 1) {
+                    fprintf(fp, ",");
+                }
+            }
+            fprintf(fp, "\n");
+        }
     }
 
     if (settings.neurons == NULL) {

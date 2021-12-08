@@ -25,20 +25,21 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(doryta_lib
   driver/neuron.c
-  layout/standard_layouts.c
   layout/master.c
+  layout/standard_layouts.c
   message.c
-  neurons/lif.c
-  neurons/lif_beta.c
   model-loaders/hardcoded/five_neurons.c
   model-loaders/hardcoded/gameoflife.c
   model-loaders/regular_io/load_neurons.c
   model-loaders/regular_io/load_spikes.c
+  neurons/lif.c
+  neurons/lif_beta.c
   probes/firing.c
-  probes/stats.c
   probes/lif/voltage.c
   probes/lif_beta/voltage.c
+  probes/stats.c
   utils/io.c
+  utils/math.c
   utils/pcg32_random.c
 )
 

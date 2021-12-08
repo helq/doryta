@@ -54,13 +54,14 @@ void neurons_lif_reverse_store_state(
 }
 
 
-void neurons_lif_print(struct LifNeuron * lif) {
-    printf("potential = %f "
+void neurons_lif_print(FILE * fp, struct LifNeuron * lif) {
+    fprintf(fp,
+           "potential = %f "
            "current = %f "
            "resting_potential = %f "
            "threshold = %f "
            "tau_m = %f "
-           "resistance = %f\n",
+           "resistance = %f",
            lif->potential,
            lif->current,
            lif->resting_potential,

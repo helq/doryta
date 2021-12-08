@@ -55,11 +55,11 @@ void probes_stats_record(
 static void stats_save(void) {
     assert(output_path != NULL);
     assert(filename != NULL);
-    unsigned long self = g_tw_mynode;
+    unsigned long const self = g_tw_mynode;
 
     // Finding name for file
     char const fmt[] = "%s/%s-stats-gid=%lu.txt";
-    int sz = snprintf(NULL, 0, fmt, output_path, filename, self);
+    int const sz = snprintf(NULL, 0, fmt, output_path, filename, self);
     char filename_path[sz + 1]; // `+ 1` for terminating null byte
     snprintf(filename_path, sizeof(filename_path), fmt, output_path, filename, self);
 
@@ -79,7 +79,7 @@ static void stats_save(void) {
 
         fclose(fp);
     } else {
-        fprintf(stderr, "Unable to store `spikes` in file %s\n", filename_path);
+        fprintf(stderr, "Unable to store `stats` in file %s\n", filename_path);
     }
 }
 

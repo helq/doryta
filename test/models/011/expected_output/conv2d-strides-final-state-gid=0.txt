@@ -1,0 +1,532 @@
+LP (neuron): 0. Last heartbeat: 0.003906 potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 0. Synapses: 252: 1.000000
+LP (neuron): 1. Last heartbeat: 0.601562 potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 1. Synapses: 252: 2.000000
+LP (neuron): 2. Last heartbeat: 0.800781 potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 2. Synapses: 252: 3.000000, 253: 0.000000
+LP (neuron): 3. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 3. Synapses: 252: 4.000000, 253: 1.000000
+LP (neuron): 4. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 4. Synapses: 253: 2.000000
+LP (neuron): 5. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 5. Synapses: 253: 3.000000, 254: 0.000000
+LP (neuron): 6. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 6. Synapses: 253: 4.000000, 254: 1.000000
+LP (neuron): 7. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 7. Synapses: 254: 2.000000
+LP (neuron): 8. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 8. Synapses: 254: 3.000000, 255: 0.000000
+LP (neuron): 9. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 9. Synapses: 254: 4.000000, 255: 1.000000
+LP (neuron): 10. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 10. Synapses: 255: 2.000000
+LP (neuron): 11. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 11. Synapses: 255: 3.000000
+LP (neuron): 12. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 12. Synapses: 252: 6.000000
+LP (neuron): 13. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 13. Synapses: 252: 7.000000
+LP (neuron): 14. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 14. Synapses: 252: 8.000000, 253: 5.000000
+LP (neuron): 15. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 15. Synapses: 252: 9.000000, 253: 6.000000
+LP (neuron): 16. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 16. Synapses: 253: 7.000000
+LP (neuron): 17. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 17. Synapses: 253: 8.000000, 254: 5.000000
+LP (neuron): 18. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 18. Synapses: 253: 9.000000, 254: 6.000000
+LP (neuron): 19. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 19. Synapses: 254: 7.000000
+LP (neuron): 20. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 20. Synapses: 254: 8.000000, 255: 5.000000
+LP (neuron): 21. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 21. Synapses: 254: 9.000000, 255: 6.000000
+LP (neuron): 22. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 22. Synapses: 255: 7.000000
+LP (neuron): 23. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 23. Synapses: 255: 8.000000
+LP (neuron): 24. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 24. Synapses: 252: 11.000000
+LP (neuron): 25. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 25. Synapses: 252: 12.000000
+LP (neuron): 26. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 26. Synapses: 252: 13.000000, 253: 10.000000
+LP (neuron): 27. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 27. Synapses: 252: 14.000000, 253: 11.000000
+LP (neuron): 28. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 28. Synapses: 253: 12.000000
+LP (neuron): 29. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 29. Synapses: 253: 13.000000, 254: 10.000000
+LP (neuron): 30. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 30. Synapses: 253: 14.000000, 254: 11.000000
+LP (neuron): 31. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 31. Synapses: 254: 12.000000
+LP (neuron): 32. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 32. Synapses: 254: 13.000000, 255: 10.000000
+LP (neuron): 33. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 33. Synapses: 254: 14.000000, 255: 11.000000
+LP (neuron): 34. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 34. Synapses: 255: 12.000000
+LP (neuron): 35. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 35. Synapses: 255: 13.000000
+LP (neuron): 36. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 36. Synapses: 256: 1.000000
+LP (neuron): 37. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 37. Synapses: 256: 2.000000
+LP (neuron): 38. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 38. Synapses: 256: 3.000000, 257: 0.000000
+LP (neuron): 39. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 39. Synapses: 256: 4.000000, 257: 1.000000
+LP (neuron): 40. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 40. Synapses: 257: 2.000000
+LP (neuron): 41. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 41. Synapses: 257: 3.000000, 258: 0.000000
+LP (neuron): 42. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 42. Synapses: 257: 4.000000, 258: 1.000000
+LP (neuron): 43. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 43. Synapses: 258: 2.000000
+LP (neuron): 44. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 44. Synapses: 258: 3.000000, 259: 0.000000
+LP (neuron): 45. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 45. Synapses: 258: 4.000000, 259: 1.000000
+LP (neuron): 46. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 46. Synapses: 259: 2.000000
+LP (neuron): 47. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 47. Synapses: 259: 3.000000
+LP (neuron): 48. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 48. Synapses: 256: 6.000000
+LP (neuron): 49. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 49. Synapses: 256: 7.000000
+LP (neuron): 50. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 50. Synapses: 256: 8.000000, 257: 5.000000
+LP (neuron): 51. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 51. Synapses: 256: 9.000000, 257: 6.000000
+LP (neuron): 52. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 52. Synapses: 257: 7.000000
+LP (neuron): 53. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 53. Synapses: 257: 8.000000, 258: 5.000000
+LP (neuron): 54. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 54. Synapses: 257: 9.000000, 258: 6.000000
+LP (neuron): 55. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 55. Synapses: 258: 7.000000
+LP (neuron): 56. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 56. Synapses: 258: 8.000000, 259: 5.000000
+LP (neuron): 57. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 57. Synapses: 258: 9.000000, 259: 6.000000
+LP (neuron): 58. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 58. Synapses: 259: 7.000000
+LP (neuron): 59. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 59. Synapses: 259: 8.000000
+LP (neuron): 60. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 60. Synapses: 256: 11.000000
+LP (neuron): 61. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 61. Synapses: 256: 12.000000
+LP (neuron): 62. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 62. Synapses: 256: 13.000000, 257: 10.000000
+LP (neuron): 63. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 63. Synapses: 256: 14.000000, 257: 11.000000
+LP (neuron): 64. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 64. Synapses: 257: 12.000000
+LP (neuron): 65. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 65. Synapses: 257: 13.000000, 258: 10.000000
+LP (neuron): 66. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 66. Synapses: 257: 14.000000, 258: 11.000000
+LP (neuron): 67. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 67. Synapses: 258: 12.000000
+LP (neuron): 68. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 68. Synapses: 258: 13.000000, 259: 10.000000
+LP (neuron): 69. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 69. Synapses: 258: 14.000000, 259: 11.000000
+LP (neuron): 70. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 70. Synapses: 259: 12.000000
+LP (neuron): 71. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 71. Synapses: 259: 13.000000
+LP (neuron): 72. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 72. Synapses: 260: 1.000000
+LP (neuron): 73. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 73. Synapses: 260: 2.000000
+LP (neuron): 74. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 74. Synapses: 260: 3.000000, 261: 0.000000
+LP (neuron): 75. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 75. Synapses: 260: 4.000000, 261: 1.000000
+LP (neuron): 76. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 76. Synapses: 261: 2.000000
+LP (neuron): 77. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 77. Synapses: 261: 3.000000, 262: 0.000000
+LP (neuron): 78. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 78. Synapses: 261: 4.000000, 262: 1.000000
+LP (neuron): 79. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 79. Synapses: 262: 2.000000
+LP (neuron): 80. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 80. Synapses: 262: 3.000000, 263: 0.000000
+LP (neuron): 81. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 81. Synapses: 262: 4.000000, 263: 1.000000
+LP (neuron): 82. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 82. Synapses: 263: 2.000000
+LP (neuron): 83. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 83. Synapses: 263: 3.000000
+LP (neuron): 84. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 84. Synapses: 260: 6.000000
+LP (neuron): 85. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 85. Synapses: 260: 7.000000
+LP (neuron): 86. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 86. Synapses: 260: 8.000000, 261: 5.000000
+LP (neuron): 87. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 87. Synapses: 260: 9.000000, 261: 6.000000
+LP (neuron): 88. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 88. Synapses: 261: 7.000000
+LP (neuron): 89. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 89. Synapses: 261: 8.000000, 262: 5.000000
+LP (neuron): 90. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 90. Synapses: 261: 9.000000, 262: 6.000000
+LP (neuron): 91. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 91. Synapses: 262: 7.000000
+LP (neuron): 92. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 92. Synapses: 262: 8.000000, 263: 5.000000
+LP (neuron): 93. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 93. Synapses: 262: 9.000000, 263: 6.000000
+LP (neuron): 94. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 94. Synapses: 263: 7.000000
+LP (neuron): 95. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 95. Synapses: 263: 8.000000
+LP (neuron): 96. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 96. Synapses: 260: 11.000000
+LP (neuron): 97. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 97. Synapses: 260: 12.000000
+LP (neuron): 98. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 98. Synapses: 260: 13.000000, 261: 10.000000
+LP (neuron): 99. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 99. Synapses: 260: 14.000000, 261: 11.000000
+LP (neuron): 100. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 100. Synapses: 261: 12.000000
+LP (neuron): 101. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 101. Synapses: 261: 13.000000, 262: 10.000000
+LP (neuron): 102. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 102. Synapses: 261: 14.000000, 262: 11.000000
+LP (neuron): 103. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 103. Synapses: 262: 12.000000
+LP (neuron): 104. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 104. Synapses: 262: 13.000000, 263: 10.000000
+LP (neuron): 105. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 105. Synapses: 262: 14.000000, 263: 11.000000
+LP (neuron): 106. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 106. Synapses: 263: 12.000000
+LP (neuron): 107. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 107. Synapses: 263: 13.000000
+LP (neuron): 108. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 108. Synapses: 264: 1.000000
+LP (neuron): 109. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 109. Synapses: 264: 2.000000
+LP (neuron): 110. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 110. Synapses: 264: 3.000000, 265: 0.000000
+LP (neuron): 111. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 111. Synapses: 264: 4.000000, 265: 1.000000
+LP (neuron): 112. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 112. Synapses: 265: 2.000000
+LP (neuron): 113. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 113. Synapses: 265: 3.000000, 266: 0.000000
+LP (neuron): 114. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 114. Synapses: 265: 4.000000, 266: 1.000000
+LP (neuron): 115. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 115. Synapses: 266: 2.000000
+LP (neuron): 116. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 116. Synapses: 266: 3.000000, 267: 0.000000
+LP (neuron): 117. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 117. Synapses: 266: 4.000000, 267: 1.000000
+LP (neuron): 118. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 118. Synapses: 267: 2.000000
+LP (neuron): 119. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 119. Synapses: 267: 3.000000
+LP (neuron): 120. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 120. Synapses: 264: 6.000000
+LP (neuron): 121. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 121. Synapses: 264: 7.000000
+LP (neuron): 122. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 122. Synapses: 264: 8.000000, 265: 5.000000
+LP (neuron): 123. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 123. Synapses: 264: 9.000000, 265: 6.000000
+LP (neuron): 124. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 124. Synapses: 265: 7.000000
+LP (neuron): 125. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 125. Synapses: 265: 8.000000, 266: 5.000000
+LP (neuron): 252. Last heartbeat: 0.804688 potential = 5.999991 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 253. Last heartbeat: 0.804688 potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 254. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 255. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 256. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 257. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 258. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 259. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 260. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 261. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 262. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 263. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 264. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 265. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 126. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 126. Synapses: 265: 9.000000, 266: 6.000000
+LP (neuron): 127. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 127. Synapses: 266: 7.000000
+LP (neuron): 128. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 128. Synapses: 266: 8.000000, 267: 5.000000
+LP (neuron): 129. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 129. Synapses: 266: 9.000000, 267: 6.000000
+LP (neuron): 130. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 130. Synapses: 267: 7.000000
+LP (neuron): 131. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 131. Synapses: 267: 8.000000
+LP (neuron): 132. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 132. Synapses: 264: 11.000000
+LP (neuron): 133. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 133. Synapses: 264: 12.000000
+LP (neuron): 134. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 134. Synapses: 264: 13.000000, 265: 10.000000
+LP (neuron): 135. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 135. Synapses: 264: 14.000000, 265: 11.000000
+LP (neuron): 136. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 136. Synapses: 265: 12.000000
+LP (neuron): 137. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 137. Synapses: 265: 13.000000, 266: 10.000000
+LP (neuron): 138. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 138. Synapses: 265: 14.000000, 266: 11.000000
+LP (neuron): 139. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 139. Synapses: 266: 12.000000
+LP (neuron): 140. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 140. Synapses: 266: 13.000000, 267: 10.000000
+LP (neuron): 141. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 141. Synapses: 266: 14.000000, 267: 11.000000
+LP (neuron): 142. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 142. Synapses: 267: 12.000000
+LP (neuron): 143. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 143. Synapses: 267: 13.000000
+LP (neuron): 144. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 144. Synapses: 268: 1.000000
+LP (neuron): 145. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 145. Synapses: 268: 2.000000
+LP (neuron): 146. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 146. Synapses: 268: 3.000000, 269: 0.000000
+LP (neuron): 147. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 147. Synapses: 268: 4.000000, 269: 1.000000
+LP (neuron): 148. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 148. Synapses: 269: 2.000000
+LP (neuron): 149. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 149. Synapses: 269: 3.000000, 270: 0.000000
+LP (neuron): 150. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 150. Synapses: 269: 4.000000, 270: 1.000000
+LP (neuron): 151. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 151. Synapses: 270: 2.000000
+LP (neuron): 152. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 152. Synapses: 270: 3.000000, 271: 0.000000
+LP (neuron): 153. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 153. Synapses: 270: 4.000000, 271: 1.000000
+LP (neuron): 154. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 154. Synapses: 271: 2.000000
+LP (neuron): 155. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 155. Synapses: 271: 3.000000
+LP (neuron): 156. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 156. Synapses: 268: 6.000000
+LP (neuron): 157. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 157. Synapses: 268: 7.000000
+LP (neuron): 158. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 158. Synapses: 268: 8.000000, 269: 5.000000
+LP (neuron): 159. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 159. Synapses: 268: 9.000000, 269: 6.000000
+LP (neuron): 160. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 160. Synapses: 269: 7.000000
+LP (neuron): 161. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 161. Synapses: 269: 8.000000, 270: 5.000000
+LP (neuron): 162. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 162. Synapses: 269: 9.000000, 270: 6.000000
+LP (neuron): 163. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 163. Synapses: 270: 7.000000
+LP (neuron): 164. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 164. Synapses: 270: 8.000000, 271: 5.000000
+LP (neuron): 165. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 165. Synapses: 270: 9.000000, 271: 6.000000
+LP (neuron): 166. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 166. Synapses: 271: 7.000000
+LP (neuron): 167. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 167. Synapses: 271: 8.000000
+LP (neuron): 168. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 168. Synapses: 268: 11.000000
+LP (neuron): 169. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 169. Synapses: 268: 12.000000
+LP (neuron): 170. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 170. Synapses: 268: 13.000000, 269: 10.000000
+LP (neuron): 171. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 171. Synapses: 268: 14.000000, 269: 11.000000
+LP (neuron): 172. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 172. Synapses: 269: 12.000000
+LP (neuron): 173. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 173. Synapses: 269: 13.000000, 270: 10.000000
+LP (neuron): 174. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 174. Synapses: 269: 14.000000, 270: 11.000000
+LP (neuron): 175. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 175. Synapses: 270: 12.000000
+LP (neuron): 176. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 176. Synapses: 270: 13.000000, 271: 10.000000
+LP (neuron): 177. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 177. Synapses: 270: 14.000000, 271: 11.000000
+LP (neuron): 178. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 178. Synapses: 271: 12.000000
+LP (neuron): 179. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 179. Synapses: 271: 13.000000
+LP (neuron): 180. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 180. Synapses: 272: 1.000000
+LP (neuron): 181. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 181. Synapses: 272: 2.000000
+LP (neuron): 182. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 182. Synapses: 272: 3.000000, 273: 0.000000
+LP (neuron): 183. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 183. Synapses: 272: 4.000000, 273: 1.000000
+LP (neuron): 184. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 184. Synapses: 273: 2.000000
+LP (neuron): 185. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 185. Synapses: 273: 3.000000, 274: 0.000000
+LP (neuron): 186. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 186. Synapses: 273: 4.000000, 274: 1.000000
+LP (neuron): 187. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 187. Synapses: 274: 2.000000
+LP (neuron): 188. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 188. Synapses: 274: 3.000000, 275: 0.000000
+LP (neuron): 189. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 189. Synapses: 274: 4.000000, 275: 1.000000
+LP (neuron): 190. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 190. Synapses: 275: 2.000000
+LP (neuron): 191. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 191. Synapses: 275: 3.000000
+LP (neuron): 192. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 192. Synapses: 272: 6.000000
+LP (neuron): 193. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 193. Synapses: 272: 7.000000
+LP (neuron): 194. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 194. Synapses: 272: 8.000000, 273: 5.000000
+LP (neuron): 195. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 195. Synapses: 272: 9.000000, 273: 6.000000
+LP (neuron): 196. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 196. Synapses: 273: 7.000000
+LP (neuron): 197. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 197. Synapses: 273: 8.000000, 274: 5.000000
+LP (neuron): 198. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 198. Synapses: 273: 9.000000, 274: 6.000000
+LP (neuron): 199. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 199. Synapses: 274: 7.000000
+LP (neuron): 200. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 200. Synapses: 274: 8.000000, 275: 5.000000
+LP (neuron): 201. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 201. Synapses: 274: 9.000000, 275: 6.000000
+LP (neuron): 202. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 202. Synapses: 275: 7.000000
+LP (neuron): 203. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 203. Synapses: 275: 8.000000
+LP (neuron): 204. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 204. Synapses: 272: 11.000000
+LP (neuron): 205. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 205. Synapses: 272: 12.000000
+LP (neuron): 206. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 206. Synapses: 272: 13.000000, 273: 10.000000
+LP (neuron): 207. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 207. Synapses: 272: 14.000000, 273: 11.000000
+LP (neuron): 208. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 208. Synapses: 273: 12.000000
+LP (neuron): 209. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 209. Synapses: 273: 13.000000, 274: 10.000000
+LP (neuron): 210. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 210. Synapses: 273: 14.000000, 274: 11.000000
+LP (neuron): 211. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 211. Synapses: 274: 12.000000
+LP (neuron): 212. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 212. Synapses: 274: 13.000000, 275: 10.000000
+LP (neuron): 213. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 213. Synapses: 274: 14.000000, 275: 11.000000
+LP (neuron): 214. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 214. Synapses: 275: 12.000000
+LP (neuron): 215. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 215. Synapses: 275: 13.000000
+LP (neuron): 216. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 216. Synapses: 276: 1.000000
+LP (neuron): 217. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 217. Synapses: 276: 2.000000
+LP (neuron): 218. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 218. Synapses: 276: 3.000000, 277: 0.000000
+LP (neuron): 219. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 219. Synapses: 276: 4.000000, 277: 1.000000
+LP (neuron): 220. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 220. Synapses: 277: 2.000000
+LP (neuron): 221. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 221. Synapses: 277: 3.000000, 278: 0.000000
+LP (neuron): 222. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 222. Synapses: 277: 4.000000, 278: 1.000000
+LP (neuron): 223. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 223. Synapses: 278: 2.000000
+LP (neuron): 224. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 224. Synapses: 278: 3.000000, 279: 0.000000
+LP (neuron): 225. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 225. Synapses: 278: 4.000000, 279: 1.000000
+LP (neuron): 226. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 226. Synapses: 279: 2.000000
+LP (neuron): 227. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 227. Synapses: 279: 3.000000
+LP (neuron): 228. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 228. Synapses: 276: 6.000000
+LP (neuron): 229. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 229. Synapses: 276: 7.000000
+LP (neuron): 230. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 230. Synapses: 276: 8.000000, 277: 5.000000
+LP (neuron): 231. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 231. Synapses: 276: 9.000000, 277: 6.000000
+LP (neuron): 232. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 232. Synapses: 277: 7.000000
+LP (neuron): 233. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 233. Synapses: 277: 8.000000, 278: 5.000000
+LP (neuron): 234. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 234. Synapses: 277: 9.000000, 278: 6.000000
+LP (neuron): 235. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 235. Synapses: 278: 7.000000
+LP (neuron): 236. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 236. Synapses: 278: 8.000000, 279: 5.000000
+LP (neuron): 237. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 237. Synapses: 278: 9.000000, 279: 6.000000
+LP (neuron): 238. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 238. Synapses: 279: 7.000000
+LP (neuron): 239. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 239. Synapses: 279: 8.000000
+LP (neuron): 240. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 240. Synapses: 276: 11.000000
+LP (neuron): 241. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 241. Synapses: 276: 12.000000
+LP (neuron): 242. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 242. Synapses: 276: 13.000000, 277: 10.000000
+LP (neuron): 243. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 243. Synapses: 276: 14.000000, 277: 11.000000
+LP (neuron): 244. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 244. Synapses: 277: 12.000000
+LP (neuron): 245. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 245. Synapses: 277: 13.000000, 278: 10.000000
+LP (neuron): 246. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 246. Synapses: 277: 14.000000, 278: 11.000000
+LP (neuron): 247. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 247. Synapses: 278: 12.000000
+LP (neuron): 248. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 248. Synapses: 278: 13.000000, 279: 10.000000
+LP (neuron): 249. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 249. Synapses: 278: 14.000000, 279: 11.000000
+LP (neuron): 250. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 250. Synapses: 279: 12.000000
+LP (neuron): 251. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 251. Synapses: 279: 13.000000
+LP (neuron): 266. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 267. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 268. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 269. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 270. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 271. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 272. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 273. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 274. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 275. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 276. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 277. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 278. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000
+LP (neuron): 279. potential = 0.000000 current = 0.000000 resting_potential = 0.000000 threshold = 100.000000 tau_m = 131072.000000 resistance = 33554432.000000

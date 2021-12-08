@@ -35,8 +35,8 @@ struct Conv2dParams {
     int kernel_height;
     int padding_width;
     int padding_height;
-    //int stride_width;
-    //int stride_height;
+    int stride_width;
+    int stride_height;
 };
 
 

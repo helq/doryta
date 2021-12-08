@@ -2,6 +2,7 @@
 #define DORYTA_NEOURNS_LIF_H
 
 #include "../message.h"
+#include <stdio.h>
 
 // This header file must define at least three functions to be
 // called later by the neuron handler:
@@ -64,6 +65,6 @@ void neurons_lif_reverse_store_state(
         struct LifNeuron *,
         struct StorageInMessageLif * storage);
 
-void neurons_lif_print(struct LifNeuron * lif);
+void neurons_lif_print(FILE * fp, struct LifNeuron * lif);
 
 #endif /* end of include guard */

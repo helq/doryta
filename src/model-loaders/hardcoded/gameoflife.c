@@ -85,24 +85,29 @@ model_GoL_neurons_init(struct SettingsNeuronLP * settings_neuron_lp) {
       .neuron_fire       = (neuron_fire_f) neurons_lif_fire,
       .store_neuron         = (neuron_state_op_f) neurons_lif_store_state,
       .reverse_store_neuron = (neuron_state_op_f) neurons_lif_reverse_store_state,
-      //.print_neuron_struct  = (print_neuron_f) neurons_lif_print,
+      .print_neuron_struct  = (print_neuron_f) neurons_lif_print,
       //.gid_to_doryta_id    = ...
       //.probe_events     = probe_events,
     };
 
     unsigned long const last_node = tw_nnodes()-1;
+    // Defining neurons
     // GoL board
     layout_master_neurons(400, 0, last_node);
     // Fire if life (either birth or sustain life)
     layout_master_neurons(400, 0, last_node);
     // Fire if kill (more than 4 neighbors, either kill or prevent birth)
     layout_master_neurons(400, 0, last_node);
+
+    // Defining synapses
     struct Conv2dParams const conv2d_params = {
             .input_width    = 20,
             .kernel_width   = 3,
             .kernel_height  = 3,
             .padding_width  = 1,
             .padding_height = 1,
+            .stride_width  = 1,
+            .stride_height = 1,
     };
     layout_master_synapses_conv2d(0, 399, 400, 799,  &conv2d_params);
     layout_master_synapses_conv2d(0, 399, 800, 1199, &conv2d_params);
@@ -112,6 +117,8 @@ model_GoL_neurons_init(struct SettingsNeuronLP * settings_neuron_lp) {
             .kernel_height  = 1,
             .padding_width  = 0,
             .padding_height = 0,
+            .stride_width  = 1,
+            .stride_height = 1,
     };
     layout_master_synapses_conv2d(400, 799,  0, 399, &one2one_params);
     layout_master_synapses_conv2d(800, 1199, 0, 399, &one2one_params);

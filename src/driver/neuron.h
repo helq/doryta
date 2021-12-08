@@ -6,6 +6,7 @@
  */
 
 #include "../message.h"
+#include <stdio.h>
 
 // There is no need to import ROSS headers just to define those structs
 struct tw_bf;
@@ -81,7 +82,7 @@ typedef void (*neuron_integrate_f) (void *, float);
 typedef bool (*neuron_fire_f)      (void *);
 typedef void (*probe_event_f)      (struct NeuronLP *, struct Message *, struct tw_lp *);
 typedef int32_t (*id_to_dorytaid)  (size_t);
-typedef void (*print_neuron_f)     (void *);
+typedef void (*print_neuron_f)     (FILE *, void *);
 typedef void (*neuron_state_op_f)  (void *, char[MESSAGE_SIZE_REVERSE]);
 
 
@@ -173,6 +174,8 @@ struct SettingsNeuronLP {
     /** A list of functions to call to record/trace the computation. It can be
      * NULL. The array must be NULL terminated. */
     probe_event_f            * probe_events;
+    /** File handler to where the final state of the system will be saved. */
+    FILE *                     save_state_handler;
 };
 
 static inline bool is_valid_SettingsPE(struct SettingsNeuronLP * settingsPE) {

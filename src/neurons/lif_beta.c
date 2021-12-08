@@ -35,7 +35,7 @@ void neurons_lif_beta_reverse_store_state(
 }
 
 
-void neurons_lif_beta_print(struct LifBetaNeuron * lif) {
-    printf("potential = %f  threshold = %f  beta = %f  baseline = %f\n",
+void neurons_lif_beta_print(FILE * fp, struct LifBetaNeuron * lif) {
+    fprintf(fp, "potential = %f  threshold = %f  beta = %f  baseline = %f\n",
             lif->potential, lif->threshold, lif->beta, lif->baseline);
 }

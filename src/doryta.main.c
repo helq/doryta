@@ -51,6 +51,7 @@ static unsigned int is_firing_probe_active = 0;
 static unsigned int is_voltage_probe_active = 0;
 static unsigned int is_stats_probe_active = 0;
 static unsigned int probe_firing_output_neurons_only = 0;
+static unsigned int save_final_state_neurons = 0;
 // Ints
 static unsigned int probe_firing_buffer_size = 5000;
 static unsigned int probe_voltage_buffer_size = 5000;
@@ -91,6 +92,9 @@ static tw_optdef const model_opts[] = {
     TWOPT_CHAR("output-dir", output_dir,
             "Path to store the output of a model execution"),
     TWOPT_CHAR("model-filename", model_filename, "Model file name. To be used by all output"),
+    TWOPT_FLAG("save-state", save_final_state_neurons,
+            "Saves the final state (after simulation) of neurons (in spike-driven mode "
+            "the final state will be that in which the neuron was after it received the last spike)"),
     TWOPT_GROUP("Doryta Models"),
     TWOPT_CHAR("load-model", model_path,
             "Load model from file"),
@@ -128,6 +132,7 @@ void fprint_doryta_params(FILE * fp) {
     fprintf(fp, "spike-driven          = %s\n",   is_spike_driven ? "ON" : "OFF");
     fprintf(fp, "output-dir            = '%s'\n", output_dir);
     fprintf(fp, "model-filename        = '%s'\n", model_filename);
+    fprintf(fp, "save-state            = %s\n",   save_final_state_neurons ? "ON" : "OFF");
     fprintf(fp, "load-model            = '%s'\n", model_path);
     fprintf(fp, "five-example          = %s\n",   run_five_neuron_example ? "ON" : "OFF");
     fprintf(fp, "gol                   = %s\n",   gol ? "ON" : "OFF");
@@ -166,8 +171,13 @@ int main(int argc, char *argv[]) {
         snprintf(filename, sizeof(filename), "%s/doryta-params.txt", output_dir);
 
         FILE * fp = fopen(filename, "w");
-        fprint_doryta_params(fp);
-        fclose(fp);
+        if (fp != NULL) {
+            fprint_doryta_params(fp);
+            fclose(fp);
+        } else {
+            tw_error(TW_LOC, "Cannot save doryta configuration to file `%s`. "
+                    "Make sure that the directory is reachable and writable", filename);
+        }
     }
     int const num_models_selected = gol + run_five_neuron_example + (model_path[0] != '\0');
     if (num_models_selected != 1) {
@@ -192,6 +202,28 @@ int main(int argc, char *argv[]) {
     // Loading Spikes
     if (spikes_path[0] != '\0') {
         model_load_spikes_init(&settings_neuron_lp, spikes_path);
+    }
+
+    // Saving neuron states after execution
+    if (save_final_state_neurons) {
+        unsigned long const self = g_tw_mynode;
+        // Finding name for file
+        char const fmt[] = "%s/%s-final-state-gid=%lu.txt";
+        int const sz = snprintf(NULL, 0, fmt, output_dir, model_filename, self);
+        char filename_path[sz + 1]; // `+ 1` for terminating null byte
+        snprintf(filename_path, sizeof(filename_path), fmt, output_dir, model_filename, self);
+
+        // This is needed because there might be race condition when creating
+        // the output folder (mkdir'd by PE=0)
+        MPI_Barrier(MPI_COMM_ROSS);
+
+        FILE * fh = fopen(filename_path, "w");
+        if (fh == NULL) {
+            fprintf(stderr, "Unable to store final state in file %s."
+                    "Check that you have write permissions.\n", filename_path);
+        }
+
+        settings_neuron_lp.save_state_handler = fh;
     }
 
     // Loading probe recording mechanism
@@ -251,6 +283,13 @@ int main(int argc, char *argv[]) {
     }
     if (is_stats_probe_active) {
         probes_stats_deinit();
+    }
+
+    // --- DeInit of Spikes ---
+    if (save_final_state_neurons) {
+        if (settings_neuron_lp.save_state_handler != NULL) {
+            fclose(settings_neuron_lp.save_state_handler);
+        }
     }
 
     // --- DeInit of Spikes ---

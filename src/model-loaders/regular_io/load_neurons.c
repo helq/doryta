@@ -64,7 +64,7 @@ model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
       .neuron_fire       = (neuron_fire_f) neurons_lif_fire,
       .store_neuron         = (neuron_state_op_f) neurons_lif_store_state,
       .reverse_store_neuron = (neuron_state_op_f) neurons_lif_reverse_store_state,
-      //.print_neuron_struct  = (print_neuron_f) neurons_lif_print,
+      .print_neuron_struct  = (print_neuron_f) neurons_lif_print,
       //.gid_to_doryta_id    = ...
       //.probe_events     = probe_events,
     };

@@ -2,6 +2,7 @@
 #define DORYTA_NEOURNS_LIF_BETA_H
 
 #include "../message.h"
+#include <stdio.h>
 
 // This header file must define at least three functions to be
 // called later by the neuron handler:
@@ -59,6 +60,6 @@ void neurons_lif_beta_reverse_store_state(
         struct LifBetaNeuron *,
         struct StorageInMessageLifBeta *);
 
-void neurons_lif_beta_print(struct LifBetaNeuron *);
+void neurons_lif_beta_print(FILE * fp, struct LifBetaNeuron *);
 
 #endif /* end of include guard */
