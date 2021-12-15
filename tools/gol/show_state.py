@@ -43,11 +43,19 @@ if __name__ == '__main__':
     parser.add_argument('--iteration', type=int,
                         help='Number of GoL time step. If not given, an animation will '
                         'show up instead', default=None)
+    parser.add_argument('--speed', type=int,
+                        help='Time between frames in milliseconds (default: 200)', default=200)
     args = parser.parse_args()
 
     imgs = create_images(args.path)
 
-    if args.iteration:
+    if args.iteration is not None:
+        if not (0 <= args.iteration < imgs.shape[0]):
+            print(f"There are {imgs.shape[0]} GoL steps stored in the file. "
+                  f"Iteration {args.iteration} doesn't correspond to anything.",
+                  file=sys.stderr)
+            exit(1)
+
         imgplt = plt.imshow(imgs[args.iteration])
     else:
         imgplt = plt.imshow(imgs[0])
@@ -56,6 +64,6 @@ if __name__ == '__main__':
             lambda i: imgplt.set_data(imgs[i]),
             frames=imgs.shape[0],
             repeat=False,
-            interval=200  # milliseconds
+            interval=args.speed  # milliseconds
         )
     plt.show()

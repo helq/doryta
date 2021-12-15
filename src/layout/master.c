@@ -2,8 +2,8 @@
 #include "../utils/math.h"
 #include <ross.h>
 
-#define MAX_NEURON_GROUPS 20
-#define MAX_SYNAPSE_GROUPS 100
+#define MAX_NEURON_GROUPS 200
+#define MAX_SYNAPSE_GROUPS 2000
 
 // Parameters for each neuron group defined
 struct NeuronGroup {

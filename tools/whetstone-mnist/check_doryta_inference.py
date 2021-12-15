@@ -7,13 +7,20 @@ from pathlib import Path
 import argparse
 import fileinput
 import sys
+from enum import Enum
 
 import numpy as np
 
 
-def extracting_inference_from_doryta_spikes(path: Path) -> Tuple[Any, Any, Any, Any]:
-    shift = 28*28 + 256 + 64  # Ugly, hardcoded, but there is only one model so far
+class ModelType(Enum):
+    Fully = 0
+    LeNet = 1
 
+
+def extracting_inference_from_doryta_spikes(
+    path: Path,
+    shift: int
+) -> Tuple[Any, Any, Any, Any]:
     spikes_glob = glob(str(path / "*-spikes-gid=*.txt"))
     if not spikes_glob:
         print(f"No output spikes found in the directory {path}", file=sys.stderr)
@@ -45,17 +52,24 @@ def get_real_classification(path: Path) -> Any:
     return np.fromfile(path, dtype='b')  # type: ignore
 
 
-def prediction_using_whetstone(model_path: Path, indices: slice) -> Tuple[Any, Any]:
+def prediction_using_whetstone(
+    model_path: Path,
+    indices: slice,
+    model_type: ModelType
+) -> Tuple[Any, Any]:
     import os
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # this suppresses Keras/tf warnings
-
-    # ws_models is a symbolic link to the directory where the whetstone model is defined
-    from ws_models.ffsnn_mnist import load_models, load_data
+    if model_type == ModelType.Fully:
+        # ws_models is a symbolic link to the directory where the whetstone model is defined
+        from ws_models.ffsnn_mnist import load_models, load_data
+    elif model_type == ModelType.LeNet:
+        from ws_models.lenet_mnist import load_models, load_data  # type: ignore
 
     model, model_intermediate = load_models(model_path)
 
     (x_train, y_train), (x_test, y_test) = load_data()
     imgs = (x_test[indices] > .5).astype(float)
+
     return model.predict(imgs).argmax(axis=1), model_intermediate.predict(imgs)
 
 
@@ -63,13 +77,15 @@ def check_doryta_output_to_keras(
     path_to_keras_model: Path,
     path_real_tags: Path,
     indices_test: slice,
-    doryta_output: Path
+    doryta_output: Path,
+    shift: int,
+    which: ModelType
 ) -> None:
     print(f"Execution path being analyzed: `{doryta_output}`")
 
     # ====== Extracting inference results from Doryta run ======
     inferenced, spikes, time_stamps, spikes_per_class = \
-        extracting_inference_from_doryta_spikes(doryta_output)
+        extracting_inference_from_doryta_spikes(doryta_output, shift)
     print("Doryta inference labels:", inferenced)
 
     # ====== Finding the classification LABELS from dataset ======
@@ -82,7 +98,7 @@ def check_doryta_output_to_keras(
 
     # ====== Using Keras/Whetstone to classify data ======
     whetstone_prediction, whetstone_prediction_inter = \
-        prediction_using_whetstone(path_to_keras_model, indices_test)
+        prediction_using_whetstone(path_to_keras_model, indices_test, which)
 
     # ====== Checking discrepancies between Keras and Doryta ======
     assert(whetstone_prediction.size == test_values.size)
@@ -114,7 +130,7 @@ def check_doryta_output_to_keras(
     if doryta_same_as_keras:
         print("Doryta produces the same ouput as keras! Awesome.")
     else:
-        doryta_spikes = spikes_as_ones.astype(bool)
+        doryta_spikes: Any = spikes_as_ones.astype(bool)
         keras_spikes = pred_spikes_as_ones.astype(bool)
         only_in_doryta = np.argwhere(
             np.bitwise_and(np.bitwise_not(keras_spikes), doryta_spikes))
@@ -141,7 +157,19 @@ if __name__ == '__main__':
                         help=f'Number of images processed by doryta (default: {indices_test})')
     parser.add_argument('--outdir-doryta', type=Path, default=doryta_output,
                         help=f'Output folder of doryta execution (default: {doryta_output})')
+    parser.add_argument('--model-type', default="fully",
+                        help='Either "fully" or "lenet" (default: "fully")')
     args = parser.parse_args()
 
+    if args.model_type == "fully":
+        shift = 28*28 + 256 + 64
+        which = ModelType.Fully
+    elif args.model_type == "lenet":
+        shift = 38448 - 100
+        which = ModelType.LeNet
+    else:
+        raise Exception(f'Model type "{args.model_type}" not recognized.')
+
     check_doryta_output_to_keras(args.path_to_keras_model, args.path_to_tags,
-                                 slice(args.indices_in_output), args.outdir_doryta)
+                                 slice(args.indices_in_output), args.outdir_doryta,
+                                 shift, which=which)
