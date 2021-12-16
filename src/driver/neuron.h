@@ -172,7 +172,10 @@ struct SettingsNeuronLP {
     /** This function takes a GID and produces a neuron ID (aka, DorytaID). */
     id_to_dorytaid             gid_to_doryta_id;
     /** A list of functions to call to record/trace the computation. It can be
-     * NULL. The array must be NULL terminated. */
+     * NULL. The array must be NULL terminated. All probes are called with a
+     * NULL msg once when the simulation is started (this can be used to
+     * initialize or extract data from all neurons regardless if they ever
+     * receive a spike). */
     probe_event_f            * probe_events;
     /** File handler to where the final state of the system will be saved. */
     FILE *                     save_state_handler;

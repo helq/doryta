@@ -34,6 +34,10 @@ void probes_firing_record(
     (void) lp;
     assert(firing_spikes != NULL);
 
+    if (msg == NULL) {
+        return;
+    }
+
     bool const was_fired = msg->type == MESSAGE_TYPE_heartbeat && msg->fired;
     bool const record_neuron = only_output_neurons ? neuronLP->to_contact.num == 0 : true;
 

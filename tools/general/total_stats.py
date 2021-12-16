@@ -14,11 +14,14 @@ import pathlib
 from ast import literal_eval
 import csv
 
-from typing import Tuple, List, Optional
-from collections import namedtuple
+from typing import Tuple, List, Optional, NamedTuple
 
 
-Stats = namedtuple('Stats', ['leaks', 'integrations', 'fires'])
+class Stats(NamedTuple):
+    out_synapses: int
+    leaks: float
+    integrations: float
+    fires: float
 
 
 def aggregate_stats(
@@ -32,34 +35,36 @@ def aggregate_stats(
 
     stats_per_neuron = np.loadtxt(fileinput.input(stat_files), dtype=int)  # type: ignore
     assert(len(stats_per_neuron.shape) == 2)
-    assert(stats_per_neuron.shape[1] == 4)
+    assert(stats_per_neuron.shape[1] == 5)
 
     grouped: List[Tuple[str, Stats]] = []
     if groups:
         j = 0
         for i in groups:
             neuron_range = np.bitwise_and(j <= stats_per_neuron[:, 0],
-                                          stats_per_neuron[:, 0] < i)
+                                          stats_per_neuron[:, 0] < j + i)
             res = stats_per_neuron[neuron_range, :].sum(axis=0)
-            grouped.append((f"[{j}:{i-1}]", Stats(*res[1:])))
-            j = i
+            grouped.append((f"[{j}:{j + i-1}]", Stats(res[1] / i, *res[2:])))
+            j += i
         res = stats_per_neuron[stats_per_neuron[:, 0] >= j].sum(axis=0)
         last_neuron = stats_per_neuron[:, 0].max()
-        grouped.append((f"[{j}:{last_neuron}]", Stats(*res[1:])))
+        grouped.append((f"[{j}:{last_neuron}]", Stats(res[1] / i, *res[2:])))
 
     res = stats_per_neuron.sum(axis=0)
 
-    return Stats(*res[1:]), grouped
+    return Stats(res[1] / i, *res[2:]), grouped
 
 
 def print_operations(stats: Stats) -> None:
+    print("out-synapses (per neuron) =", stats.out_synapses)
     print("leaks =", stats.leaks)
     print("integrations =", stats.integrations)
     print("fires =", stats.fires)
 
 
 def stats_div_by(stats: Stats, num: int) -> Stats:
-    return Stats(stats.leaks / num,
+    return Stats(stats.out_synapses,
+                 stats.leaks / num,
                  stats.integrations / num,
                  stats.fires / num)
 
@@ -111,19 +116,23 @@ if __name__ == '__main__':
             n = args.iterations
             csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
 
-            csvwriter.writerow(["name-unit", "leak", "integration", "fire"])
-            csvwriter.writerow(["total"] + list(total if n is None
+            csvwriter.writerow(["name-unit", "out-synapses", "leak", "integration", "fire"])
+            csvwriter.writerow(["total"] + list(total if n is None  # type: ignore
                                                 else stats_div_by(total, n)))
             for group_name, stats_i in grouped:
                 csvwriter.writerow([group_name] +
-                                   list(stats_i if n is None
+                                   list(stats_i if n is None  # type: ignore
                                         else stats_div_by(stats_i, n)))
 
 
 # To compute parameters of Fully Connected MNIST
 # python tools/general/total_stats.py --path build/output-all-stats \
-#   --iterations 10000 --groups '[784,1040,1104]' \
+#   --iterations 10000 --groups '[784,256,64]' \
 #   --csv fully-connected-mnist
 # For game of life:
 # python ../../tools/general/total_stats.py --path . --iterations=160 \
-#    --groups '[400,800]' --csv ../../gol-die-hard-80-iterations
+#    --groups '[400,400]' --csv ../../gol-die-hard-80-iterations
+# For LeNet:
+# python tools/general/total_stats.py --path build_novisualcode/lenet-1000 \
+#    --iterations 1000 --csv lenet-with-1000
+#    --groups '[784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,120,84]' # noqa

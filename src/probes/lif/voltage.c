@@ -36,6 +36,11 @@ void probes_lif_voltages_record(
     (void) lp;
     assert_valid_NeuronLP(neuronLP);
     assert(spikes != NULL);
+
+    if (msg == NULL) {
+        return;
+    }
+
     struct StorageInMessageLif * storage =
         (struct StorageInMessageLif *) msg->reserved_for_reverse;
 

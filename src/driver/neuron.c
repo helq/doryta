@@ -140,6 +140,12 @@ void driver_neuron_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     }
 
     assert_valid_NeuronLP(neuronLP);
+
+    if (settings.probe_events != NULL) {
+        for (size_t i = 0; settings.probe_events[i] != NULL; i++) {
+            settings.probe_events[i](neuronLP, NULL, lp);
+        }
+    }
 }
 
 
@@ -302,8 +308,7 @@ void driver_neuron_event_commit(
     (void) bit_field;
     if (settings.probe_events != NULL) {
         for (size_t i = 0; settings.probe_events[i] != NULL; i++) {
-            probe_event_f record_func = settings.probe_events[i];
-            record_func(neuronLP, msg, lp);
+            settings.probe_events[i](neuronLP, msg, lp);
         }
     }
 }

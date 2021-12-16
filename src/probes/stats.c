@@ -6,6 +6,7 @@
 
 struct NeuronLPStats {
     int32_t neuron;
+    int32_t synapses;
     int64_t leaks;
     int64_t integrations;
     int64_t fires;
@@ -22,9 +23,6 @@ void probes_stats_init(size_t neurons_in_pe_, char const output_path_[],
     output_path = output_path_;
     filename = filename_;
     stats = calloc(neurons_in_pe, sizeof(struct NeuronLPStats));
-    for (size_t i = 0; i < neurons_in_pe; i++) {
-        stats[i].neuron = -1;
-    }
 }
 
 
@@ -34,8 +32,10 @@ void probes_stats_record(
         struct tw_lp * lp) {
     assert(stats != NULL);
     // Setting up neuron ID
-    if (stats[lp->id].neuron == -1) {
+    if (msg == NULL) {
         stats[lp->id].neuron = neuronLP->doryta_id;
+        stats[lp->id].synapses = neuronLP->to_contact.num;
+        return;
     }
 
     switch (msg->type) {
@@ -70,8 +70,9 @@ static void stats_save(void) {
             if (stats[i].neuron == -1) {
                 continue;
             }
-            fprintf(fp, "%" PRIi32 "\t%" PRIi64 "\t%" PRIi64 "\t%" PRIi64 "\n",
+            fprintf(fp, "%" PRIi32 "\t%" PRIi32 "\t%" PRIi64 "\t%" PRIi64 "\t%" PRIi64 "\n",
                     stats[i].neuron,
+                    stats[i].synapses,
                     stats[i].leaks,
                     stats[i].integrations,
                     stats[i].fires);
