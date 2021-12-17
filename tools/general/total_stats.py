@@ -37,6 +37,7 @@ def aggregate_stats(
     assert(len(stats_per_neuron.shape) == 2)
     assert(stats_per_neuron.shape[1] == 5)
 
+    last_neuron = stats_per_neuron[:, 0].max()
     grouped: List[Tuple[str, Stats]] = []
     if groups:
         j = 0
@@ -44,15 +45,18 @@ def aggregate_stats(
             neuron_range = np.bitwise_and(j <= stats_per_neuron[:, 0],
                                           stats_per_neuron[:, 0] < j + i)
             res = stats_per_neuron[neuron_range, :].sum(axis=0)
-            grouped.append((f"[{j}:{j + i-1}]", Stats(res[1] / i, *res[2:])))
+            avg = np.average(stats_per_neuron[neuron_range, 1])  # type: ignore
+            grouped.append((f"[{j}:{j + i-1}]", Stats(avg, *res[2:])))
             j += i
-        res = stats_per_neuron[stats_per_neuron[:, 0] >= j].sum(axis=0)
-        last_neuron = stats_per_neuron[:, 0].max()
-        grouped.append((f"[{j}:{last_neuron}]", Stats(res[1] / i, *res[2:])))
+        neuron_range = stats_per_neuron[:, 0] >= j
+        res = stats_per_neuron[neuron_range].sum(axis=0)
+        avg = np.average(stats_per_neuron[neuron_range, 1])  # type: ignore
+        grouped.append((f"[{j}:{last_neuron}]", Stats(avg, *res[2:])))
 
+    avg = np.average(stats_per_neuron[:, 1])  # type: ignore
     res = stats_per_neuron.sum(axis=0)
 
-    return Stats(res[1] / i, *res[2:]), grouped
+    return Stats(avg, *res[2:]), grouped
 
 
 def print_operations(stats: Stats) -> None:
@@ -126,13 +130,16 @@ if __name__ == '__main__':
 
 
 # To compute parameters of Fully Connected MNIST
-# python tools/general/total_stats.py --path build/output-all-stats \
+# python tools/general/total_stats.py --path build/fully-all-stats \
 #   --iterations 10000 --groups '[784,256,64]' \
 #   --csv fully-connected-mnist
 # For game of life:
-# python ../../tools/general/total_stats.py --path . --iterations=160 \
-#    --groups '[400,400]' --csv ../../gol-die-hard-80-iterations
+# python ../../tools/general/total_stats.py --path gol-die-hard-80-steps --iterations=160 \
+#    --groups '[400,400]' --csv gol-die-hard-80-iterations
 # For LeNet:
-# python tools/general/total_stats.py --path build_novisualcode/lenet-1000 \
-#    --iterations 1000 --csv lenet-with-1000
+# python tools/general/total_stats.py --path build_novisualcode/lenet-filters=32,48-1000 \
+#    --iterations 1000 --csv lenet-filters=32,48-with-1000 \
 #    --groups '[784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,120,84]' # noqa
+# python tools/general/total_stats.py --path build/lenet-filters=6,16-all \
+#    --iterations 10000 --csv lenet-filters=32,48-all \
+#    --groups '[784,784,784,784,784,784,784,196,196,196,196,196,196,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,120,84]' # noqa

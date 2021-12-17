@@ -145,7 +145,7 @@ if __name__ == '__main__':
     path_real_tags = Path("data/models/whetstone/spikified-mnist/spikified-images-all.tags.bin")
 
     indices_test = 20
-    doryta_output = Path("build/output-20")
+    doryta_output = Path("build/fully-20")
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--path-to-keras-model', type=Path, default=path_to_keras_model,
@@ -159,6 +159,8 @@ if __name__ == '__main__':
                         help=f'Output folder of doryta execution (default: {doryta_output})')
     parser.add_argument('--model-type', default="fully",
                         help='Either "fully" or "lenet" (default: "fully")')
+    parser.add_argument('--shift', type=int, default=None,
+                        help='Doryta ID in which output spikes start')
     args = parser.parse_args()
 
     if args.model_type == "fully":
@@ -169,6 +171,9 @@ if __name__ == '__main__':
         which = ModelType.LeNet
     else:
         raise Exception(f'Model type "{args.model_type}" not recognized.')
+
+    if args.shift is not None:
+        shift = args.shift
 
     check_doryta_output_to_keras(args.path_to_keras_model, args.path_to_tags,
                                  slice(args.indices_in_output), args.outdir_doryta,
