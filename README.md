@@ -70,7 +70,7 @@ The output will be stored under the path `fully-20`. The script
 `tools/whetstone-mnist/check_doryta_inference.py` checks this output with the expected
 output from whetstone.
 
-## Game of Life example
+## Conway's Game of Life example
 
 A step of game of life can be simulated using two layers of convolutional neural networks.
 Luckily the translation into Spiking NNs is straightforward, and, even more, the output of

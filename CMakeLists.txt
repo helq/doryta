@@ -20,6 +20,8 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native \
 
 add_subdirectory(src)
 
+set(DORYTA_MODELS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/models")
+
 string(COMPARE NOTEQUAL "RELEASE" "${CMAKE_BUILD_TYPE}" not_release)
 if(BUILD_TESTING AND not_release)
     include(CTest)
