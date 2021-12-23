@@ -55,19 +55,25 @@ def get_real_classification(path: Path) -> Any:
 def prediction_using_whetstone(
     model_path: Path,
     indices: slice,
-    model_type: ModelType
+    model_type: ModelType,
+    dataset: str = 'mnist'
 ) -> Tuple[Any, Any]:
     import os
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # this suppresses Keras/tf warnings
+    from ws_models.common_mnist import load_data
     if model_type == ModelType.Fully:
         # ws_models is a symbolic link to the directory where the whetstone model is defined
-        from ws_models.ffsnn_mnist import load_models, load_data
+        from ws_models.ffsnn_mnist import load_models
     elif model_type == ModelType.LeNet:
-        from ws_models.lenet_mnist import load_models, load_data  # type: ignore
+        from ws_models.lenet_mnist import load_models  # type: ignore
 
     model, model_intermediate = load_models(model_path)
 
-    (x_train, y_train), (x_test, y_test) = load_data()
+    (x_train, y_train), (x_test, y_test) = load_data(dataset)
+    if model_type == ModelType.LeNet:
+        x_train = x_train.reshape((-1, 28, 28, 1))
+        x_test = x_test.reshape((-1, 28, 28, 1))
+
     imgs = (x_test[indices] > .5).astype(float)
 
     return model.predict(imgs).argmax(axis=1), model_intermediate.predict(imgs)
@@ -79,7 +85,8 @@ def check_doryta_output_to_keras(
     indices_test: slice,
     doryta_output: Path,
     shift: int,
-    which: ModelType
+    which: ModelType,
+    dataset: str
 ) -> None:
     print(f"Execution path being analyzed: `{doryta_output}`")
 
@@ -98,7 +105,7 @@ def check_doryta_output_to_keras(
 
     # ====== Using Keras/Whetstone to classify data ======
     whetstone_prediction, whetstone_prediction_inter = \
-        prediction_using_whetstone(path_to_keras_model, indices_test, which)
+        prediction_using_whetstone(path_to_keras_model, indices_test, which, dataset)
 
     # ====== Checking discrepancies between Keras and Doryta ======
     assert(whetstone_prediction.size == test_values.size)
@@ -161,6 +168,8 @@ if __name__ == '__main__':
                         help='Either "fully" or "lenet" (default: "fully")')
     parser.add_argument('--shift', type=int, default=None,
                         help='Doryta ID in which output spikes start')
+    parser.add_argument('--dataset', default='mnist',
+                        help='Either `mnist` or `fashion-mnist` (default: `mnist`)')
     args = parser.parse_args()
 
     if args.model_type == "fully":
@@ -177,4 +186,4 @@ if __name__ == '__main__':
 
     check_doryta_output_to_keras(args.path_to_keras_model, args.path_to_tags,
                                  slice(args.indices_in_output), args.outdir_doryta,
-                                 shift, which=which)
+                                 shift, which=which, dataset=args.dataset)
