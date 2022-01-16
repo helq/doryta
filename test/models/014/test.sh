@@ -4,7 +4,7 @@ nps=$1
 doryta="$2"
 modelsdir="$3"
 
-# Testing GoL
+# Testing LeNet
 exec mpirun -np $1 "$doryta" --synch=3 --spike-driven \
     --load-model="$modelsdir"/whetstone/lenet-mnist-filters=6,16.doryta.bin \
     --load-spikes="$modelsdir"/whetstone/spikified-mnist/spikified-images-20.bin \

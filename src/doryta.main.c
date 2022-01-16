@@ -53,6 +53,7 @@ static unsigned int is_stats_probe_active = 0;
 static unsigned int probe_firing_output_neurons_only = 0;
 static unsigned int save_final_state_neurons = 0;
 // Ints
+static unsigned int gol_width = 20;
 static unsigned int probe_firing_buffer_size = 5000;
 static unsigned int probe_voltage_buffer_size = 5000;
 // Strings
@@ -102,7 +103,9 @@ static tw_optdef const model_opts[] = {
             "Run a simple 5 (or 7) neurons network example (useful to check "
             "the binary is working properly)"),
     TWOPT_FLAG("gol-model", gol,
-            "Defines a 20x20 Game Of Life grid using Conv2D layers"),
+            "Defines a 20x20 (by default) Game Of Life grid using Conv2D layers"),
+    TWOPT_UINT("gol-model-size", gol_width,
+            "Width and Height of the GoL world grid"),
     TWOPT_GROUP("Doryta Spikes"),
     TWOPT_CHAR("load-spikes", spikes_path,
             "Load spikes from file"),
@@ -135,7 +138,8 @@ void fprint_doryta_params(FILE * fp) {
     fprintf(fp, "save-state            = %s\n",   save_final_state_neurons ? "ON" : "OFF");
     fprintf(fp, "load-model            = '%s'\n", model_path);
     fprintf(fp, "five-example          = %s\n",   run_five_neuron_example ? "ON" : "OFF");
-    fprintf(fp, "gol                   = %s\n",   gol ? "ON" : "OFF");
+    fprintf(fp, "gol-model             = %s\n",   gol ? "ON" : "OFF");
+    fprintf(fp, "gol-model-width       = %d\n",   gol_width);
     fprintf(fp, "load-spikes           = '%s'\n", spikes_path);
     fprintf(fp, "probe-firing          = %s\n",   is_firing_probe_active ? "ON" : "OFF");
     fprintf(fp, "probe-firing-output-only = %s\n", probe_firing_output_neurons_only ? "ON" : "OFF");
@@ -193,7 +197,7 @@ int main(int argc, char *argv[]) {
         params = model_five_neurons_init(&settings_neuron_lp);
     }
     if (gol) {
-        params = model_GoL_neurons_init(&settings_neuron_lp);
+        params = model_GoL_neurons_init(&settings_neuron_lp, gol_width);
     }
     if (model_path[0] != '\0') {
         params = model_load_neurons_init(&settings_neuron_lp, model_path);

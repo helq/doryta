@@ -5,7 +5,7 @@
 
 struct SettingsNeuronLP;
 
-struct ModelParams model_GoL_neurons_init(struct SettingsNeuronLP *);
+struct ModelParams model_GoL_neurons_init(struct SettingsNeuronLP *, unsigned int width_world);
 
 void model_GoL_neurons_deinit(void);
 
