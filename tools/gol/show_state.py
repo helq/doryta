@@ -49,11 +49,24 @@ if __name__ == '__main__':
                         help='Time between frames in milliseconds (default: 200)', default=200)
     parser.add_argument('--size', type=int,
                         help='Width/height of the grid (default: 20)', default=20)
+    parser.add_argument('--save-as', type=pathlib.Path,
+                        help='Path to save img or video (default: None)', default=None)
     args = parser.parse_args()
 
     imgs = extract_images_from_doryta_output(args.path, args.size)
+    # np.save(f"{args.save_as}.raw.npy", imgs)  # Saving binary
+    # imgs = np.load(f"{args.save_as}.raw.npy")
 
     print(f"There are {imgs.shape[0]} GoL steps stored in the file.")
+
+    # Awesome trick to save image(s) from: https://stackoverflow.com/a/19696517
+    dpi = 80  # Arbitrary value, allegedly it doesn't do anything
+    height: float
+    width: float
+    height, width = np.array(imgs[0].shape, dtype=float) / dpi  # type: ignore
+    fig = plt.figure(figsize=(width, height), dpi=dpi)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.axis('off')
 
     if args.iteration is not None:
         if not (0 <= args.iteration < imgs.shape[0]):
@@ -61,9 +74,14 @@ if __name__ == '__main__':
                   file=sys.stderr)
             exit(1)
 
-        imgplt = plt.imshow(imgs[args.iteration])
+        ax.imshow(imgs[args.iteration], cmap='Greys')
+
+        if args.save_as:
+            fig.savefig(f"{args.save_as}.png")
+        else:
+            plt.show()
     else:
-        imgplt = plt.imshow(imgs[0])
+        imgplt = ax.imshow(imgs[0], cmap='Greys')
         anim = animation.FuncAnimation(
             plt.gcf(),
             lambda i: imgplt.set_data(imgs[i]),
@@ -71,4 +89,12 @@ if __name__ == '__main__':
             repeat=False,
             interval=args.speed  # milliseconds
         )
-    plt.show()
+        if args.save_as:
+            # extra_args = ["-preset", "ultrafast", "-qp", "0"]
+            extra_args = ["-preset", "veryslow", "-qp", "0"]
+            anim.save(f"{args.save_as}.m4v",
+                      animation.FFMpegWriter(fps=1000/args.speed, codec='h264',
+                                             extra_args=extra_args))
+            # anim.save(f"{args.save_as}.gif", animation.ImageMagickWriter(fps=1000/args.speed))
+        else:
+            plt.show()
