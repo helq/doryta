@@ -49,7 +49,7 @@ static void initialize_LIF(struct LifNeuron * lif, int32_t doryta_id) {
 //    1, 0, 1,
 //    1, 1, 1]
 // Life -> Board
-//   [[1], [-1]]
+//   [1]
 // Kill -> Board
 //   [-1]
 static float initialize_weight_neurons(int32_t neuron_from, int32_t neuron_to) {

@@ -3,6 +3,7 @@
 #include "driver/neuron.h"
 #include "model-loaders/hardcoded/five_neurons.h"
 #include "model-loaders/hardcoded/gameoflife.h"
+#include "model-loaders/hardcoded/random_spikes.h"
 #include "model-loaders/regular_io/load_neurons.h"
 #include "model-loaders/regular_io/load_spikes.h"
 #include "probes/firing.h"
@@ -56,6 +57,9 @@ static unsigned int save_final_state_neurons = 0;
 static unsigned int gol_width = 20;
 static unsigned int probe_firing_buffer_size = 5000;
 static unsigned int probe_voltage_buffer_size = 5000;
+// Doubles
+static double random_spikes_prob = .2;
+static double random_spikes_time = -1;
 // Strings
 // Yes, caping the size to 512 is UNSAFE but the only way to do it!!
 static char output_dir[512] = "output";
@@ -97,8 +101,7 @@ static tw_optdef const model_opts[] = {
             "Saves the final state (after simulation) of neurons (in spike-driven mode "
             "the final state will be that in which the neuron was after it received the last spike)"),
     TWOPT_GROUP("Doryta Models"),
-    TWOPT_CHAR("load-model", model_path,
-            "Load model from file"),
+    TWOPT_CHAR("load-model", model_path, "Load model from file"),
     TWOPT_FLAG("five-example", run_five_neuron_example,
             "Run a simple 5 (or 7) neurons network example (useful to check "
             "the binary is working properly)"),
@@ -107,8 +110,14 @@ static tw_optdef const model_opts[] = {
     TWOPT_UINT("gol-model-size", gol_width,
             "Width and Height of the GoL world grid"),
     TWOPT_GROUP("Doryta Spikes"),
-    TWOPT_CHAR("load-spikes", spikes_path,
-            "Load spikes from file"),
+    TWOPT_CHAR("load-spikes", spikes_path, "Load spikes from file"),
+    TWOPT_DOUBLE("random-spikes-prob", random_spikes_prob,
+            "Sends ONE spike at time `random-spikes-time` with the given probability. "
+            "All neurons are taken into consideration. Each neuron has the same probability of "
+            "receiving a spike"),
+    TWOPT_DOUBLE("random-spikes-time", random_spikes_time,
+            "Time at which spikes should be sent with probability `random-spikes-prob`. "
+            "A negative time disables the random spike generation"),
     TWOPT_GROUP("Doryta Probes"),
     TWOPT_FLAG("probe-firing", is_firing_probe_active,
             "This probe records when a neuron fires/sends a spike"),
@@ -141,6 +150,8 @@ void fprint_doryta_params(FILE * fp) {
     fprintf(fp, "gol-model             = %s\n",   gol ? "ON" : "OFF");
     fprintf(fp, "gol-model-width       = %d\n",   gol_width);
     fprintf(fp, "load-spikes           = '%s'\n", spikes_path);
+    fprintf(fp, "random-spikes-prob    = %f\n",   random_spikes_prob);
+    fprintf(fp, "random-spikes-time    = %f\n",   random_spikes_time);
     fprintf(fp, "probe-firing          = %s\n",   is_firing_probe_active ? "ON" : "OFF");
     fprintf(fp, "probe-firing-output-only = %s\n", probe_firing_output_neurons_only ? "ON" : "OFF");
     fprintf(fp, "probe-firing-buffer   = %d\n",   probe_firing_buffer_size);
@@ -183,9 +194,18 @@ int main(int argc, char *argv[]) {
                     "Make sure that the directory is reachable and writable", filename);
         }
     }
+
     int const num_models_selected = gol + run_five_neuron_example + (model_path[0] != '\0');
     if (num_models_selected != 1) {
         tw_error(TW_LOC, "You have to specify ONE model to run");
+    }
+    if ((spikes_path[0] != '\0') && (random_spikes_time >= 0)) {
+        tw_error(TW_LOC, "Only one of the methods for initial spikes can be used "
+                "(either select a path to load spikes OR determine a time to generate "
+                "random spikes)");
+    }
+    if (random_spikes_prob < 0 && 1 < random_spikes_prob) {
+        tw_error(TW_LOC, "`random-spikes-prob` must be a number between 0.0 and 1.0");
     }
 
     // ------------- Initializing model, spikes and probes (partially) -------------
@@ -206,6 +226,9 @@ int main(int argc, char *argv[]) {
     // Loading Spikes
     if (spikes_path[0] != '\0') {
         model_load_spikes_init(&settings_neuron_lp, spikes_path);
+    }
+    if (random_spikes_time >= 0) {
+        model_random_spikes_init(&settings_neuron_lp, random_spikes_prob, random_spikes_time);
     }
 
     // Saving neuron states after execution
@@ -299,6 +322,9 @@ int main(int argc, char *argv[]) {
     // --- DeInit of Spikes ---
     if (spikes_path[0] != '\0') {
         model_load_spikes_deinit();
+    }
+    if (random_spikes_time >= 0) {
+        model_random_spikes_deinit();
     }
 
     // --- DeInit of Neurons ---

@@ -30,6 +30,7 @@ add_library(doryta_lib
   message.c
   model-loaders/hardcoded/five_neurons.c
   model-loaders/hardcoded/gameoflife.c
+  model-loaders/hardcoded/random_spikes.c
   model-loaders/regular_io/load_neurons.c
   model-loaders/regular_io/load_spikes.c
   neurons/lif.c
