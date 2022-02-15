@@ -57,6 +57,7 @@ static unsigned int save_final_state_neurons = 0;
 static unsigned int gol_width = 20;
 static unsigned int probe_firing_buffer_size = 5000;
 static unsigned int probe_voltage_buffer_size = 5000;
+static unsigned int random_spike_uplimit = 0;
 // Doubles
 static double random_spikes_prob = .2;
 static double random_spikes_time = -1;
@@ -118,6 +119,8 @@ static tw_optdef const model_opts[] = {
     TWOPT_DOUBLE("random-spikes-time", random_spikes_time,
             "Time at which spikes should be sent with probability `random-spikes-prob`. "
             "A negative time disables the random spike generation"),
+    TWOPT_UINT("random-spikes-uplimit", random_spike_uplimit,
+            "TO DOCUMENT!!!"),
     TWOPT_GROUP("Doryta Probes"),
     TWOPT_FLAG("probe-firing", is_firing_probe_active,
             "This probe records when a neuron fires/sends a spike"),
@@ -152,6 +155,7 @@ void fprint_doryta_params(FILE * fp) {
     fprintf(fp, "load-spikes           = '%s'\n", spikes_path);
     fprintf(fp, "random-spikes-prob    = %f\n",   random_spikes_prob);
     fprintf(fp, "random-spikes-time    = %f\n",   random_spikes_time);
+    fprintf(fp, "random-spikes-uplimit = %d\n",   random_spike_uplimit);
     fprintf(fp, "probe-firing          = %s\n",   is_firing_probe_active ? "ON" : "OFF");
     fprintf(fp, "probe-firing-output-only = %s\n", probe_firing_output_neurons_only ? "ON" : "OFF");
     fprintf(fp, "probe-firing-buffer   = %d\n",   probe_firing_buffer_size);
@@ -228,7 +232,7 @@ int main(int argc, char *argv[]) {
         model_load_spikes_init(&settings_neuron_lp, spikes_path);
     }
     if (random_spikes_time >= 0) {
-        model_random_spikes_init(&settings_neuron_lp, random_spikes_prob, random_spikes_time);
+        model_random_spikes_init(&settings_neuron_lp, random_spikes_prob, random_spikes_time, random_spike_uplimit);
     }
 
     // Saving neuron states after execution

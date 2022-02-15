@@ -12,12 +12,16 @@ static struct StorableSpike *naked_spikes = NULL;
 
 
 void model_random_spikes_init(struct SettingsNeuronLP * settings_neuron_lp,
-        double prob, double spikes_time) {
+        double prob, double spikes_time, unsigned int until) {
     int const num_neurons_pe = layout_master_total_neurons_pe();
     spikes = calloc(num_neurons_pe, sizeof(struct StorableSpike*));
     naked_spikes = calloc(2*num_neurons_pe, sizeof(struct StorableSpike));
     for (int32_t i = 0; i < num_neurons_pe; i++) {
         size_t const doryta_id = layout_master_local_id_to_doryta_id(i);
+
+        if (doryta_id >= until) {
+            continue;
+       }
 
         pcg32_random_t rng;
         uint32_t const initstate = doryta_id + 42u;
