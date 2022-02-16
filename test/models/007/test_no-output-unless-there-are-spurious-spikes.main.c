@@ -171,7 +171,8 @@ int main(int argc, char *argv[]) {
           .synapses = (struct Synapse[1]) {
               { .gid_to_send = 1,
                 .doryta_id_to_send = 1,
-                .weight = g_tw_mynode == 0 ? 1 : -1
+                .weight = g_tw_mynode == 0 ? 1 : -1,
+                .delay = 1
               },
           }
         },
@@ -201,7 +202,6 @@ int main(int argc, char *argv[]) {
       .synapses         = synapses,
       .spikes            = spikes,
       .beat              = 1.0/256,
-      .firing_delay      = 1,
       .neuron_leak       = (neuron_leak_f) dummy_leak,
       .neuron_leak_bigdt = (neuron_leak_big_f) big_dummy_leak,
       .neuron_integrate  = (neuron_integrate_f) dummy_integrate,

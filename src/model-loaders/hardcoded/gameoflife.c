@@ -90,7 +90,6 @@ model_GoL_neurons_init(
       //.synapses         = ...
       .spikes            = NULL,
       .beat              = .5,
-      .firing_delay      = 1,
       .neuron_leak       = (neuron_leak_f) neurons_lif_leak,
       .neuron_leak_bigdt = (neuron_leak_big_f) neurons_lif_big_leak,
       .neuron_integrate  = (neuron_integrate_f) neurons_lif_integrate,

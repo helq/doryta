@@ -388,6 +388,7 @@ static void master_init_neurons(neuron_init_f neuron_init, synapse_init_f synaps
                 } else {
                     synapses_neuron->weight = conn_parameter;
                 }
+                synapses_neuron->delay = 1;
 
                 /*
                  *float const weight = synapses_neuron->weight;

@@ -33,14 +33,12 @@
 
 struct SettingsNeuronLP settings = {0};
 bool settings_initialized = false;
-double firing_delay_double = -1;
 
 
 void driver_neuron_config(struct SettingsNeuronLP * settings_in) {
     assert_valid_SettingsPE(settings_in);
     settings = *settings_in;
     settings_initialized = true;
-    firing_delay_double = (settings.firing_delay - 0.5) * settings.beat;
 
     // TODO: This PE should communicate with all the others to see if the total
     // number of neurons is what is supposed to be (only to be run as an assert)
@@ -66,14 +64,14 @@ static inline void send_heartbeat(struct NeuronLP *neuronLP, struct tw_lp *lp) {
 
 
 static inline void send_spike(
-        struct NeuronLP *neuronLP, struct tw_lp *lp, double diff) {
+        struct NeuronLP *neuronLP, struct tw_lp *lp) {
     if (neuronLP->to_contact.num > 0) {
         for (int32_t i = 0; i < neuronLP->to_contact.num; i++) {
             struct Synapse const synap =
                 neuronLP->to_contact.synapses[i];
 
             struct tw_event * const event =
-                tw_event_new_user_prio(synap.gid_to_send, diff, lp, SPIKE_PRIORITY);
+                tw_event_new_user_prio(synap.gid_to_send, synap.delay_double, lp, SPIKE_PRIORITY);
             struct Message * const msg = tw_event_data(event);
             initialize_Message(msg, MESSAGE_TYPE_spike);
             msg->neuron_from = neuronLP->doryta_id;
@@ -126,6 +124,10 @@ void driver_neuron_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
     // Copying synapses weights from data passed in settings
     if (settings.synapses != NULL) {
         neuronLP->to_contact = settings.synapses[local_id];
+        for (int32_t i = 0; i < neuronLP->to_contact.num; i++) {
+            struct Synapse * synapse = &neuronLP->to_contact.synapses[i];
+            synapse->delay_double = (synapse->delay - 0.5) * settings.beat;
+        }
     }
 
     // Creating spike events
@@ -180,7 +182,7 @@ void driver_neuron_event_needy(
             settings.neuron_leak(neuronLP->neuron_struct, settings.beat);
             bool const fired = settings.neuron_fire(neuronLP->neuron_struct);
             if (fired) {
-                send_spike(neuronLP, lp, firing_delay_double);
+                send_spike(neuronLP, lp);
                 msg->fired = true;
             }
             send_heartbeat(neuronLP, lp);
@@ -240,7 +242,7 @@ void driver_neuron_event_spike_driven(
             settings.neuron_leak(neuronLP->neuron_struct, settings.beat);
             bool const fired = settings.neuron_fire(neuronLP->neuron_struct);
             if (fired) {
-                send_spike(neuronLP, lp, firing_delay_double);
+                send_spike(neuronLP, lp);
                 msg->fired = true;
             }
             neuronLP->last_heartbeat = tw_now(lp);

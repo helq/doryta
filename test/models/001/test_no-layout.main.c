@@ -73,11 +73,13 @@ int main(int argc, char *argv[]) {
           .synapses = (struct Synapse[2]) {
               { .gid_to_send = 0,
                 .doryta_id_to_send = 0,
-                .weight = .4
+                .weight = .4,
+                .delay = 1
               },
               { .gid_to_send = 1,
                 .doryta_id_to_send = 1,
-                .weight = 4
+                .weight = 4,
+                .delay = 1
               },
           }
         },
@@ -124,7 +126,6 @@ int main(int argc, char *argv[]) {
       .synapses         = synapses,
       .spikes           = spikes,
       .beat             = 1.0/256,
-      .firing_delay     = 1,
       .neuron_leak      = (neuron_leak_f) neurons_lif_leak,
       .neuron_integrate = (neuron_integrate_f) neurons_lif_integrate,
       .neuron_fire      = (neuron_fire_f) neurons_lif_fire,

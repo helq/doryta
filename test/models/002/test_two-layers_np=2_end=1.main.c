@@ -144,7 +144,6 @@ int main(int argc, char *argv[]) {
       //.synapses         = ...
       .spikes           = g_tw_mynode == 0 ? spikes : (g_tw_mynode == 1 ? spikes_pe1 : NULL),
       .beat             = 1.0/256,
-      .firing_delay     = 1,
       .neuron_leak      = (neuron_leak_f) neurons_lif_leak,
       .neuron_integrate = (neuron_integrate_f) neurons_lif_integrate,
       .neuron_fire      = (neuron_fire_f) neurons_lif_fire,

@@ -17,12 +17,27 @@ struct StorableSpike;
  * `gid_to_send` is not the neuron to which a spike is sent but rather the LP which will
  * receive the spike. A spike can be processed by a neuron or a SynapseLP (these are in
  * charge of sending spikes in small batches to not obstruct the system)
+ *
+ * Invariants:
+ * `doryta_id_to_send` must be non-negative
+ * `delay` or `delay_double` must be positive
  */
 struct Synapse {
     uint64_t gid_to_send;
     int32_t doryta_id_to_send;
     float weight;
+    union {
+        uint16_t delay;
+        double delay_double;
+    };
 };
+
+static inline void assert_valid_Synapse(struct Synapse * synapse) {
+#ifndef NDEBUG
+    assert(synapse->doryta_id_to_send >= 0);
+    assert(synapse->delay > 0 || synapse->delay_double > 0);
+#endif // NDEBUG
+}
 
 /**
  * Beware: make sure `num` is correctly initialized!
@@ -36,6 +51,7 @@ struct SynapseCollection {
  * Invariants:
  * - `neuron_struct` cannot be null
  * - `to_contact` has to be valid (`num` == 0 iff `synapses` == NULL)
+ * - if `to_contact` is not null, then all synapses must be correct
  * - `last_heartbeat` is never negative
  */
 struct NeuronLP {
@@ -72,6 +88,9 @@ static inline void assert_valid_NeuronLP(struct NeuronLP * neuronLP) {
     assert((neuronLP->to_contact.num == 0)
             == (neuronLP->to_contact.synapses == NULL));
     assert(neuronLP->last_heartbeat >= 0);
+    for (int32_t i = 0; i < neuronLP->to_contact.num; i++) {
+        assert_valid_Synapse(&neuronLP->to_contact.synapses[i]);
+    }
 #endif // NDEBUG
 }
 
@@ -103,9 +122,6 @@ typedef void (*neuron_state_op_f)  (void *, char[MESSAGE_SIZE_REVERSE]);
  * - `neuron_leak`, `neuron_integrate` and `neuron_fire` cannot be null
  * - all elements inside `neurons` must be non-null
  * - `beat` is a positive number
- * - `firing_delay` must be positive (spikes cannot be sent to the past,
- *   but can be issued almost instantly). The smallest delay possible is less
- *   than one `beat` but never instanteneous
  *
  * Possible future invariants:
  * - `beat` should be a power of 2
@@ -139,9 +155,6 @@ struct SettingsNeuronLP {
      * a power of 2. There is no warranty that the execution will be
      * deterministic if the heartbeat is not a power of 2. */
     double                     beat;
-    /** Indicates how many "heartbeat" timestepts to wait since a spike that
-     * triggers firing is received. The smallest value is 1. */
-    int                        firing_delay;
     /** Performs the _leak_ operation on a neuron with a delta step of `dt` (a
      * heartbeat lenght). */
     neuron_leak_f              neuron_leak;
@@ -197,9 +210,8 @@ static inline bool is_valid_SettingsPE(struct SettingsNeuronLP * settingsPE) {
     bool const beat_validity = settingsPE->beat > 0
                             && !isnan(settingsPE->beat)
                             && !isinf(settingsPE->beat);
-    bool const firing_delay_validity = 1 <= settingsPE->firing_delay;
     if (!(basic_non_nullness && correct_neuron_sizes
-          && beat_validity && firing_delay_validity)) {
+          && beat_validity)) {
         return false;
     }
     for (int i = 0; i < settingsPE->num_neurons_pe; i++) {
@@ -223,7 +235,6 @@ static inline void assert_valid_SettingsPE(struct SettingsNeuronLP * settingsPE)
     assert(settingsPE->beat > 0);
     assert(!isnan(settingsPE->beat));
     assert(!isinf(settingsPE->beat));
-    assert(1 <= settingsPE->firing_delay);
     for (int i = 0; i < settingsPE->num_neurons_pe; i++) {
         assert(settingsPE->neurons[i] != NULL);
     }

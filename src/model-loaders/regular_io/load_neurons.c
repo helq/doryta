@@ -88,7 +88,6 @@ static void load_v1(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
       //.synapses         = ...
       .spikes            = NULL,
       .beat              = beat,
-      .firing_delay      = 1,
       .neuron_leak       = (neuron_leak_f) neurons_lif_leak,
       .neuron_leak_bigdt = (neuron_leak_big_f) neurons_lif_big_leak,
       .neuron_integrate  = (neuron_integrate_f) neurons_lif_integrate,
@@ -144,6 +143,7 @@ static void load_v1(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
             struct Synapse * synapses_neuron = settings_neuron_lp->synapses[i].synapses;
             for (int32_t j = 0; j < num_synapses; j++) {
                 synapses_neuron[j].weight = synapses_raw[j];
+                synapses_neuron[j].delay = 1;
             }
         }
         i_in_file++;
@@ -253,7 +253,6 @@ static void load_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
       //.synapses         = ...
       .spikes            = NULL,
       .beat              = beat,
-      .firing_delay      = 1,
       .neuron_leak       = (neuron_leak_f) neurons_lif_leak,
       .neuron_leak_bigdt = (neuron_leak_big_f) neurons_lif_big_leak,
       .neuron_integrate  = (neuron_integrate_f) neurons_lif_integrate,
@@ -327,6 +326,7 @@ static void load_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
                 for (int32_t k = 0; k < num_synapses_group; k++) {
                     assert(synapses_neuron[j + k].doryta_id_to_send == to_start_fully + k);
                     synapses_neuron[j + k].weight = synapses_raw[k];
+                    synapses_neuron[j + k].delay = 1;
                 }
 
                 // we loaded a bunch of neurons at the same time!
@@ -362,6 +362,7 @@ static void load_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
                     int32_t const kernel_id = (int32_t) synapses_neuron[j].weight;
                     assert(kernel_id < conv_kernels[conv_ind].kernel_size);
                     synapses_neuron[j].weight = conv_kernels[conv_ind].kernel_data[kernel_id];
+                    synapses_neuron[j].delay = 1;
 
                     // this advances neurons one at the time, no need to alter j
                     neither = false;
