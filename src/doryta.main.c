@@ -120,7 +120,8 @@ static tw_optdef const model_opts[] = {
             "Time at which spikes should be sent with probability `random-spikes-prob`. "
             "A negative time disables the random spike generation"),
     TWOPT_UINT("random-spikes-uplimit", random_spike_uplimit,
-            "TO DOCUMENT!!!"),
+            "Upper-limit for the generation of random spikes. Any neuron with Doryta ID bigger "
+            "or equal than the limit will not get a random initial spike"),
     TWOPT_GROUP("Doryta Probes"),
     TWOPT_FLAG("probe-firing", is_firing_probe_active,
             "This probe records when a neuron fires/sends a spike"),
