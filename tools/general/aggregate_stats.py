@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
-from glob import glob
+import glob
 import fileinput
 import sys
 import pathlib
@@ -13,14 +13,15 @@ from typing import Any
 def collect_stats(
     path: pathlib.Path
 ) -> np.ndarray[Any, Any]:
-    stat_files = glob(str(path / "*-stats-gid=*.txt"))
+    escaped_path = pathlib.Path(glob.escape(path))  # type: ignore
+    stat_files = glob.glob(str(escaped_path / "*-stats-gid=*.txt"))
     if not stat_files:
         print(f"No valid stats files have been found in path {path}", file=sys.stderr)
         exit(1)
 
     stats_per_neuron = np.loadtxt(fileinput.input(stat_files), dtype=int)  # type: ignore
 
-    return stats_per_neuron  # type: ignore
+    return stats_per_neuron
 
 
 if __name__ == '__main__':
@@ -40,4 +41,4 @@ if __name__ == '__main__':
         aggregated[i, 2:] = stats_i.sum(axis=0)[2:]
         aggregated[i, :2] = stats_i[0, :2]
 
-    np.savetxt(str(args.save / 'aggregated-stats-gid=0.txt'), aggregated, fmt='%d')  # type: ignore
+    np.savetxt(str(args.save / 'aggregated-stats-gid=0.txt'), aggregated, fmt='%d')

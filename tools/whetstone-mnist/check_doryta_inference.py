@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Tuple
+from typing import Any, Tuple, List
 
-from glob import glob
+import glob
 from pathlib import Path
 import argparse
 import fileinput
@@ -10,6 +10,7 @@ import sys
 from enum import Enum
 
 import numpy as np
+from numpy.typing import NDArray
 
 
 class ModelType(Enum):
@@ -19,37 +20,40 @@ class ModelType(Enum):
 
 def extracting_inference_from_doryta_spikes(
     path: Path,
-    shift: int
+    shift: int,
+    total_output_neurons: int = 100
 ) -> Tuple[Any, Any, Any, Any]:
-    spikes_glob = glob(str(path / "*-spikes-gid=*.txt"))
+    escaped_path = Path(glob.escape(path))  # type: ignore
+    spikes_glob = glob.glob(str(escaped_path / "*-spikes-gid=*.txt"))
     if not spikes_glob:
         print(f"No output spikes found in the directory {path}", file=sys.stderr)
         exit(1)
 
-    spikes = np.loadtxt(fileinput.input(spikes_glob))  # type: ignore
+    spikes = np.loadtxt(fileinput.input(spikes_glob))
     spikes = spikes.reshape((-1, 2)).astype(int)
 
     num_imgs = spikes[:, 1].max() + 1
 
     # Finding output neurons (the last in the list)
-    output_neurons = np.flatnonzero(shift <= spikes[:, 0])
+    output_neurons = np.flatnonzero(
+        np.bitwise_and(shift <= spikes[:, 0], spikes[:, 0] < shift + total_output_neurons))
     spikes = spikes[output_neurons]
     spikes[:, 0] -= shift
 
     # Sorting is necessary to separate spikes by time stamps using the two lines below
     spikes = spikes[spikes[:, 1].argsort()]
     time_stamps, indices = np.unique(spikes[:, 1], return_index=True)  # type: ignore
-    spikes_per_class = np.array(np.split(spikes[:, 0], indices[1:]), dtype=object)  # type: ignore
+    spikes_per_img: List[NDArray[Any]] = np.split(spikes[:, 0], indices[1:])
+    inferenced: NDArray[Any] = np.zeros((num_imgs,), dtype=int)
 
-    find_max = np.vectorize(lambda x: np.argmax(np.bincount(x // 10)))
-    # inferenced = - np.ones((num_imgs,), dtype=int)
-    inferenced = np.zeros((num_imgs,), dtype=int)
-    inferenced[time_stamps] = find_max(spikes_per_class)
-    return inferenced, spikes, time_stamps, spikes_per_class
+    for stamp, spikes_i in zip(time_stamps, spikes_per_img):
+        inferenced[stamp] = np.argmax(np.bincount(spikes_i // 10))
+
+    return inferenced, spikes, time_stamps, spikes_per_img
 
 
 def get_real_classification(path: Path) -> Any:
-    return np.fromfile(path, dtype='b')  # type: ignore
+    return np.fromfile(path, dtype='b')
 
 
 def prediction_using_whetstone(
@@ -91,14 +95,15 @@ def check_doryta_output_to_keras(
     print(f"Execution path being analyzed: `{doryta_output}`")
 
     # ====== Extracting inference results from Doryta run ======
-    inferenced, spikes, time_stamps, spikes_per_class = \
+    inferenced, spikes, time_stamps, spikes_per_img = \
         extracting_inference_from_doryta_spikes(doryta_output, shift)
     print("Doryta inference labels:", inferenced)
 
     # ====== Finding the classification LABELS from dataset ======
     test_values = get_real_classification(path_real_tags)
     test_values = test_values[indices_test]
-    assert(inferenced.size == test_values.size)
+    assert inferenced.size == test_values.size, \
+        f"inferenced.size = {inferenced.size} and test_values.size = {test_values.size}"
     print("Total correctly inferenced (Doryta):",
           (inferenced == test_values).sum(),
           "/", inferenced.size)
@@ -110,6 +115,11 @@ def check_doryta_output_to_keras(
     # ====== Checking discrepancies between Keras and Doryta ======
     assert(whetstone_prediction.size == test_values.size)
     discrepancy = (inferenced != whetstone_prediction).sum()
+
+    # import code
+    # locls = globals().copy()
+    # locls.update(locals())
+    # code.InteractiveConsole(locals=locls).interact()
 
     if discrepancy:
         print("Discrepancy between Doryta and Whetstone:",
@@ -126,7 +136,7 @@ def check_doryta_output_to_keras(
 
     sz_imgs = indices_test.stop - (0 if indices_test.start is None else indices_test.start)
     spikes_as_ones = np.zeros((sz_imgs, 100))
-    spikes_as_ones.flat[spikes[:, 0] + spikes[:, 1] * 100] = 1  # type: ignore
+    spikes_as_ones.flat[spikes[:, 0] + spikes[:, 1] * 100] = 1
 
     pred_spikes_as_ones = whetstone_prediction_inter[-1]
 
@@ -143,8 +153,8 @@ def check_doryta_output_to_keras(
             np.bitwise_and(np.bitwise_not(keras_spikes), doryta_spikes))
         only_in_keras = np.argwhere(
             np.bitwise_and(np.bitwise_not(doryta_spikes), keras_spikes))
-        print("Total spikes only in doryta:", only_in_doryta.size)
-        print("Total spikes only in keras/whetstone:", only_in_keras.size)
+        print("Total spikes only in doryta:", len(only_in_doryta))
+        print("Total spikes only in keras/whetstone:", len(only_in_keras))
 
 
 if __name__ == '__main__':

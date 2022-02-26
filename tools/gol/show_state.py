@@ -19,12 +19,13 @@ from typing import Any
 def extract_images_from_doryta_output(
     path: pathlib.Path, width: int = 20
 ) -> np.ndarray[Any, Any]:
-    stat_files = glob(str(path / "*-spikes-gid=*.txt"))
+    escaped_path = pathlib.Path(glob.escape(path))  # type: ignore
+    stat_files = glob(str(escaped_path / "*-spikes-gid=*.txt"))
     if not stat_files:
         print(f"No valid spike files have been found in path {path}", file=sys.stderr)
         exit(1)
 
-    spikes = np.loadtxt(fileinput.input(stat_files))  # type: ignore
+    spikes = np.loadtxt(fileinput.input(stat_files))
     assert(len(spikes.shape) == 2)
     assert(spikes.shape[1] == 2)
 
@@ -63,7 +64,7 @@ if __name__ == '__main__':
     dpi = 80  # Arbitrary value, allegedly it doesn't do anything
     height: float
     width: float
-    height, width = np.array(imgs[0].shape, dtype=float) / dpi  # type: ignore
+    height, width = np.array(imgs[0].shape, dtype=float) / dpi
     fig = plt.figure(figsize=(width, height), dpi=dpi)
     ax = fig.add_axes([0, 0, 1, 1])
     ax.axis('off')
