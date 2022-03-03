@@ -6,7 +6,7 @@ average of the stats.
 from __future__ import annotations
 
 import numpy as np
-from glob import glob
+import glob
 import fileinput
 import argparse
 import sys
@@ -18,7 +18,7 @@ from typing import Tuple, List, Optional, NamedTuple
 
 
 class Stats(NamedTuple):
-    out_synapses: int
+    out_synapses: float
     leaks: float
     integrations: float
     fires: float
@@ -29,7 +29,7 @@ def aggregate_stats(
     groups: Optional[List[int]] = None
 ) -> Tuple[Stats, List[Tuple[str, Stats]]]:
     escaped_path = pathlib.Path(glob.escape(path))  # type: ignore
-    stat_files = glob(str(escaped_path / "*-stats-gid=*.txt"))
+    stat_files = glob.glob(str(escaped_path / "*-stats-gid=*.txt"))
     if not stat_files:
         print(f"No valid stats files have been found in path {path}", file=sys.stderr)
         exit(1)
@@ -46,15 +46,15 @@ def aggregate_stats(
             neuron_range = np.bitwise_and(j <= stats_per_neuron[:, 0],
                                           stats_per_neuron[:, 0] < j + i)
             res = stats_per_neuron[neuron_range, :].sum(axis=0)
-            avg = int(np.average(stats_per_neuron[neuron_range, 1]))
+            avg = np.average(stats_per_neuron[neuron_range, 1])
             grouped.append((f"[{j}:{j + i-1}]", Stats(avg, *res[2:])))
             j += i
         neuron_range = stats_per_neuron[:, 0] >= j
         res = stats_per_neuron[neuron_range].sum(axis=0)
-        avg = int(np.average(stats_per_neuron[neuron_range, 1]))
+        avg = np.average(stats_per_neuron[neuron_range, 1])
         grouped.append((f"[{j}:{last_neuron}]", Stats(avg, *res[2:])))
 
-    avg = int(np.average(stats_per_neuron[:, 1]))
+    avg = np.average(stats_per_neuron[:, 1])
     res = stats_per_neuron.sum(axis=0)
 
     return Stats(avg, *res[2:]), grouped
@@ -128,22 +128,3 @@ if __name__ == '__main__':
                 csvwriter.writerow([group_name] +
                                    list(stats_i if n is None  # type: ignore
                                         else stats_div_by(stats_i, n)))
-
-
-# To compute parameters of Fully Connected MNIST
-# python tools/general/total_stats.py --path build/fully-all-stats \
-#   --iterations 10000 --groups '[784,256,64]' \
-#   --csv fully-connected-mnist
-# For game of life:
-# python ../../tools/general/total_stats.py --path gol-die-hard-80-steps --iterations=160 \
-#    --groups '[400,400]' --csv gol-die-hard-80-iterations
-# For LeNet:
-# python tools/general/total_stats.py --path build_novisualcode/lenet-filters=32,48-1000 \
-#    --iterations 1000 --csv lenet-filters=32,48-with-1000 \
-#    --groups '[784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,120,84]' # noqa
-# python tools/general/total_stats.py --path build/lenet-filters=6,16-all \
-#    --iterations 10000 --csv lenet-filters=6,16-all \
-#    --groups '[784,784,784,784,784,784,784,196,196,196,196,196,196,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,120,84]' # noqa
-# python tools/general/total_stats.py --path build/lenet-fashion-large/ \
-#    --iterations 10000 --csv lenet-fashion-filters=32,48-with-10000 \
-#    --groups '[784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,784,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,196,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,120,84]'  # noqa

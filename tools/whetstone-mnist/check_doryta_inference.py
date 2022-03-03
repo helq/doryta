@@ -186,7 +186,8 @@ if __name__ == '__main__':
         shift = 28*28 + 256 + 64
         which = ModelType.Fully
     elif args.model_type == "lenet":
-        shift = 38448 - 100
+        # shift = 38448 - 100
+        shift = 8968 - 100
         which = ModelType.LeNet
     else:
         raise Exception(f'Model type "{args.model_type}" not recognized.')

@@ -1,4 +1,4 @@
-Copyright (c) 2021-2022, Rensselaer Polytechnic Institute
+Copyright (c) 2022, University of Illinois Urbana-Champaign
 All rights reserved.
 
 Redistribution and  use in  source and binary  forms, with  or without
