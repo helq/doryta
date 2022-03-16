@@ -14,7 +14,7 @@ def collect_stats(
     path: pathlib.Path
 ) -> np.ndarray[Any, Any]:
     escaped_path = pathlib.Path(glob.escape(path))  # type: ignore
-    stat_files = glob.glob(str(escaped_path / "*-stats-gid=*.txt"))
+    stat_files = glob.glob(str(escaped_path / "stats-gid=*.txt"))
     if not stat_files:
         print(f"No valid stats files have been found in path {path}", file=sys.stderr)
         exit(1)
@@ -41,4 +41,4 @@ if __name__ == '__main__':
         aggregated[i, 2:] = stats_i.sum(axis=0)[2:]
         aggregated[i, :2] = stats_i[0, :2]
 
-    np.savetxt(str(args.save / 'aggregated-stats-gid=0.txt'), aggregated, fmt='%d')
+    np.savetxt(str(args.save / 'aggregated' / 'stats-gid=0.txt'), aggregated, fmt='%d')

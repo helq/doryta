@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
     MPI_Barrier(MPI_COMM_ROSS);
     unsigned long const self = g_tw_mynode;
     // Finding name for file
-    char const fmt[] = "output/conv2d-strides-final-state-gid=%lu.txt";
+    char const fmt[] = "output/final-state-gid=%lu.txt";
     int const sz = snprintf(NULL, 0, fmt, self);
     char filename_path[sz + 1]; // `+ 1` for terminating null byte
     snprintf(filename_path, sizeof(filename_path), fmt, self);
@@ -195,8 +195,8 @@ int main(int argc, char *argv[]) {
     tw_lp_setup_types();
 
     // Allocating memory for probes
-    probes_firing_init(5000, "output", "conv2d-strides", false);
-    probes_lif_voltages_init(5000, "output", "conv2d-strides");
+    probes_firing_init(5000, "output", false);
+    probes_lif_voltages_init(5000, "output");
 
     // Running simulation
     tw_run();

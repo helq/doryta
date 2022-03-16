@@ -10,18 +10,15 @@ static size_t buffer_size;
 static size_t buffer_used = 0;
 static bool buffer_limit_hit = false;
 static char const * output_path = NULL;
-static char const * filename = NULL;
 static bool only_output_neurons;
 
 void probes_firing_init(
         size_t buffer_size_,
         char const output_path_[],
-        char const filename_[],
         bool only_output_neurons_
         ) {
     buffer_size = buffer_size_;
     output_path = output_path_;
-    filename = filename_;
     only_output_neurons = only_output_neurons_;
     firing_spikes = malloc(buffer_size * sizeof(struct StorableSpike));
 }
@@ -56,17 +53,16 @@ void probes_firing_record(
 
 static void firing_save(void) {
     assert(output_path != NULL);
-    assert(filename != NULL);
     unsigned long self = g_tw_mynode;
     if (buffer_limit_hit) {
         fprintf(stderr, "Only the first %ld `spikes` have been recorded\n", buffer_size);
     }
 
     // Finding name for file
-    char const fmt[] = "%s/%s-spikes-gid=%lu.txt";
-    int sz = snprintf(NULL, 0, fmt, output_path, filename, self);
+    char const fmt[] = "%s/spikes-gid=%lu.txt";
+    int sz = snprintf(NULL, 0, fmt, output_path, self);
     char filename_path[sz + 1]; // `+ 1` for terminating null byte
-    snprintf(filename_path, sizeof(filename_path), fmt, output_path, filename, self);
+    snprintf(filename_path, sizeof(filename_path), fmt, output_path, self);
 
     FILE * fp = fopen(filename_path, "w");
 

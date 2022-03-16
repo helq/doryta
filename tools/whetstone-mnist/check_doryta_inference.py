@@ -24,7 +24,7 @@ def extracting_inference_from_doryta_spikes(
     total_output_neurons: int = 100
 ) -> Tuple[Any, Any, Any, Any]:
     escaped_path = Path(glob.escape(path))  # type: ignore
-    spikes_glob = glob.glob(str(escaped_path / "*-spikes-gid=*.txt"))
+    spikes_glob = glob.glob(str(escaped_path / "spikes-gid=*.txt"))
     if not spikes_glob:
         print(f"No output spikes found in the directory {path}", file=sys.stderr)
         exit(1)

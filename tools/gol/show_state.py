@@ -20,7 +20,7 @@ def extract_images_from_doryta_output(
     path: pathlib.Path, width: int = 20
 ) -> np.ndarray[Any, Any]:
     escaped_path = pathlib.Path(glob.escape(path))  # type: ignore
-    stat_files = glob.glob(str(escaped_path / "*-spikes-gid=*.txt"))
+    stat_files = glob.glob(str(escaped_path / "spikes-gid=*.txt"))
     if not stat_files:
         print(f"No valid spike files have been found in path {path}", file=sys.stderr)
         exit(1)

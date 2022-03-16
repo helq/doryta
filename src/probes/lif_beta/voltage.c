@@ -60,7 +60,7 @@ static void voltages_save(void) {
     }
 
     // Finding name for file
-    char const fmt[] = "%s-voltage-gid=%lu.txt";
+    char const fmt[] = "%s/voltage-gid=%lu.txt";
     int sz = snprintf(NULL, 0, fmt, output_path, self);
     char filename[sz + 1]; // `+ 1` for terminating null byte
     snprintf(filename, sizeof(filename), fmt, output_path, self);

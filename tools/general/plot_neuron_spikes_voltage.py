@@ -11,8 +11,8 @@ from pathlib import Path
 
 def plot_neuron_on_time(path: Path, neuron_num: int) -> None:
     escaped_path = Path(glob.escape(path))  # type: ignore
-    voltage_files = glob.glob(str(escaped_path / "*-voltage-gid=*.txt"))
-    spikes_files = glob.glob(str(escaped_path / "*-spikes-gid=*.txt"))
+    voltage_files = glob.glob(str(escaped_path / "voltage-gid=*.txt"))
+    spikes_files = glob.glob(str(escaped_path / "spikes-gid=*.txt"))
     if not voltage_files:
         print(f"No valid voltage files have been found in path {path}", file=sys.stderr)
         exit(1)

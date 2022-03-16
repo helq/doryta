@@ -66,7 +66,6 @@ static double random_spikes_time = -1;
 static char output_dir[512] = "output";
 static char model_path[512] = {'\0'};
 static char spikes_path[512] = {'\0'};
-static char model_filename[512] = "model-name";
 
 
 /**
@@ -97,7 +96,6 @@ static tw_optdef const model_opts[] = {
             "allow 'positive' leak"),
     TWOPT_CHAR("output-dir", output_dir,
             "Path to store the output of a model execution"),
-    TWOPT_CHAR("model-filename", model_filename, "Model file name. To be used by all output"),
     TWOPT_FLAG("save-state", save_final_state_neurons,
             "Saves the final state (after simulation) of neurons (in spike-driven mode "
             "the final state will be that in which the neuron was after it received the last spike)"),
@@ -147,7 +145,6 @@ void fprint_doryta_params(FILE * fp) {
     fprintf(fp, "=============== Params passed to doryta ===============\n");
     fprintf(fp, "spike-driven          = %s\n",   is_spike_driven ? "ON" : "OFF");
     fprintf(fp, "output-dir            = '%s'\n", output_dir);
-    fprintf(fp, "model-filename        = '%s'\n", model_filename);
     fprintf(fp, "save-state            = %s\n",   save_final_state_neurons ? "ON" : "OFF");
     fprintf(fp, "load-model            = '%s'\n", model_path);
     fprintf(fp, "five-example          = %s\n",   run_five_neuron_example ? "ON" : "OFF");
@@ -240,10 +237,10 @@ int main(int argc, char *argv[]) {
     if (save_final_state_neurons) {
         unsigned long const self = g_tw_mynode;
         // Finding name for file
-        char const fmt[] = "%s/%s-final-state-gid=%lu.txt";
-        int const sz = snprintf(NULL, 0, fmt, output_dir, model_filename, self);
+        char const fmt[] = "%s/final-state-gid=%lu.txt";
+        int const sz = snprintf(NULL, 0, fmt, output_dir, self);
         char filename_path[sz + 1]; // `+ 1` for terminating null byte
-        snprintf(filename_path, sizeof(filename_path), fmt, output_dir, model_filename, self);
+        snprintf(filename_path, sizeof(filename_path), fmt, output_dir, self);
 
         // This is needed because there might be race condition when creating
         // the output folder (mkdir'd by PE=0)
@@ -292,14 +289,14 @@ int main(int argc, char *argv[]) {
 
     // --------------- Allocating memory for probes ---------------
     if (is_firing_probe_active) {
-        probes_firing_init(probe_firing_buffer_size, output_dir, model_filename,
+        probes_firing_init(probe_firing_buffer_size, output_dir,
                 probe_firing_output_neurons_only);
     }
     if (is_voltage_probe_active) {
-        probes_lif_voltages_init(probe_voltage_buffer_size, output_dir, model_filename);
+        probes_lif_voltages_init(probe_voltage_buffer_size, output_dir);
     }
     if (is_stats_probe_active) {
-        probes_stats_init(settings_neuron_lp.num_neurons_pe, output_dir, model_filename);
+        probes_stats_init(settings_neuron_lp.num_neurons_pe, output_dir);
     }
 
     // -------------------- Running simulation --------------------

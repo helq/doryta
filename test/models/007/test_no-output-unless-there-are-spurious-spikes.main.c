@@ -228,9 +228,9 @@ int main(int argc, char *argv[]) {
     tw_lp_setup_types();
 
     // Allocating memory for probes
-    char const * const output_file =
+    char const * const output_path =
         is_spike_driven ? "spike-driven-test" : "needy-test";
-    probes_firing_init(5000, "output", output_file, true);
+    probes_firing_init(5000, output_path, true);
 
     // Running simulation
     tw_run();

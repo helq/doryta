@@ -29,7 +29,7 @@ def aggregate_stats(
     groups: Optional[List[int]] = None
 ) -> Tuple[Stats, List[Tuple[str, Stats]]]:
     escaped_path = pathlib.Path(glob.escape(path))  # type: ignore
-    stat_files = glob.glob(str(escaped_path / "*-stats-gid=*.txt"))
+    stat_files = glob.glob(str(escaped_path / "stats-gid=*.txt"))
     if not stat_files:
         print(f"No valid stats files have been found in path {path}", file=sys.stderr)
         exit(1)

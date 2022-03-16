@@ -15,8 +15,7 @@ struct tw_lp;
  * last layer of a NN).
  */
 void probes_firing_init(
-        size_t buffer_size, char const output_path[],
-        char const filename[], bool only_output_neurons);
+        size_t buffer_size, char const output_path[], bool only_output_neurons);
 
 void probes_firing_record(struct NeuronLP *, struct Message *, struct tw_lp *);
 
