@@ -51,17 +51,17 @@ of neurons and their spikes.
 
 ## MNIST example
 
-A simple feed-forward network model for MNIST can be found under `data/models/whetstone`.
-Whetstone is a library for training SNNs using the Keras backend. The code to generate the
-model can be found under `data/models/whetstone/code`. The testing MNIST dataset has been
-spikified in order to be readable for Doryta (which only understands spikes as an input).
+Multiple network models for MNIST can be found under `data/models/whetstone`. Whetstone is
+a library for training SNNs using the Keras backend. The code to generate the model can be
+found under `data/models/whetstone/code`. The testing MNIST dataset has been spikified in
+order to be readable for Doryta (which only understands spikes as an input).
 
 To inference the class of the first 20 images in the dataset, run the following command:
 
 ```bash
 mpirun -np 2 src/doryta --spike-driven --synch=3 --extramem=1000000 \
-    --load-model=../data/models/whetstone/simple-mnist.doryta.bin \
-    --load-spikes=../data/models/whetstone/spikified-mnist/spikified-images-all.bin \
+    --load-model=../data/models/mnist/snn-models/ffsnn-mnist.doryta.bin \
+    --load-spikes=../data/models/mnist/spikes/spikified-mnist/spikified-images-all.bin \
     --output-dir=fully-20 \
     --probe-firing --probe-firing-output-only --probe-firing-buffer=100000 --end=19.5
 ```
@@ -76,12 +76,12 @@ A step of game of life can be simulated using two layers of convolutional neural
 Luckily the translation into Spiking NNs is straightforward, and, even more, the output of
 the network can be fed back to the input layer, which means that doryta can simulate the
 game of life out of the box. To run a built-in example of GoL, run the following
-instruction:
+command:
 
 ```bash
-src/doryta --gol-model --load-spikes=../data/models/gol/gol-blinker.bin --probe-firing --spike-driven --end=10.5
+src/doryta --gol-model --load-spikes=../data/models/gol-spikes/20x20/gol-blinker.bin --probe-firing --spike-driven --end=10.5
 # or
-src/doryta --gol-model --load-spikes=../data/models/gol/gol-glider.bin --probe-firing --spike-driven --end=40.5
+src/doryta --gol-model --load-spikes=../data/models/gol-spikes/20x20/gol-glider.bin --probe-firing --spike-driven --end=40.5
 ```
 
 To visualize the simulation use the script `tools/gol/show_state.py`.

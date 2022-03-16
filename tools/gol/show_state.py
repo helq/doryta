@@ -5,7 +5,7 @@ Plots GoL from Doryta output file
 from __future__ import annotations
 
 import numpy as np
-from glob import glob
+import glob
 import fileinput
 import argparse
 import sys
@@ -20,7 +20,7 @@ def extract_images_from_doryta_output(
     path: pathlib.Path, width: int = 20
 ) -> np.ndarray[Any, Any]:
     escaped_path = pathlib.Path(glob.escape(path))  # type: ignore
-    stat_files = glob(str(escaped_path / "*-spikes-gid=*.txt"))
+    stat_files = glob.glob(str(escaped_path / "*-spikes-gid=*.txt"))
     if not stat_files:
         print(f"No valid spike files have been found in path {path}", file=sys.stderr)
         exit(1)
@@ -62,9 +62,13 @@ if __name__ == '__main__':
 
     # Awesome trick to save image(s) from: https://stackoverflow.com/a/19696517
     dpi = 80  # Arbitrary value, allegedly it doesn't do anything
-    height: float
-    width: float
-    height, width = np.array(imgs[0].shape, dtype=float) / dpi
+    height, width = imgs[0].shape
+    zoom = 1.0
+    width_in_pixels = max(height*16/9, width)
+    # 650 is the width for the smallest grid
+    if width_in_pixels < 650:
+        zoom = 650 / width_in_pixels
+    height, width = height * zoom / dpi, width * zoom / dpi
     fig = plt.figure(figsize=(width, height), dpi=dpi)
     ax = fig.add_axes([0, 0, 1, 1])
     ax.axis('off')
