@@ -170,7 +170,9 @@ int main(int argc, char *argv[]) {
         { .num = 1,  // Neuron 0
           .synapses = (struct Synapse[1]) {
               { .gid_to_send = 1,
+#ifndef NDEBUG
                 .doryta_id_to_send = 1,
+#endif
                 .weight = g_tw_mynode == 0 ? 1 : -1,
                 .delay = 1
               },

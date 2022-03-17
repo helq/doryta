@@ -25,7 +25,7 @@ int32_t layout_master_neurons(
  * connection/synapse is created, inclusive. `to_start` and `to_end` identify
  * the neuron range to connect.
  */
-void layout_master_synapses_fully(int32_t from_start, int32_t from_end,
+void layout_master_synapses_all2all(int32_t from_start, int32_t from_end,
         int32_t to_start, int32_t to_end);
 
 

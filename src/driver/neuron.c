@@ -74,8 +74,10 @@ static inline void send_spike(
                 tw_event_new_user_prio(synap.gid_to_send, synap.delay_double, lp, SPIKE_PRIORITY);
             struct Message * const msg = tw_event_data(event);
             initialize_Message(msg, MESSAGE_TYPE_spike);
+#ifndef NDEBUG
             msg->neuron_from = neuronLP->doryta_id;
             msg->neuron_to = synap.doryta_id_to_send;
+#endif
             msg->neuron_from_gid = lp->gid;
             msg->neuron_to_gid = synap.gid_to_send;
             msg->spike_current = synap.weight;
@@ -99,8 +101,10 @@ static inline void send_spike_from_StorableSpike(
         = tw_event_new_user_prio(self, spike->time, lp, SPIKE_PRIORITY);
     struct Message * const msg = tw_event_data(event);
     initialize_Message(msg, MESSAGE_TYPE_spike);
+#ifndef NDEBUG
     msg->neuron_from = neuronLP->doryta_id;
     msg->neuron_to = neuronLP->doryta_id;
+#endif
     msg->neuron_from_gid = lp->id;
     msg->neuron_to_gid = self;
     msg->spike_current = spike->intensity;
@@ -335,9 +339,14 @@ void driver_neuron_final(struct NeuronLP *neuronLP, struct tw_lp *lp) {
         if (neuronLP->to_contact.num > 0) {
             fprintf(fp, "LP (neuron): %" PRIi32 ". Synapses:", self);
             for (int i = 0; i < neuronLP->to_contact.num; i++) {
+#ifdef NDEBUG
+                fprintf(fp, " %f",
+                        neuronLP->to_contact.synapses[i].weight);
+#else
                 fprintf(fp, " %" PRIi32 ": %f",
                         neuronLP->to_contact.synapses[i].doryta_id_to_send,
                         neuronLP->to_contact.synapses[i].weight);
+#endif
                 if (i < neuronLP->to_contact.num - 1) {
                     fprintf(fp, ",");
                 }

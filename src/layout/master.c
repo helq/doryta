@@ -21,7 +21,7 @@ struct NeuronGroup {
 };
 
 enum CONNECTION_TYPE {
-    CONNECTION_TYPE_fully,
+    CONNECTION_TYPE_all2all,
     CONNECTION_TYPE_conv2,
 };
 
@@ -247,7 +247,7 @@ struct SynapseIterator {
  * `in_group_is_there_next` must return false.
  */
 static inline bool in_group_next_id(struct SynapseIterator * iter) {
-    if (synapse_groups[iter->n_group].conn_type == CONNECTION_TYPE_fully) {
+    if (synapse_groups[iter->n_group].conn_type == CONNECTION_TYPE_all2all) {
         iter->to_id++;
         return iter->to_id <= synapse_groups[iter->n_group].to_end;
     } else { // conn_type == CONNECTION_TYPE_conv2
@@ -292,7 +292,7 @@ static inline bool in_group_next_id(struct SynapseIterator * iter) {
  * set up initial DorytaID in to_id.
  */
 static inline bool in_group_first_id(struct SynapseIterator * iter) {
-    if (synapse_groups[iter->n_group].conn_type == CONNECTION_TYPE_fully) {
+    if (synapse_groups[iter->n_group].conn_type == CONNECTION_TYPE_all2all) {
         iter->to_id = synapse_groups[iter->n_group].to_start;
         return true;
     } else { // conn_type == CONNECTION_TYPE_conv2
@@ -370,7 +370,9 @@ static void master_init_neurons(neuron_init_f neuron_init, synapse_init_f synaps
             assert(neuron_counter == local_id_offset + j);
 
             // Initializing synapses
-            struct SynapseIterator iter;
+            // Note: the iterator is initialized with zeroes because the compiler cries
+            //       if we don't do it
+            struct SynapseIterator iter = {0};
             synapse_iter_init(&iter, doryta_id);
             int32_t num_synapses_neuron = 0;
             struct Synapse * synapses_neuron = &naked_synapses[synapse_shift];
@@ -380,7 +382,9 @@ static void master_init_neurons(neuron_init_f neuron_init, synapse_init_f synaps
                 assert(to_doryta_id >= 0);
                 assert(to_doryta_id < total_neurons_globally);
 
+#ifndef NDEBUG
                 synapses_neuron->doryta_id_to_send = to_doryta_id;
+#endif
                 synapses_neuron->gid_to_send =
                     layout_master_doryta_id_to_gid(to_doryta_id);
                 if (synapse_init != NULL) {
@@ -516,12 +520,12 @@ static inline void check_from_to_inputs(int32_t from_start, int32_t from_end,
 }
 
 
-void layout_master_synapses_fully(int32_t from_start, int32_t from_end,
+void layout_master_synapses_all2all(int32_t from_start, int32_t from_end,
         int32_t to_start, int32_t to_end) {
     check_from_to_inputs(from_start, from_end, to_start, to_end);
 
     synapse_groups[num_synap_groups] = (struct SynapseGroup) {
-        .conn_type  = CONNECTION_TYPE_fully,
+        .conn_type  = CONNECTION_TYPE_all2all,
         .from_start = from_start,
         .from_end   = from_end,
         .to_start   = to_start,

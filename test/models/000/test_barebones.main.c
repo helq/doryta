@@ -91,12 +91,16 @@ int main(int argc, char *argv[]) {
         { .num = 2,  // Neuron 0
           .synapses = (struct Synapse[2]) {
               { .gid_to_send = 0,
+#ifndef NDEBUG
                 .doryta_id_to_send = 0,
+#endif
                 .weight = 1,
                 .delay = 1
               },
               { .gid_to_send = 1,
+#ifndef NDEBUG
                 .doryta_id_to_send = 1,
+#endif
                 .weight = 1,
                 .delay = 1
               },

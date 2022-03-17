@@ -141,7 +141,7 @@ static tw_optdef const model_opts[] = {
 
 
 void fprint_doryta_params(FILE * fp) {
-    fprintf(fp, "doryta version: " DORYTA_VERSION "-" GIT_VERSION "\n");
+    fprintf(fp, "Doryta version: " DORYTA_VERSION "-" GIT_VERSION "\n");
     fprintf(fp, "=============== Params passed to Doryta ===============\n");
     fprintf(fp, "spike-driven          = %s\n",   is_spike_driven ? "ON" : "OFF");
     fprintf(fp, "output-dir            = '%s'\n", output_dir);
@@ -167,6 +167,7 @@ void fprint_settings_params(FILE * fp, struct SettingsNeuronLP * settings_neuron
     fprintf(fp, "============== Doryta Internal Resources ==============\n");
     fprintf(fp, "Total Neurons         = %d\n", settings_neuron_lp->num_neurons);
     //fprintf(fp, "Total Synapses        = %d\n", );
+    //fprintf(fp, "Total Loaded Spikes   = %d\n", );
     fprintf(fp, "=======================================================\n");
 }
 

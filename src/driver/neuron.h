@@ -24,7 +24,9 @@ struct StorableSpike;
  */
 struct Synapse {
     uint64_t gid_to_send;
+#ifndef NDEBUG
     int32_t doryta_id_to_send;
+#endif
     float weight;
     union {
         uint16_t delay;

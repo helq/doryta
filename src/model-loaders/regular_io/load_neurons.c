@@ -77,7 +77,7 @@ static void load_v1(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
         int32_t const from_end   = load_int32(fp);
         int32_t const to_start   = load_int32(fp);
         int32_t const to_end     = load_int32(fp);
-        layout_master_synapses_fully(from_start, from_end, to_start, to_end);
+        layout_master_synapses_all2all(from_start, from_end, to_start, to_end);
     }
 
     // Setting the driver configuration
@@ -202,7 +202,7 @@ static void load_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
         int32_t const to_end     = load_int32(fp);
 
         if (conn_type == 0x1) {
-            layout_master_synapses_fully(from_start, from_end, to_start, to_end);
+            layout_master_synapses_all2all(from_start, from_end, to_start, to_end);
         } else if (conn_type == 0x2) {
             /*int32_t const input_height =*/ load_int32(fp);
             int32_t const input_width     = load_int32(fp);
@@ -303,8 +303,10 @@ static void load_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
         uint16_t group_ind = 0;
         uint16_t conv_ind = 0;
 
-        int32_t to_start_fully;
-        int32_t to_end_fully;
+        // Arbitrary initial value of 1 and 0 to keep compiler happy. The actual values are
+        // read from file
+        int32_t to_start_fully = 1;
+        int32_t to_end_fully = 0;
         if (group_ind < num_groups_fully) {
             to_start_fully = load_int32(fp);
             to_end_fully = load_int32(fp);
@@ -314,7 +316,13 @@ static void load_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
         struct Synapse * synapses_neuron = settings_neuron_lp->synapses[i].synapses;
         for (int32_t j = 0; j < num_synapses; j++) {
             bool neither = true; // wasn't the neuron loaded by neither fully or conv parameters?
+#ifdef NDEBUG
+            int32_t const to_id = layout_master_gid_to_doryta_id(synapses_neuron[j].gid_to_send);
+#else
+            assert(layout_master_gid_to_doryta_id(synapses_neuron[j].gid_to_send)
+                    == synapses_neuron[j].doryta_id_to_send);
             int32_t const to_id = synapses_neuron[j].doryta_id_to_send;
+#endif
 
             // check if id corresponds to to_start in current fully layer
             if (group_ind < num_groups_fully && to_id == to_start_fully) {
