@@ -1,1 +1,1 @@
-#define DORYTA_VERSION "0.2.0"
+#define DORYTA_VERSION "0.3.0"

@@ -41,4 +41,4 @@ if __name__ == '__main__':
         aggregated[i, 2:] = stats_i.sum(axis=0)[2:]
         aggregated[i, :2] = stats_i[0, :2]
 
-    np.savetxt(str(args.save / 'aggregated' / 'stats-gid=0.txt'), aggregated, fmt='%d')
+    np.savetxt(str(args.save / 'stats-gid=0.txt'), aggregated, fmt='%d')
