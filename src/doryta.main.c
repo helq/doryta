@@ -142,7 +142,7 @@ static tw_optdef const model_opts[] = {
 
 void fprint_doryta_params(FILE * fp) {
     fprintf(fp, "doryta version: " DORYTA_VERSION "-" GIT_VERSION "\n");
-    fprintf(fp, "=============== Params passed to doryta ===============\n");
+    fprintf(fp, "=============== Params passed to Doryta ===============\n");
     fprintf(fp, "spike-driven          = %s\n",   is_spike_driven ? "ON" : "OFF");
     fprintf(fp, "output-dir            = '%s'\n", output_dir);
     fprintf(fp, "save-state            = %s\n",   save_final_state_neurons ? "ON" : "OFF");
@@ -160,6 +160,13 @@ void fprint_doryta_params(FILE * fp) {
     fprintf(fp, "probe-voltage         = %s\n",   is_voltage_probe_active ? "ON" : "OFF");
     fprintf(fp, "probe-voltage-buffer  = %d\n",   probe_voltage_buffer_size);
     fprintf(fp, "probe-stats           = %s\n",   is_stats_probe_active ? "ON" : "OFF");
+}
+
+
+void fprint_settings_params(FILE * fp, struct SettingsNeuronLP * settings_neuron_lp) {
+    fprintf(fp, "============== Doryta Internal Resources ==============\n");
+    fprintf(fp, "Total Neurons         = %d\n", settings_neuron_lp->num_neurons);
+    //fprintf(fp, "Total Synapses        = %d\n", );
     fprintf(fp, "=======================================================\n");
 }
 
@@ -168,10 +175,13 @@ int main(int argc, char *argv[]) {
     tw_opt_add(model_opts);
     tw_init(&argc, &argv);
 
+    int sz = snprintf(NULL, 0, "%s/doryta-params.txt", output_dir);
+    char filename[sz + 1];
+    snprintf(filename, sizeof(filename), "%s/doryta-params.txt", output_dir);
+
     if (g_tw_mynode == 0) {
         printf("\n");
         fprint_doryta_params(stdout);
-        printf("\n");
     }
 
     // ------ Checking arguments correctness, save params and misc checks ------
@@ -183,10 +193,6 @@ int main(int argc, char *argv[]) {
         check_folder(output_dir);
 
         // Saving params to file
-        int sz = snprintf(NULL, 0, "%s/doryta-params.txt", output_dir);
-        char filename[sz + 1];
-        snprintf(filename, sizeof(filename), "%s/doryta-params.txt", output_dir);
-
         FILE * fp = fopen(filename, "w");
         if (fp != NULL) {
             fprint_doryta_params(fp);
@@ -238,8 +244,8 @@ int main(int argc, char *argv[]) {
         unsigned long const self = g_tw_mynode;
         // Finding name for file
         char const fmt[] = "%s/final-state-gid=%lu.txt";
-        int const sz = snprintf(NULL, 0, fmt, output_dir, self);
-        char filename_path[sz + 1]; // `+ 1` for terminating null byte
+        int const sz_ = snprintf(NULL, 0, fmt, output_dir, self);
+        char filename_path[sz_ + 1]; // `+ 1` for terminating null byte
         snprintf(filename_path, sizeof(filename_path), fmt, output_dir, self);
 
         // This is needed because there might be race condition when creating
@@ -286,6 +292,22 @@ int main(int argc, char *argv[]) {
     // set the global variable and initialize each LP's type
     g_tw_lp_types = doryta_lps;
     tw_lp_setup_types();
+
+    // ------------------- Printing parameters --------------------
+    if (g_tw_mynode == 0) {
+        fprint_settings_params(stdout, &settings_neuron_lp);
+        printf("\n");
+
+        // Saving params to file
+        FILE * fp = fopen(filename, "a");
+        if (fp != NULL) {
+            fprint_settings_params(fp, &settings_neuron_lp);
+            fclose(fp);
+        } else {
+            tw_error(TW_LOC, "Cannot save doryta configuration to file `%s`. "
+                    "Make sure that the directory is reachable and writable", filename);
+        }
+    }
 
     // --------------- Allocating memory for probes ---------------
     if (is_firing_probe_active) {
