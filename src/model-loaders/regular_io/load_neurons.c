@@ -4,9 +4,12 @@
 #include "../../neurons/lif.h"
 #include "../../utils/io.h"
 
+static bool is_initial_current_nonzero = false;
+static bool is_reset_higher_than_treshold = false;
 
 static void load_v1(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
 static void load_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
+
 
 struct ModelParams
 model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
@@ -30,6 +33,16 @@ model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
     }
     fclose(fp);
 
+    if (is_initial_current_nonzero) {
+        tw_warning(TW_LOC, "Some neurons start the simulation with current != 0, which "
+                "does not properly work with spike-driven mode");
+    }
+    if (is_reset_higher_than_treshold) {
+        tw_warning(TW_LOC, "Some neurons' threshold are lower than their reset potential. "
+                "This leads a neuron to spike on every time step and will not properly "
+                "behave on spike-driven mode.");
+    }
+
     return (struct ModelParams) {
         .lps_in_pe = layout_master_total_lps_pe(),
         .gid_to_pe = layout_master_gid_to_pe,
@@ -47,6 +60,14 @@ static void load_neuron_params(struct LifNeuron * neuron, FILE * fp) {
         .tau_m             = load_float(fp),
         .resistance        = load_float(fp),
     };
+
+    // checking if conditions for Spike-driven mode are fulfilled
+    if (!is_reset_higher_than_treshold && neuron->threshold < neuron->reset_potential) {
+        is_reset_higher_than_treshold = true;
+    }
+    if (!is_initial_current_nonzero && neuron->current != 0) {
+        is_initial_current_nonzero = true;
+    }
 }
 
 
