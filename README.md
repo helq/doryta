@@ -79,9 +79,9 @@ game of life out of the box. To run a built-in example of GoL, run the following
 command:
 
 ```bash
-src/doryta --gol-model --load-spikes=../data/models/gol-spikes/20x20/gol-blinker.bin --probe-firing --spike-driven --end=10.5
+src/doryta --gol-model --load-spikes=../data/models/gol/spikes/20x20/gol-blinker.bin --probe-firing --spike-driven --end=10.5
 # or
-src/doryta --gol-model --load-spikes=../data/models/gol-spikes/20x20/gol-glider.bin --probe-firing --spike-driven --end=40.5
+src/doryta --gol-model --load-spikes=../data/models/gol/spikes/20x20/gol-glider.bin --probe-firing --spike-driven --end=40.5
 ```
 
 To visualize the simulation use the script `tools/gol/show_state.py`.

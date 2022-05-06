@@ -64,7 +64,7 @@ def prediction_using_whetstone(
 ) -> Tuple[Any, Any]:
     import os
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # this suppresses Keras/tf warnings
-    from ws_models.common_mnist import load_data
+    from ws_models.utils.common_mnist import load_data
     if model_type == ModelType.Fully:
         # ws_models is a symbolic link to the directory where the whetstone model is defined
         from ws_models.ffsnn_mnist import load_models
@@ -158,8 +158,8 @@ def check_doryta_output_to_keras(
 
 
 if __name__ == '__main__':
-    path_to_keras_model = Path("data/models/whetstone/keras-simple-mnist")
-    path_real_tags = Path("data/models/whetstone/spikified-mnist/spikified-images-all.tags.bin")
+    path_to_keras_model = Path("data/models/mnist/raw_keras_models/ffsnn-mnist")
+    path_real_tags = Path("data/models/mnist/spikes/spikified-mnist/spikified-images-all.tags.bin")
 
     indices_test = 20
     doryta_output = Path("build/fully-20")

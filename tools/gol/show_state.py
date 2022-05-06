@@ -17,7 +17,9 @@ from typing import Any
 
 
 def extract_images_from_doryta_output(
-    path: pathlib.Path, width: int = 20
+    path: pathlib.Path,
+    width: int = 20,
+    shift: int = 1
 ) -> np.ndarray[Any, Any]:
     escaped_path = pathlib.Path(glob.escape(path))  # type: ignore
     stat_files = glob.glob(str(escaped_path / "spikes-gid=*.txt"))
@@ -29,12 +31,15 @@ def extract_images_from_doryta_output(
     assert(len(spikes.shape) == 2)
     assert(spikes.shape[1] == 2)
 
+    # only spikes from the first `width*width` neurons are taken into account
     spikes = spikes[spikes[:, 0] < width*width, :].astype(int)
-    steps = int(spikes[:, 1].max())
+    # removing all spikes that appear prior to shift
+    spikes = spikes[shift <= spikes[:, 1], :]
+    steps = int(spikes[:, 1].max()) + 1 - shift
 
     imgs = np.zeros((width * width, steps))
 
-    imgs[(spikes[:, 0], spikes[:, 1] - 1)] = 1
+    imgs[(spikes[:, 0], spikes[:, 1] - shift)] = 1
 
     return imgs.reshape((width, width, -1)).transpose((2, 0, 1))
 
@@ -50,11 +55,13 @@ if __name__ == '__main__':
                         help='Time between frames in milliseconds (default: 200)', default=200)
     parser.add_argument('--size', type=int,
                         help='Width/height of the grid (default: 20)', default=20)
+    parser.add_argument('--shift', type=int,
+                        help='First frame starts at this value (default: 1)', default=1)
     parser.add_argument('--save-as', type=pathlib.Path,
                         help='Path to save img or video (default: None)', default=None)
     args = parser.parse_args()
 
-    imgs = extract_images_from_doryta_output(args.path, args.size)
+    imgs = extract_images_from_doryta_output(args.path, args.size, args.shift)
     # np.save(f"{args.save_as}.raw.npy", imgs)  # Saving binary
     # imgs = np.load(f"{args.save_as}.raw.npy")
 
