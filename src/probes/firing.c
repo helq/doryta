@@ -21,6 +21,9 @@ void probes_firing_init(
     output_path = output_path_;
     only_output_neurons = only_output_neurons_;
     firing_spikes = malloc(buffer_size * sizeof(struct StorableSpike));
+    if (firing_spikes == NULL) {
+        tw_error(TW_LOC, "couldn't allocate space for `firing_spikes'. The buffer might be too large.");
+    }
 }
 
 

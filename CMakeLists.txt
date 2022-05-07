@@ -8,6 +8,11 @@ option(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_subdirectory(external)
 
+# Uncomment the following lines if you find problems with the MPI library. In some
+# systems, CMake doesn't include MPI into doryta from the ROSS dependencies.
+#find_package(MPI REQUIRED)
+#include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
+
 # Setting optimizations (ignoring external as there is nothing we
 # can do for them. Their badly written, but our library shouldn't)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native \

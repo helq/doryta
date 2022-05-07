@@ -3,9 +3,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-import xlrd
 import argparse
 import pathlib
+import itertools
+import csv
 
 # Parameters to produce good looking LaTeX figures
 matplotlib.rcParams['mathtext.fontset'] = 'cm'
@@ -208,8 +209,8 @@ def Box_cal(beyA, layer, cop, method, device_cal):
                layer.neupercore*beyA.asyn)*cop.factabun
     layer.ach = max(a_temp1, a_temp2)
     ach = layer.ach * layer.ncores
-    #beyA.stepfreq = 1/beyA.tsyn/2
-    #beyA.firerate = beyA.stepfreq/layer.synperneu
+    # beyA.stepfreq = 1/beyA.tsyn/2
+    # beyA.firerate = beyA.stepfreq/layer.synperneu
     asynef = beyA.asyn * layer.synperneu * layer.neupercore
     layer.alic, layer.tlic, layer.Elic, layer.llic = neuIntercon(
         cop, asynef, beyA.Vsyn, beyA.ticsyn, beyA.Isyn, inter_core=True)
@@ -295,7 +296,8 @@ def workload_performance(beyA, cop, layer, method, device_cal):
 # shareact:  integration / neuron per layer  # the active synapse per neuron
 # spikeAct:  fire / neuron per layer         #  fire rate of neurons per integration
 
-def network_param(method, workload):
+def network_param(method, workload, small_lenet, small_lenet_fashion,
+                  large_lenet, large_lenet_fashion):
     # for different benchmarking method and workload, calculate the shareact and spikeAct
     cop = Cop()
     if workload == 'large_lenet':
@@ -468,33 +470,6 @@ def network_param(method, workload):
     return cop
 
 
-def load_xls_data(path):
-    rows = []
-    xls_data = xlrd.open_workbook(path)
-    table = xls_data.sheet_by_index(0)
-    for i in range(table.nrows):
-        line = table.row_values(i)
-        rows.append(line)
-    return np.array(rows)
-
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--path-ll', type=pathlib.Path, default="large_lenet.xls",
-                    help='Path to Large LeNet XLS file')
-parser.add_argument('--path-sl', type=pathlib.Path, default="small_lenet.xls",
-                    help='Path to Small LeNet XLS file')
-parser.add_argument('--path-llf', type=pathlib.Path, default="large_lenet_fashion.xls",
-                    help='Path to Large LeNet Fashion XLS file')
-parser.add_argument('--path-slf', type=pathlib.Path, default="small_lenet_fashion.xls",
-                    help='Path to Small LeNet Fashion XLS file')
-args = parser.parse_args()
-
-# Importing all workloads
-small_lenet = load_xls_data(args.path_sl)
-large_lenet = load_xls_data(args.path_ll)
-small_lenet_fashion = load_xls_data(args.path_slf)
-large_lenet_fashion = load_xls_data(args.path_llf)
-
 # Loading parameters for each architecture
 bey_CMOSdsyn = bey()
 bey_CMOSdsyn.aint = 0.00000000000138240000
@@ -580,143 +555,200 @@ bey_NiO.Vdev = 1
 
 cop.clenic*bey_NiO.Vdev*1e-6/bey_NiO.Idev
 
-# Data to include all the results
-method = 'detail'
-neuron_name0 = ['Mn3Ir', 'NiO', 'CMOSana', 'CMOSdig']
-workload0 = ['small_lenet', 'small_lenet_fashion',
-             'large_lenet', 'large_lenet_fashion']
-device_cal0 = ['all', 'neuron', 'synapse', 'neu-ic', 'syn-ic']
-Energy_mat = np.empty([len(device_cal0), len(neuron_name0), len(workload0), 8])
-latency_mat = np.empty_like(Energy_mat)
-data = np.empty([len(device_cal0), len(neuron_name0), len(workload0), 3])
-
-for i in range(len(device_cal0)):
-    device_cal = device_cal0[i]
-    for j in range(len(neuron_name0)):
-        neuron_name = neuron_name0[j]
-        for k in range(len(workload0)):
-            workload = workload0[k]
-            cop = network_param(method, workload)
-            layer = Layer()
-            beyA = ArchLevel()
-            if neuron_name == 'CMOSana':
-                synapse_name = 'CMOSana'
-            elif neuron_name == 'CMOSdig':
-                synapse_name = 'CMOSdig'
-            else:
-                synapse_name = 'spinres'
-            if synapse_name == 'CMOSdig':
-                beyA.asyn = bey_CMOSdsyn.aint
-                beyA.tsyn = bey_CMOSdsyn.tint
-                beyA.Esyn = bey_CMOSdsyn.Eint
-                beyA.Isyn = bey_CMOSdsyn.Idev
-                beyA.Vsyn = bey_CMOSdsyn.Vdev
-                beyA.ticsyn = bey_CMOSdsyn.tic
-            elif synapse_name == 'spinres':
-                beyA.asyn = bey_spinres.aint
-                beyA.tsyn = bey_spinres.tint
-                beyA.Esyn = bey_spinres.Eint
-                beyA.Isyn = bey_spinres.Idev
-                beyA.Vsyn = bey_spinres.Vdev
-                beyA.ticsyn = bey_spinres.tic
-            elif synapse_name == 'CMOSana':
-                beyA.asyn = bey_CMOSasyn.aint
-                beyA.tsyn = bey_CMOSasyn.tint
-                beyA.Esyn = bey_CMOSasyn.Eint
-                beyA.Isyn = bey_CMOSasyn.Idev
-                beyA.Vsyn = bey_CMOSasyn.Vdev
-                beyA.ticsyn = bey_CMOSasyn.tic
-
-            if neuron_name == 'Mn3Ir':
-                beyA.aneu = bey_Mn3Ir.aint
-                beyA.tneu = bey_Mn3Ir.tint
-                beyA.Eneu = bey_Mn3Ir.Eint
-                beyA.Vdev = bey_Mn3Ir.Vdev
-                beyA.Ineu = bey_Mn3Ir.Idev
-                beyA.tlocic = bey_Mn3Ir.tic
-            elif neuron_name == 'NiO':
-                beyA.aneu = bey_NiO.aint
-                beyA.tneu = bey_NiO.tint
-                beyA.Eneu = bey_NiO.Eint
-                beyA.Vdev = bey_NiO.Vdev
-                beyA.Ineu = bey_NiO.Idev
-                beyA.tlocic = bey_NiO.tic
-            elif neuron_name == 'CMOSana':
-                beyA.aneu = bey_CMOSaneu.aint
-                beyA.tneu = bey_CMOSaneu.tint
-                beyA.Eneu = bey_CMOSaneu.Eint
-                beyA.Vdev = bey_CMOSaneu.Vdev
-                beyA.Ineu = bey_CMOSaneu.Idev
-                beyA.tlocic = bey_CMOSaneu.tic
-            elif neuron_name == 'CMOSdig':
-                beyA.aneu = bey_CMOSdneu.aint
-                beyA.tneu = bey_CMOSdneu.tint
-                beyA.Eneu = bey_CMOSdneu.Eint
-                beyA.Vdev = bey_CMOSdneu.Vdev
-                beyA.Ineu = bey_CMOSdneu.Idev
-                beyA.tlocic = bey_CMOSdneu.tic
-            beyA, Energy_temp, latency_temp = workload_performance(
-                beyA, cop, layer, method, device_cal)
-            data[i, j, k, :] = np.array([beyA.aCP, beyA.tCP, beyA.ECP])
-            Energy_mat[i, j, k, :] = np.array(Energy_temp)
-            latency_mat[i, j, k, :] = np.array(latency_temp)
+def set_synapse_params(synapse_name, beyA):
+    if synapse_name == 'CMOSdig':
+        beyA.asyn = bey_CMOSdsyn.aint
+        beyA.tsyn = bey_CMOSdsyn.tint
+        beyA.Esyn = bey_CMOSdsyn.Eint
+        beyA.Isyn = bey_CMOSdsyn.Idev
+        beyA.Vsyn = bey_CMOSdsyn.Vdev
+        beyA.ticsyn = bey_CMOSdsyn.tic
+    elif synapse_name == 'spinres':
+        beyA.asyn = bey_spinres.aint
+        beyA.tsyn = bey_spinres.tint
+        beyA.Esyn = bey_spinres.Eint
+        beyA.Isyn = bey_spinres.Idev
+        beyA.Vsyn = bey_spinres.Vdev
+        beyA.ticsyn = bey_spinres.tic
+    elif synapse_name == 'CMOSana':
+        beyA.asyn = bey_CMOSasyn.aint
+        beyA.tsyn = bey_CMOSasyn.tint
+        beyA.Esyn = bey_CMOSasyn.Eint
+        beyA.Isyn = bey_CMOSasyn.Idev
+        beyA.Vsyn = bey_CMOSasyn.Vdev
+        beyA.ticsyn = bey_CMOSasyn.tic
 
 
-# different color for different neurons
-color = ['blue', 'red', 'black', 'violet']
-marker = ['s', 'o', '<', '>']  # different marker for different workload
-fig = plt.figure(figsize=(16, 10))
-axes = fig.subplots(nrows=2, ncols=2)
-# plt.subplot(2,2,2)
-for i in np.arange(0, 2, 1):
-    for j in range(4):
-        axes[0, 1].scatter(np.arange(1, 9, 1), Energy_mat[0, i, j, :],
-                           marker=marker[j], c='none', edgecolors=color[i], s=200)
-axes[0, 1].set_xlabel('layer index \n (b)', fontsize=24)
-axes[0, 1].set_ylabel('Energy (J)', fontsize=24)
-axes[0, 1].tick_params(labelsize=26)
-# axes[0,1].tick_params(labelsize= 26)
-axes[0, 1].set_yscale('log')
+def set_neuron_params(neuron_name, beyA):
+    if neuron_name == 'Mn3Ir':
+        beyA.aneu = bey_Mn3Ir.aint
+        beyA.tneu = bey_Mn3Ir.tint
+        beyA.Eneu = bey_Mn3Ir.Eint
+        beyA.Vdev = bey_Mn3Ir.Vdev
+        beyA.Ineu = bey_Mn3Ir.Idev
+        beyA.tlocic = bey_Mn3Ir.tic
+    elif neuron_name == 'NiO':
+        beyA.aneu = bey_NiO.aint
+        beyA.tneu = bey_NiO.tint
+        beyA.Eneu = bey_NiO.Eint
+        beyA.Vdev = bey_NiO.Vdev
+        beyA.Ineu = bey_NiO.Idev
+        beyA.tlocic = bey_NiO.tic
+    elif neuron_name == 'CMOSana':
+        beyA.aneu = bey_CMOSaneu.aint
+        beyA.tneu = bey_CMOSaneu.tint
+        beyA.Eneu = bey_CMOSaneu.Eint
+        beyA.Vdev = bey_CMOSaneu.Vdev
+        beyA.Ineu = bey_CMOSaneu.Idev
+        beyA.tlocic = bey_CMOSaneu.tic
+    elif neuron_name == 'CMOSdig':
+        beyA.aneu = bey_CMOSdneu.aint
+        beyA.tneu = bey_CMOSdneu.tint
+        beyA.Eneu = bey_CMOSdneu.Eint
+        beyA.Vdev = bey_CMOSdneu.Vdev
+        beyA.Ineu = bey_CMOSdneu.Idev
+        beyA.tlocic = bey_CMOSdneu.tic
 
-# plt.subplot(2,2,1)
-for i in np.arange(0, 2, 1):
-    for j in range(4):
-        axes[0, 0].scatter(np.arange(1, 5, 1), data[1:, i, j, -1],
-                           marker=marker[j], c='none', edgecolors=color[i], s=200)
 
-axes[0, 0].set_xlabel('\n (a)', fontsize=24)
-axes[0, 0].set_ylabel('Energy (J)', fontsize=24)
-axes[0, 0].set_xticklabels(
-    ['0', 'neuron', 'synapse', 'neu-ic', 'syn-ic'], fontsize=26)
-axes[0, 0].tick_params(labelsize=26)
-axes[0, 0].set_yscale('log')
+def generate_figure(data, Energy_mat, latency_mat, figure_name=None):
+    # different color for different neurons
+    color = ['blue', 'red', 'black', 'violet']
+    marker = ['s', 'o', '<', '>']  # different marker for different workload
+    fig = plt.figure(figsize=(16, 10))
+    axes = fig.subplots(nrows=2, ncols=2)
+    # plt.subplot(2,2,2)
+    for i in np.arange(0, 2, 1):
+        for j in range(4):
+            axes[0, 1].scatter(np.arange(1, 9, 1), Energy_mat[0, i, j, :],
+                               marker=marker[j], c='none', edgecolors=color[i], s=200)
+    axes[0, 1].set_xlabel('layer index \n (b)', fontsize=24)
+    axes[0, 1].set_ylabel('Energy (J)', fontsize=24)
+    axes[0, 1].tick_params(labelsize=26)
+    # axes[0,1].tick_params(labelsize= 26)
+    axes[0, 1].set_yscale('log')
+
+    # plt.subplot(2,2,1)
+    for i in np.arange(0, 2, 1):
+        for j in range(4):
+            axes[0, 0].scatter(np.arange(1, 5, 1), data[1:, i, j, -1],
+                               marker=marker[j], c='none', edgecolors=color[i], s=200)
+
+    axes[0, 0].set_xlabel('\n (a)', fontsize=24)
+    axes[0, 0].set_ylabel('Energy (J)', fontsize=24)
+    axes[0, 0].set_xticklabels(
+        ['0', 'neuron', 'synapse', 'neu-ic', 'syn-ic'], fontsize=26)
+    axes[0, 0].tick_params(labelsize=26)
+    axes[0, 0].set_yscale('log')
 
 
-# plt.subplot(2,2,3)
-for i in np.arange(0, 2, 1):
-    for j in range(4):
-        axes[1, 0].scatter(np.arange(1, 5, 1), data[1:, i, j, 1],
-                           marker=marker[j], c='none', edgecolors=color[i], s=200)
+    # plt.subplot(2,2,3)
+    for i in np.arange(0, 2, 1):
+        for j in range(4):
+            axes[1, 0].scatter(np.arange(1, 5, 1), data[1:, i, j, 1],
+                               marker=marker[j], c='none', edgecolors=color[i], s=200)
 
-axes[1, 0].set_xlabel('\n (c)', fontsize=24)
-axes[1, 0].set_ylabel('Latency (s)', fontsize=24)
-axes[1, 0].set_xticklabels(
-    ['0', 'neuron', 'synapse', 'neu-ic', 'syn-ic'], fontsize=26)
-axes[1, 0].tick_params(labelsize=26)
-axes[1, 0].set_yscale('log')
+    axes[1, 0].set_xlabel('\n (c)', fontsize=24)
+    axes[1, 0].set_ylabel('Latency (s)', fontsize=24)
+    axes[1, 0].set_xticklabels(
+        ['0', 'neuron', 'synapse', 'neu-ic', 'syn-ic'], fontsize=26)
+    axes[1, 0].tick_params(labelsize=26)
+    axes[1, 0].set_yscale('log')
 
-for i in np.arange(0, 2, 1):
-    for j in range(4):
-        axes[1, 1].scatter(np.arange(1, 9, 1), latency_mat[0, i, j, :],
-                           marker=marker[j], c='none', edgecolors=color[i], s=200)
-axes[1, 1].set_xlabel('layer index \n (d)', fontsize=24)
-axes[1, 1].set_ylabel('Latency (s)', fontsize=24)
-axes[1, 1].tick_params(labelsize=26)
-axes[1, 1].set_yscale('log')
+    for i in np.arange(0, 2, 1):
+        for j in range(4):
+            axes[1, 1].scatter(np.arange(1, 9, 1), latency_mat[0, i, j, :],
+                               marker=marker[j], c='none', edgecolors=color[i], s=200)
+    axes[1, 1].set_xlabel('layer index \n (d)', fontsize=24)
+    axes[1, 1].set_ylabel('Latency (s)', fontsize=24)
+    axes[1, 1].tick_params(labelsize=26)
+    axes[1, 1].set_yscale('log')
 
-fig.legend([r'Mn$_3$Ir SL', r'Mn$_3$Ir SLF', r'Mn$_3$Ir LL', r'Mn$_3$Ir LLF', r'NiO SL',
-           r'NiO SLF', r'NiO LL', r'NiO LLF'], ncol=4, loc=8, bbox_to_anchor=(0.5, -0.15),
-           fontsize=25)
-plt.tight_layout()
-plt.savefig('combine.eps', dpi=600, format='eps', bbox_inches='tight')
-# plt.show()
+    fig.legend([r'Mn$_3$Ir SL', r'Mn$_3$Ir SLF', r'Mn$_3$Ir LL', r'Mn$_3$Ir LLF', r'NiO SL',
+               r'NiO SLF', r'NiO LL', r'NiO LLF'], ncol=4, loc=8, bbox_to_anchor=(0.5, -0.15),
+               fontsize=25)
+    plt.tight_layout()
+    if figure_name:
+        plt.savefig(f'{figure_name}.eps', dpi=600, format='eps', bbox_inches='tight')
+    else:
+        plt.show()
+
+
+def load_csv_data(path):
+    dtype_data = {
+        'names': ("name-unit", "out-synapses", "leak", "integration", "fire"),
+        'formats': (str, 'f8', 'f8', 'f8', 'f8')}
+    csv_data = np.loadtxt(path, delimiter=",", skiprows=2, dtype=dtype_data)
+    return np.array([csv_data['integration'], csv_data['fire']]).T
+
+
+def save_csv_table7(path, data, neuron_name0, workload0):
+    with open(path, "w") as f:
+        writer = csv.writer(f)
+
+        writer.writerow(["Neuron", "Workload", "Area", "Latency",
+                         "Energy", "EDP"])
+        for (j, neuron_name), (k, workload) in itertools.product(
+            enumerate(neuron_name0), enumerate(workload0)
+        ):
+            row_data = data[0, j, k, :]
+            writer.writerow(
+                [neuron_name, workload] + row_data.tolist()
+                + [row_data[1] * row_data[2]])
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path-ll', type=pathlib.Path, default="large_lenet.csv",
+                        help='Path to Large LeNet CSV file')
+    parser.add_argument('--path-sl', type=pathlib.Path, default="small_lenet.csv",
+                        help='Path to Small LeNet CSV file')
+    parser.add_argument('--path-llf', type=pathlib.Path, default="large_lenet_fashion.csv",
+                        help='Path to Large LeNet Fashion CSV file')
+    parser.add_argument('--path-slf', type=pathlib.Path, default="small_lenet_fashion.csv",
+                        help='Path to Small LeNet Fashion CSV file')
+    parser.add_argument('--output', type=pathlib.Path, default="combine",
+                        help='Output filename')
+    args = parser.parse_args()
+
+    # Importing all workloads
+    small_lenet = load_csv_data(args.path_sl)
+    large_lenet = load_csv_data(args.path_ll)
+    small_lenet_fashion = load_csv_data(args.path_slf)
+    large_lenet_fashion = load_csv_data(args.path_llf)
+    output_file_name = args.output
+
+    # Data to include all the results
+    method = 'detail'
+    device_cal0 = ['all', 'neuron', 'synapse', 'neu-ic', 'syn-ic']
+    neuron_name0 = ['Mn3Ir', 'NiO', 'CMOSana', 'CMOSdig']
+    workload0 = ['small_lenet', 'small_lenet_fashion',
+                 'large_lenet', 'large_lenet_fashion']
+    Energy_mat = np.empty([len(device_cal0), len(neuron_name0), len(workload0), 8])
+    latency_mat = np.empty_like(Energy_mat)
+    data = np.empty([len(device_cal0), len(neuron_name0), len(workload0), 3])
+
+    for (i, device_cal), (j, neuron_name), (k, workload) in itertools.product(
+        enumerate(device_cal0), enumerate(neuron_name0), enumerate(workload0)
+    ):
+        cop = network_param(method, workload, small_lenet, small_lenet_fashion,
+                            large_lenet, large_lenet_fashion)
+        layer = Layer()
+        beyA = ArchLevel()
+        if neuron_name == 'CMOSana':
+            synapse_name = 'CMOSana'
+        elif neuron_name == 'CMOSdig':
+            synapse_name = 'CMOSdig'
+        else:
+            synapse_name = 'spinres'
+        set_synapse_params(synapse_name, beyA)
+        set_neuron_params(neuron_name, beyA)
+
+        beyA, Energy_temp, latency_temp = workload_performance(
+            beyA, cop, layer, method, device_cal)
+        data[i, j, k, :] = np.array([beyA.aCP, beyA.tCP, beyA.ECP])
+        Energy_mat[i, j, k, :] = np.array(Energy_temp)
+        latency_mat[i, j, k, :] = np.array(latency_temp)
+
+    # generate_figure(data, Energy_mat, latency_mat)
+    generate_figure(data, Energy_mat, latency_mat, output_file_name)
+    save_csv_table7(f"{output_file_name}.csv", data, neuron_name0, workload0)

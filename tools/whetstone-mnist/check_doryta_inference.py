@@ -91,7 +91,7 @@ def check_doryta_output_to_keras(
     shift: int,
     which: ModelType,
     dataset: str
-) -> None:
+) -> float:
     print(f"Execution path being analyzed: `{doryta_output}`")
 
     # ====== Extracting inference results from Doryta run ======
@@ -107,6 +107,8 @@ def check_doryta_output_to_keras(
     print("Total correctly inferenced (Doryta):",
           (inferenced == test_values).sum(),
           "/", inferenced.size)
+
+    accuracy = float((inferenced == test_values).sum() / inferenced.size)
 
     # ====== Using Keras/Whetstone to classify data ======
     whetstone_prediction, whetstone_prediction_inter = \
@@ -156,6 +158,8 @@ def check_doryta_output_to_keras(
         print("Total spikes only in doryta:", len(only_in_doryta))
         print("Total spikes only in keras/whetstone:", len(only_in_keras))
 
+    return accuracy
+
 
 if __name__ == '__main__':
     path_to_keras_model = Path("data/models/mnist/raw_keras_models/ffsnn-mnist")
@@ -180,6 +184,8 @@ if __name__ == '__main__':
                         help='Doryta ID in which output spikes start')
     parser.add_argument('--dataset', default='mnist',
                         help='Either `mnist` or `fashion-mnist` (default: `mnist`)')
+    parser.add_argument('--save', type=Path, default=None,
+                        help='Path to save accuracy results')
     args = parser.parse_args()
 
     if args.model_type == "fully":
@@ -195,6 +201,11 @@ if __name__ == '__main__':
     if args.shift is not None:
         shift = args.shift
 
-    check_doryta_output_to_keras(args.path_to_keras_model, args.path_to_tags,
-                                 slice(args.indices_in_output), args.outdir_doryta,
-                                 shift, which=which, dataset=args.dataset)
+    accuracy = check_doryta_output_to_keras(
+        args.path_to_keras_model, args.path_to_tags, slice(args.indices_in_output),
+        args.outdir_doryta, shift, which=which, dataset=args.dataset)
+
+    if args.save is not None:
+        with open(args.save, 'w') as f:
+            f.write(str(accuracy))
+            f.write('\n')
