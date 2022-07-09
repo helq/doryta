@@ -6,9 +6,23 @@
 
 static bool is_initial_current_nonzero = false;
 static bool is_reset_higher_than_treshold = false;
+static bool is_using_layout = false;
 
-static void load_v1(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
-static void load_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
+// In case we are not using the layout strategy, but just raw data/arbitrary connections
+static int32_t                  total_neurons = -1;
+static bool                     initialized_arbitrary = false;
+static struct Synapse           * naked_synapses = NULL;
+static char                     * naked_neurons = NULL;
+// To pass to SettingsNeuronLP
+static void                    ** neurons = NULL;
+static struct SynapseCollection * synapses = NULL;
+
+static void load_with_layout_v1(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
+static void load_with_layout_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
+static void load_arbitrary_single_pe(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
+
+static int32_t gid_to_doryta_id_identity(size_t gid);
+static unsigned long gid_to_pe_zero(uint64_t gid);
 
 
 struct ModelParams
@@ -24,9 +38,13 @@ model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
     }
     uint16_t format = load_uint16(fp);
     if (format == 0x1) {
-        load_v1(settings_neuron_lp, fp);
+        load_with_layout_v1(settings_neuron_lp, fp);
+        is_using_layout = true;
     } else if (format == 0x2) {
-        load_v2(settings_neuron_lp, fp);
+        load_with_layout_v2(settings_neuron_lp, fp);
+        is_using_layout = true;
+    } else if (format == 0x11) {
+        load_arbitrary_single_pe(settings_neuron_lp, fp);
     } else {
         fclose(fp);
         tw_error(TW_LOC, "Input file corrupt or format unknown");
@@ -43,10 +61,18 @@ model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
                 "behave on spike-driven mode.");
     }
 
-    return (struct ModelParams) {
-        .lps_in_pe = layout_master_total_lps_pe(),
-        .gid_to_pe = layout_master_gid_to_pe,
-    };
+    assert((total_neurons == -1) == is_using_layout);
+    if (is_using_layout) {
+        return (struct ModelParams) {
+            .lps_in_pe = layout_master_total_lps_pe(),
+            .gid_to_pe = layout_master_gid_to_pe,
+        };
+    } else {
+        return (struct ModelParams) {
+            .lps_in_pe = total_neurons,
+            .gid_to_pe = gid_to_pe_zero,
+        };
+    }
 }
 
 
@@ -71,7 +97,7 @@ static void load_neuron_params(struct LifNeuron * neuron, FILE * fp) {
 }
 
 
-static void load_v1(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
+static void load_with_layout_v1(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
 #ifndef NDEBUG
     int32_t const total_num_neurons =
 #endif
@@ -188,7 +214,7 @@ struct Conv2dGroup {
 };
 
 
-static void load_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
+static void load_with_layout_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
 #ifndef NDEBUG
     int32_t const total_num_neurons =
 #endif
@@ -415,6 +441,121 @@ static void load_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
 }
 
 
+static void load_arbitrary_single_pe(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
+    uint8_t neuron_type = load_uint8(fp);
+    if (neuron_type != 0x1) {
+        tw_error(TW_LOC, "Unsupported neuron type (%x)", neuron_type);
+    }
+
+    total_neurons = load_int32(fp);
+    int32_t const total_neurons_in_pe = total_neurons;
+    int64_t const total_synapses = load_int64(fp);
+    double const beat = load_double(fp);
+
+    if (tw_nnodes() != 1) {
+        tw_error(TW_LOC, "This file type can only load neurons for a single PE/core/MPI rank");
+    }
+
+    // Allocating space
+    int sizeof_neuron = sizeof(struct LifNeuron);
+    synapses =
+        malloc(total_neurons_in_pe * sizeof(struct SynapseCollection));
+    naked_synapses =
+        malloc(total_synapses * sizeof(struct Synapse));
+    neurons =
+        malloc(total_neurons_in_pe * sizeof(void*));
+    naked_neurons =
+        malloc(total_neurons_in_pe * sizeof_neuron);
+    initialized_arbitrary = true;
+
+    if (synapses == NULL
+       || naked_synapses == NULL
+       || naked_neurons == NULL
+       || neurons == NULL) {
+        tw_error(TW_LOC, "Not able to allocate space for neurons and synapses");
+    }
+
+    // Loading neurons params and synapses from file
+    int64_t synapses_i = 0;
+    for (int32_t i = 0; i < total_neurons_in_pe; i++) {
+        assert(i < total_neurons);
+        assert(synapses_i < total_synapses);
+
+        // Loading neuron params
+        neurons[i] = &naked_neurons[i];
+        load_neuron_params(neurons[i], fp);
+
+        int32_t const num_synapses = load_int32(fp);
+        synapses[i].num = num_synapses;
+        synapses[i].synapses = NULL;
+
+        // Loading synapses
+        if (num_synapses) {
+            int32_t synapses_ids[num_synapses];
+            float synapses_weights[num_synapses];
+            int32_t synapses_delays[num_synapses];
+            load_int32s(fp, synapses_ids, num_synapses);
+            load_floats(fp, synapses_weights, num_synapses);
+            load_int32s(fp, synapses_delays, num_synapses);
+            struct Synapse * synapses_neuron = &naked_synapses[synapses_i];
+            synapses[i].num = num_synapses;
+            synapses[i].synapses = synapses_neuron;
+            for (int32_t j = 0; j < num_synapses; j++) {
+                synapses_neuron[j].gid_to_send = synapses_ids[j];
+#ifndef NDEBUG
+                synapses_neuron[j].doryta_id_to_send = synapses_ids[j];
+#endif
+                synapses_neuron[j].weight = synapses_weights[j];
+                synapses_neuron[j].delay = synapses_delays[j];
+            }
+        }
+
+        synapses_i += num_synapses;
+    }
+    assert(total_synapses == synapses_i);
+
+    // Setting the driver configuration
+    *settings_neuron_lp = (struct SettingsNeuronLP) {
+      .num_neurons      = total_neurons,
+      .num_neurons_pe   = total_neurons_in_pe,
+      .neurons          = neurons,
+      .synapses         = synapses,
+      .spikes            = NULL,
+      .beat              = beat,
+      .neuron_leak       = (neuron_leak_f) neurons_lif_leak,
+      .neuron_leak_bigdt = (neuron_leak_big_f) neurons_lif_big_leak,
+      .neuron_integrate  = (neuron_integrate_f) neurons_lif_integrate,
+      .neuron_fire       = (neuron_fire_f) neurons_lif_fire,
+      .store_neuron         = (neuron_state_op_f) neurons_lif_store_state,
+      .reverse_store_neuron = (neuron_state_op_f) neurons_lif_reverse_store_state,
+      .print_neuron_struct  = (print_neuron_f) neurons_lif_print,
+      .gid_to_doryta_id    = gid_to_doryta_id_identity,
+      //.probe_events     = probe_events,
+    };
+}
+
+
 void model_load_neurons_deinit(void) {
-    layout_master_free();
+    if (is_using_layout) {
+        layout_master_free();
+    } else {
+        assert(initialized_arbitrary);
+        free(naked_synapses);
+        free(naked_neurons);
+        free(neurons);
+        free(synapses);
+        total_neurons = -1;
+        initialized_arbitrary = false;
+    }
+}
+
+/* Supporting functions for ids convertions -- Only one PE case */
+
+static int32_t gid_to_doryta_id_identity(size_t gid) {
+    return gid;
+}
+
+static unsigned long gid_to_pe_zero(uint64_t gid) {
+    (void) gid;
+    return 0;
 }
