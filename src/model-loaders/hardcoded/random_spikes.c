@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <pcg_basic.h>
 #include "../../storable_spikes.h"
-#include "../../layout/master.h"
+#include "../strategy/layouts/master.h"
 #include "../../utils/io.h"
 #include "../../utils/pcg32_random.h"
 

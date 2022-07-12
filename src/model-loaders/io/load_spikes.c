@@ -1,8 +1,9 @@
 #include "load_spikes.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "../../driver/neuron.h"
 #include "../../storable_spikes.h"
-#include "../../layout/master.h"
+#include "../strategy/modes.h"
 #include "../../utils/io.h"
 
 static struct StorableSpike **spikes = NULL;
@@ -43,6 +44,7 @@ static inline void load_format_1(FILE * fp) {
     if (spike_times != 1) {
         tw_error(TW_LOC, "Sorry, but we don't yet handle more than one instant in time");
     }
+    struct StrategyParams const loadingModeParams = get_model_strategy_mode();
 
     int32_t const total_spikes = load_int32(fp);
 
@@ -51,7 +53,7 @@ static inline void load_format_1(FILE * fp) {
     // TODO: This is only true when spike_times == 1
     assert(total_spikes == neurons_in_batch);
 
-    int const num_neurons_pe = layout_master_total_neurons_pe();
+    int const num_neurons_pe = loadingModeParams.lps_in_pe();
     spikes = calloc(num_neurons_pe, sizeof(struct StorableSpike*));
 
     // TODO: this is the maximum number of spikes to load in a single PE. It's
@@ -62,8 +64,8 @@ static inline void load_format_1(FILE * fp) {
     for (int32_t i = 0; i < neurons_in_batch; i++) {
         int32_t const neuron_i = load_int32(fp);
         // If current neuron (neuron_i) is in PE
-        if (layout_master_doryta_id_to_pe(neuron_i) == g_tw_mynode) {
-            size_t const local_id = layout_master_doryta_id_to_local_id(neuron_i);
+        if (loadingModeParams.doryta_id_to_pe(neuron_i) == g_tw_mynode) {
+            size_t const local_id = loadingModeParams.doryta_id_to_local_id(neuron_i);
             spikes[local_id] = naked_spikes + 2*j;
             spikes[local_id]->neuron = neuron_i;
             spikes[local_id]->time = spikes_time;
@@ -76,10 +78,12 @@ static inline void load_format_1(FILE * fp) {
 /* Loading format 2, which stores spikes for each neuron.
  */
 static inline void load_format_2(FILE * fp) {
+    struct StrategyParams const loadingModeParams = get_model_strategy_mode();
+
     int32_t const total_neurons = load_int32(fp);
     int32_t const total_spikes = load_int32(fp);
 
-    int const num_neurons_pe = layout_master_total_neurons_pe();
+    int const num_neurons_pe = loadingModeParams.lps_in_pe();
     spikes = calloc(num_neurons_pe, sizeof(struct StorableSpike*));
 
     // TODO: `spikes_in_pe` does not actually contain the number of spikes to store in PE.
@@ -96,10 +100,10 @@ static inline void load_format_2(FILE * fp) {
         int32_t const neuron_i = load_int32(fp);
         int32_t const num_spikes = load_int32(fp);
         // If current neuron (neuron_i) is in PE
-        if (layout_master_doryta_id_to_pe(neuron_i) == g_tw_mynode) {
+        if (loadingModeParams.doryta_id_to_pe(neuron_i) == g_tw_mynode) {
             float spikes_raw[num_spikes];
             load_floats(fp, spikes_raw, num_spikes);
-            size_t const local_id = layout_master_doryta_id_to_local_id(neuron_i);
+            size_t const local_id = loadingModeParams.doryta_id_to_local_id(neuron_i);
 
             spikes[local_id] = naked_spikes + j;
             for (int k = 0; k < num_spikes; k++) {

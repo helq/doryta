@@ -1,6 +1,6 @@
 #include "gameoflife.h"
-#include "../../layout/master.h"
-#include "../../layout/standard_layouts.h"
+#include "../strategy/layouts/master.h"
+#include "../strategy/layouts/standard_layouts.h"
 #include "../../neurons/lif.h"
 
 // Defined in ross.h

@@ -1,8 +1,8 @@
 #include <ross.h>
 #include <doryta_config.h>
 #include "driver/neuron.h"
-#include "layout/standard_layouts.h"
-#include "layout/master.h"
+#include "model-loaders/strategy/layouts/standard_layouts.h"
+#include "model-loaders/strategy/layouts/master.h"
 #include "message.h"
 #include "neurons/lif.h"
 #include "probes/firing.h"

@@ -2,8 +2,8 @@
 #include <doryta_config.h>
 #include <pcg_basic.h>
 #include "driver/neuron.h"
-#include "layout/standard_layouts.h"
-#include "layout/master.h"
+#include "model-loaders/strategy/layouts/standard_layouts.h"
+#include "model-loaders/strategy/layouts/master.h"
 #include "message.h"
 //#include "neurons/lif_beta.h"
 #include "neurons/lif.h"

@@ -1,5 +1,6 @@
 #include "master.h"
-#include "../utils/math.h"
+#include "../../../utils/math.h"
+#include "../modes.h"
 #include <ross.h>
 
 #define MAX_NEURON_GROUPS 200
@@ -75,6 +76,7 @@ static uint64_t pe_gid_offset;
 
 int32_t layout_master_neurons(
         int32_t total_neurons, unsigned long initial_pe, unsigned long final_pe) {
+    assert(!initialized);
     if (initial_pe >= tw_nnodes() || final_pe >= tw_nnodes()) {
         tw_error(TW_LOC, "Valid PE ids for initial and final PEs must be smaller"
                          " than the number of nodes in the system");
@@ -157,6 +159,15 @@ void layout_master_init(int sizeof_neuron,
         neuron_init_f neuron_init, synapse_init_f synapse_init) {
     master_allocate(sizeof_neuron);
     master_init_neurons(neuron_init, synapse_init);
+
+    const struct StrategyParams master_mode_params = {
+        .mode = MODEL_LOADING_MODE_layouts,
+        .lps_in_pe = &layout_master_total_lps_pe,
+        .gid_to_pe = layout_master_gid_to_pe,
+        .doryta_id_to_pe = layout_master_doryta_id_to_pe,
+        .doryta_id_to_local_id = layout_master_doryta_id_to_local_id
+    };
+    set_model_strategy_mode(&master_mode_params);
 }
 
 
@@ -522,6 +533,7 @@ static inline void check_from_to_inputs(int32_t from_start, int32_t from_end,
 
 void layout_master_synapses_all2all(int32_t from_start, int32_t from_end,
         int32_t to_start, int32_t to_end) {
+    assert(!initialized);
     check_from_to_inputs(from_start, from_end, to_start, to_end);
 
     synapse_groups[num_synap_groups] = (struct SynapseGroup) {
@@ -572,6 +584,7 @@ void layout_master_synapses_conv2d(
         int32_t from_start, int32_t from_end,
         int32_t to_start, int32_t to_end,
         struct Conv2dParams const * params) {
+    assert(!initialized);
     check_from_to_inputs(from_start, from_end, to_start, to_end);
     check_params(params);
 
@@ -639,11 +652,13 @@ void layout_master_synapses_conv2d(
 // ========================== IDs conversion functions ==========================
 
 unsigned long layout_master_doryta_id_to_pe(int32_t doryta_id) {
+    assert(initialized);
     //return (unsigned long)gid / max_num_neurons_per_pe;
     return layout_master_gid_to_pe(layout_master_doryta_id_to_gid(doryta_id));
 }
 
 unsigned long layout_master_gid_to_pe(uint64_t gid) {
+    assert(initialized);
     //return (unsigned long)gid / max_num_neurons_per_pe;
     return gid / max_num_neurons_per_pe;
 }
@@ -750,6 +765,7 @@ static inline size_t get_local_offset_for_level_in_pe(size_t pe, int level) {
 
 
 size_t layout_master_doryta_id_to_gid(int32_t doryta_id) {
+    assert(initialized);
     assert(doryta_id < total_neurons_globally);
     int level;
 

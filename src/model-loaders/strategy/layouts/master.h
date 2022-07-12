@@ -1,7 +1,7 @@
-#ifndef DORYTA_SRC_LAYOUT_MASTER_H
-#define DORYTA_SRC_LAYOUT_MASTER_H
+#ifndef DORYTA_SRC_MODEL_LOADERS_STRATEGY_LAYOUTS_MASTER_H
+#define DORYTA_SRC_MODEL_LOADERS_STRATEGY_LAYOUTS_MASTER_H
 
-#include "../driver/neuron.h"
+#include "../../../driver/neuron.h"
 
 typedef void (*neuron_init_f) (void * neuron_struct, int32_t neuron_id);
 typedef float (*synapse_init_f) (int32_t neuron_from, int32_t neuron_to);

@@ -1,11 +1,13 @@
 #include "load_neurons.h"
-#include "../../layout/master.h"
-#include "../../layout/standard_layouts.h"
+#include "../strategy/modes.h"
+#include "../strategy/layouts/master.h"
+#include "../strategy/layouts/standard_layouts.h"
 #include "../../neurons/lif.h"
 #include "../../utils/io.h"
 
 static bool is_initial_current_nonzero = false;
 static bool is_reset_higher_than_treshold = false;
+
 static bool is_using_layout = false;
 
 // In case we are not using the layout strategy, but just raw data/arbitrary connections
@@ -21,8 +23,11 @@ static void load_with_layout_v1(struct SettingsNeuronLP * settings_neuron_lp, FI
 static void load_with_layout_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
 static void load_arbitrary_single_pe(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
 
+static size_t get_total_neurons_arbitrary(void);
 static int32_t gid_to_doryta_id_identity(size_t gid);
 static unsigned long gid_to_pe_zero(uint64_t gid);
+static unsigned long doryta_id_to_pe_zero(int32_t doryta_id);
+static size_t doryta_id_to_local_id_identity(int32_t doryta_id);
 
 
 struct ModelParams
@@ -62,17 +67,14 @@ model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
     }
 
     assert((total_neurons == -1) == is_using_layout);
-    if (is_using_layout) {
-        return (struct ModelParams) {
-            .lps_in_pe = layout_master_total_lps_pe(),
-            .gid_to_pe = layout_master_gid_to_pe,
-        };
-    } else {
-        return (struct ModelParams) {
-            .lps_in_pe = total_neurons,
-            .gid_to_pe = gid_to_pe_zero,
-        };
-    }
+    const struct StrategyParams mode_params = get_model_strategy_mode();
+    assert(mode_params.mode != MODEL_LOADING_MODE_none_yet);
+    assert(is_using_layout == (mode_params.mode == MODEL_LOADING_MODE_layouts));
+
+    return (struct ModelParams) {
+        .lps_in_pe = mode_params.lps_in_pe(),
+        .gid_to_pe = mode_params.gid_to_pe,
+    };
 }
 
 
@@ -481,8 +483,9 @@ static void load_arbitrary_single_pe(struct SettingsNeuronLP * settings_neuron_l
         assert(i < total_neurons);
         assert(synapses_i < total_synapses);
 
+        // Connecting neurons pointers to naked neuron array
+        neurons[i] = (void*) & naked_neurons[i*sizeof_neuron];
         // Loading neuron params
-        neurons[i] = &naked_neurons[i];
         load_neuron_params(neurons[i], fp);
 
         int32_t const num_synapses = load_int32(fp);
@@ -532,6 +535,14 @@ static void load_arbitrary_single_pe(struct SettingsNeuronLP * settings_neuron_l
       .gid_to_doryta_id    = gid_to_doryta_id_identity,
       //.probe_events     = probe_events,
     };
+
+    set_model_strategy_mode(&(const struct StrategyParams) {
+            .mode = MODEL_LOADING_MODE_custom,
+            .lps_in_pe = get_total_neurons_arbitrary,
+            .gid_to_pe = gid_to_pe_zero,
+            .doryta_id_to_pe = doryta_id_to_pe_zero,
+            .doryta_id_to_local_id = doryta_id_to_local_id_identity
+    });
 }
 
 
@@ -558,4 +569,18 @@ static int32_t gid_to_doryta_id_identity(size_t gid) {
 static unsigned long gid_to_pe_zero(uint64_t gid) {
     (void) gid;
     return 0;
+}
+
+static size_t get_total_neurons_arbitrary(void) {
+    assert(!is_using_layout);
+    return total_neurons;
+}
+
+static unsigned long doryta_id_to_pe_zero(int32_t doryta_id) {
+    (void) doryta_id;
+    return 0;
+}
+
+static size_t doryta_id_to_local_id_identity(int32_t doryta_id) {
+    return doryta_id;
 }

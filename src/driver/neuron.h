@@ -57,7 +57,7 @@ struct SynapseCollection {
  * - `last_heartbeat` is never negative
  */
 struct NeuronLP {
-    int32_t doryta_id; // This might not be the same as the GID for the neuron (it is defined as dorytaID because that is how it is caled in src/layout, but it might be anything the user wants)
+    int32_t doryta_id; // This might not be the same ID as the GID for the LP (the dorytaID is determined by the strategy used to load the model, for example, layouts)
     void *neuron_struct; /**< A pointer to the neuron state */
     struct SynapseCollection to_contact;
 
