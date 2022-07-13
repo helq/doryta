@@ -15,11 +15,8 @@ slightly longer and complicated sequence of commands.)
 [MPI]: https://www.mpich.org/
 
 ```bash
-git clone https://github.com/helq/doryta
-cd doryta
-git submodule update --init --depth=1
-patch -p1 -d external/ROSS < tools/patches/ROSS.patch
-mkdir build && cd build
+git clone --recurse-submodules https://github.com/helq/doryta --depth=1
+mkdir doryta/build && cd doryta/build
 cmake .. -DBUILD_TESTING=OFF
 make -j4
 ```
