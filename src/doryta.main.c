@@ -1,9 +1,9 @@
 #include <ross.h>
 #include <doryta_config.h>
 #include "driver/neuron.h"
-#include "model-loaders/hardcoded/five_neurons.h"
-#include "model-loaders/hardcoded/gameoflife.h"
-#include "model-loaders/hardcoded/random_spikes.h"
+#include "model-loaders/hardcoded/neurons/five_neurons.h"
+#include "model-loaders/hardcoded/neurons/gameoflife.h"
+#include "model-loaders/hardcoded/spikes/random_spikes.h"
 #include "model-loaders/io/load_neurons.h"
 #include "model-loaders/io/load_spikes.h"
 #include "probes/firing.h"

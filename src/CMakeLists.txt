@@ -28,9 +28,9 @@ add_library(doryta_lib
   message.c
   model-loaders/params.c
   model-loaders/strategy/modes.c
-  model-loaders/hardcoded/five_neurons.c
-  model-loaders/hardcoded/gameoflife.c
-  model-loaders/hardcoded/random_spikes.c
+  model-loaders/hardcoded/neurons/five_neurons.c
+  model-loaders/hardcoded/neurons/gameoflife.c
+  model-loaders/hardcoded/spikes/random_spikes.c
   model-loaders/io/load_neurons.c
   model-loaders/io/load_spikes.c
   model-loaders/strategy/layouts/master.c

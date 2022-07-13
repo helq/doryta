@@ -23,11 +23,13 @@ static void load_with_layout_v1(struct SettingsNeuronLP * settings_neuron_lp, FI
 static void load_with_layout_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
 static void load_arbitrary_single_pe(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
 
+// Functions to determine ID conversions for the case of loading arbitrary networks in one PE
 static size_t get_total_neurons_arbitrary(void);
 static int32_t gid_to_doryta_id_identity(size_t gid);
 static unsigned long gid_to_pe_zero(uint64_t gid);
 static unsigned long doryta_id_to_pe_zero(int32_t doryta_id);
 static size_t doryta_id_to_local_id_identity(int32_t doryta_id);
+static int32_t local_id_to_doryta_id_identity(size_t local_id);
 
 
 struct ModelParams
@@ -541,7 +543,8 @@ static void load_arbitrary_single_pe(struct SettingsNeuronLP * settings_neuron_l
             .lps_in_pe = get_total_neurons_arbitrary,
             .gid_to_pe = gid_to_pe_zero,
             .doryta_id_to_pe = doryta_id_to_pe_zero,
-            .doryta_id_to_local_id = doryta_id_to_local_id_identity
+            .doryta_id_to_local_id = doryta_id_to_local_id_identity,
+            .local_id_to_doryta_id = local_id_to_doryta_id_identity
     });
 }
 
@@ -583,4 +586,8 @@ static unsigned long doryta_id_to_pe_zero(int32_t doryta_id) {
 
 static size_t doryta_id_to_local_id_identity(int32_t doryta_id) {
     return doryta_id;
+}
+
+static int32_t local_id_to_doryta_id_identity(size_t local_id) {
+    return local_id;
 }

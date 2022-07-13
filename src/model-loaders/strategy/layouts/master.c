@@ -165,7 +165,8 @@ void layout_master_init(int sizeof_neuron,
         .lps_in_pe = &layout_master_total_lps_pe,
         .gid_to_pe = layout_master_gid_to_pe,
         .doryta_id_to_pe = layout_master_doryta_id_to_pe,
-        .doryta_id_to_local_id = layout_master_doryta_id_to_local_id
+        .doryta_id_to_local_id = layout_master_doryta_id_to_local_id,
+        .local_id_to_doryta_id = layout_master_local_id_to_doryta_id
     };
     set_model_strategy_mode(&master_mode_params);
 }

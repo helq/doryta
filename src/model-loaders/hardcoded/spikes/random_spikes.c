@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pcg_basic.h>
-#include "../../storable_spikes.h"
-#include "../strategy/layouts/master.h"
-#include "../../utils/io.h"
-#include "../../utils/pcg32_random.h"
+#include "../../../storable_spikes.h"
+#include "../../strategy/layouts/master.h"
+#include "../../strategy/modes.h"
+#include "../../../utils/io.h"
+#include "../../../utils/pcg32_random.h"
 
 static struct StorableSpike **spikes = NULL;
 static struct StorableSpike *naked_spikes = NULL;
@@ -13,11 +14,13 @@ static struct StorableSpike *naked_spikes = NULL;
 
 void model_random_spikes_init(struct SettingsNeuronLP * settings_neuron_lp,
         double prob, double spikes_time, unsigned int until) {
-    int const num_neurons_pe = layout_master_total_neurons_pe();
+    struct StrategyParams const loadingModeParams = get_model_strategy_mode();
+
+    int const num_neurons_pe = loadingModeParams.lps_in_pe();
     spikes = calloc(num_neurons_pe, sizeof(struct StorableSpike*));
     naked_spikes = calloc(2*num_neurons_pe, sizeof(struct StorableSpike));
     for (int32_t i = 0; i < num_neurons_pe; i++) {
-        size_t const doryta_id = layout_master_local_id_to_doryta_id(i);
+        size_t const doryta_id = loadingModeParams.local_id_to_doryta_id(i);
 
         if (doryta_id >= until) {
             continue;

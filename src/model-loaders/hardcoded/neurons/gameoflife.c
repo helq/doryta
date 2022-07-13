@@ -1,7 +1,7 @@
 #include "gameoflife.h"
-#include "../strategy/layouts/master.h"
-#include "../strategy/layouts/standard_layouts.h"
-#include "../../neurons/lif.h"
+#include "../../strategy/layouts/master.h"
+#include "../../strategy/layouts/standard_layouts.h"
+#include "../../../neurons/lif.h"
 
 // Defined in ross.h
 unsigned int tw_nnodes(void);

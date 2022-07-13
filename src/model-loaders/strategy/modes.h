@@ -17,6 +17,7 @@ struct StrategyParams {
     unsigned long (*gid_to_pe) (uint64_t);
     unsigned long (*doryta_id_to_pe) (int32_t);
     size_t (*doryta_id_to_local_id) (int32_t);
+    int32_t (*local_id_to_doryta_id) (size_t);
 };
 
 static inline void initialize_StrategyParams(struct StrategyParams * params) {

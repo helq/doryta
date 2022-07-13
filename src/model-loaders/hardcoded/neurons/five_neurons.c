@@ -1,11 +1,11 @@
 #include "five_neurons.h"
 #include <pcg_basic.h>
 #include <ross.h>
-#include "../strategy/layouts/master.h"
-#include "../strategy/layouts/standard_layouts.h"
-#include "../../neurons/lif.h"
-#include "../../storable_spikes.h"
-#include "../../utils/pcg32_random.h"
+#include "../../strategy/layouts/master.h"
+#include "../../strategy/layouts/standard_layouts.h"
+#include "../../../neurons/lif.h"
+#include "../../../storable_spikes.h"
+#include "../../../utils/pcg32_random.h"
 
 
 static struct StorableSpike **spikes = NULL;
