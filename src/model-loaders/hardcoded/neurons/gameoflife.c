@@ -7,6 +7,7 @@
 unsigned int tw_nnodes(void);
 
 static int32_t width_world = 20;  // Default size of GoL is 20x20
+static double heartbeat = 0.5;
 
 
 // Life cell:
@@ -34,7 +35,7 @@ static void initialize_LIF(struct LifNeuron * lif, int32_t doryta_id) {
         .resting_potential = 0,
         .reset_potential = 0,
         .threshold = threshold,
-        .tau_m = .5,
+        .tau_m = heartbeat,
         .resistance = 1
     };
 }
@@ -77,7 +78,11 @@ static float initialize_weight_neurons(int32_t neuron_from, int32_t neuron_to) {
 struct ModelParams
 model_GoL_neurons_init(
         struct SettingsNeuronLP * settings_neuron_lp,
-        unsigned int width_world_) {
+        unsigned int width_world_,
+        double heartbeat_) {
+    if (heartbeat_ > 0) {
+        heartbeat = heartbeat_;
+    }
     // Careful, a mistmatch in `unsigned int` and `int32_t` might
     // bring some trouble, but it probably won't
     width_world = width_world_;
@@ -89,7 +94,7 @@ model_GoL_neurons_init(
       //.neurons          = ...
       //.synapses         = ...
       .spikes            = NULL,
-      .beat              = .5,
+      .beat              = heartbeat,
       .neuron_leak       = (neuron_leak_f) neurons_lif_leak,
       .neuron_leak_bigdt = (neuron_leak_big_f) neurons_lif_big_leak,
       .neuron_integrate  = (neuron_integrate_f) neurons_lif_integrate,

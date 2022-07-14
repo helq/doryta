@@ -61,6 +61,7 @@ static unsigned int random_spike_uplimit = 0;
 // Doubles
 static double random_spikes_prob = .2;
 static double random_spikes_time = -1;
+static double heartbeat = -1;
 // Strings
 // Yes, caping the size to 512 is UNSAFE but the only way to do it!!
 static char output_dir[512] = "output";
@@ -101,6 +102,9 @@ static tw_optdef const model_opts[] = {
             "the final state will be that in which the neuron was after it received the last spike)"),
     TWOPT_GROUP("Doryta Models"),
     TWOPT_CHAR("load-model", model_path, "Load model from file"),
+    TWOPT_DOUBLE("heartbeat", heartbeat,
+            "Overwrites the heartbeat defined by a model. Depending on the model, it might change "
+            "model behaviour"),
     TWOPT_FLAG("five-example", run_five_neuron_example,
             "Run a simple 5 (or 7) neurons network example (useful to check "
             "the binary is working properly)"),
@@ -147,6 +151,7 @@ void fprint_doryta_params(FILE * fp) {
     fprintf(fp, "output-dir            = '%s'\n", output_dir);
     fprintf(fp, "save-state            = %s\n",   save_final_state_neurons ? "ON" : "OFF");
     fprintf(fp, "load-model            = '%s'\n", model_path);
+    fprintf(fp, "heartbeat             = %f\n",   heartbeat);
     fprintf(fp, "five-example          = %s\n",   run_five_neuron_example ? "ON" : "OFF");
     fprintf(fp, "gol-model             = %s\n",   gol ? "ON" : "OFF");
     fprintf(fp, "gol-model-width       = %d\n",   gol_width);
@@ -217,6 +222,10 @@ int main(int argc, char *argv[]) {
         tw_error(TW_LOC, "`random-spikes-prob` must be a number between 0.0 and 1.0");
     }
 
+    if (! (heartbeat == -1 || heartbeat > 0) || isnan(heartbeat) || isinf(heartbeat)) {
+        tw_error(TW_LOC, "`heartbeat` must be ether -1 or a positive number");
+    }
+
     // ------------- Initializing model, spikes and probes (partially) -------------
     struct SettingsNeuronLP settings_neuron_lp;
     struct ModelParams params;
@@ -226,10 +235,14 @@ int main(int argc, char *argv[]) {
         params = model_five_neurons_init(&settings_neuron_lp);
     }
     if (gol) {
-        params = model_GoL_neurons_init(&settings_neuron_lp, gol_width);
+        params = model_GoL_neurons_init(&settings_neuron_lp, gol_width, heartbeat);
     }
     if (model_path[0] != '\0') {
         params = model_load_neurons_init(&settings_neuron_lp, model_path);
+    }
+
+    if (heartbeat > 0) {
+        settings_neuron_lp.beat = heartbeat;
     }
 
     // Loading Spikes

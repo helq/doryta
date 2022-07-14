@@ -19,7 +19,8 @@ from typing import Any
 def extract_images_from_doryta_output(
     path: pathlib.Path,
     width: int = 20,
-    shift: int = 1
+    shift: int = 1,
+    scale: float = 1.0
 ) -> np.ndarray[Any, Any]:
     escaped_path = pathlib.Path(glob.escape(path))  # type: ignore
     stat_files = glob.glob(str(escaped_path / "spikes-gid=*.txt"))
@@ -31,6 +32,8 @@ def extract_images_from_doryta_output(
     assert(len(spikes.shape) == 2)
     assert(spikes.shape[1] == 2)
 
+    # Scaling spike inputs
+    spikes[:, 1] *= scale
     # only spikes from the first `width*width` neurons are taken into account
     spikes = spikes[spikes[:, 0] < width*width, :].astype(int)
     # removing all spikes that appear prior to shift
@@ -57,11 +60,14 @@ if __name__ == '__main__':
                         help='Width/height of the grid (default: 20)', default=20)
     parser.add_argument('--shift', type=int,
                         help='First frame starts at this value (default: 1)', default=1)
+    parser.add_argument('--scale', type=float,
+                        help="Scale the input spikes. Useful when heartbeat doesn't coincide"
+                        " with GoL timings (default: 1.0)", default=1.0)
     parser.add_argument('--save-as', type=pathlib.Path,
                         help='Path to save img or video (default: None)', default=None)
     args = parser.parse_args()
 
-    imgs = extract_images_from_doryta_output(args.path, args.size, args.shift)
+    imgs = extract_images_from_doryta_output(args.path, args.size, args.shift, args.scale)
     # np.save(f"{args.save_as}.raw.npy", imgs)  # Saving binary
     # imgs = np.load(f"{args.save_as}.raw.npy")
 
