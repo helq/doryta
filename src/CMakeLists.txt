@@ -43,6 +43,7 @@ add_library(doryta_lib
   probes/lif_beta/voltage.c
   probes/stats.c
   utils/io.c
+  utils/io_load.c
   utils/math.c
   utils/pcg32_random.c
 )

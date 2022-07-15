@@ -1,10 +1,12 @@
+#define _DEFAULT_SOURCE
+
 #include "load_spikes.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include "../../driver/neuron.h"
 #include "../../storable_spikes.h"
 #include "../strategy/modes.h"
-#include "../../utils/io.h"
+#include "../../utils/io_load.h"
 
 static struct StorableSpike **spikes = NULL;
 static struct StorableSpike *naked_spikes = NULL;

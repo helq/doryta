@@ -1,9 +1,11 @@
+#define _DEFAULT_SOURCE
+
 #include "load_neurons.h"
 #include "../strategy/modes.h"
 #include "../strategy/layouts/master.h"
 #include "../strategy/layouts/standard_layouts.h"
 #include "../../neurons/lif.h"
-#include "../../utils/io.h"
+#include "../../utils/io_load.h"
 
 static bool is_initial_current_nonzero = false;
 static bool is_reset_higher_than_treshold = false;

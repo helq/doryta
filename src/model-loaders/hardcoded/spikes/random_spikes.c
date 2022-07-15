@@ -1,3 +1,5 @@
+#define _DEFAULT_SOURCE
+
 #include "random_spikes.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -5,7 +7,7 @@
 #include "../../../storable_spikes.h"
 #include "../../strategy/layouts/master.h"
 #include "../../strategy/modes.h"
-#include "../../../utils/io.h"
+#include "../../../utils/io_load.h"
 #include "../../../utils/pcg32_random.h"
 
 static struct StorableSpike **spikes = NULL;
