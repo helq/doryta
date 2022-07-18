@@ -1,7 +1,7 @@
 # Reproducing results from "Evaluating Performance of Spintronics-Based Spiking Neural Network Chips using Parallel Discrete Event Simulation"
 
 This folder contains all the data and instructions to reproduce the results and figures
-shown in the paper. Some steps are optional, and when run they will produce different,
+shown in the paper. Some steps are optional, and when run they will produce different.
 
 This document is broken into four sections: software requirements, how to compile doryta,
 steps to reproduce energy estimation results and steps to reproduce strong scaling
@@ -212,7 +212,7 @@ skipped if you only want to regenerate Figure 7 and Table 7:
 
 ## D. Reproducing strong scaling results
 
-Included in the folder `<doryta-root>/data/experiments/gol/scaling/` are three scripts used
+Included in the folder `<doryta-root>/data/experiments/gol/scaling/v1` are three scripts used
 to produce the strong scaling results on conservative, optimistic and optimistic realtime
 modes. The scripts assume that Doryta is running on a AiMOS node, thus some changes to the
 scripts are most certainly required to run on other systems.

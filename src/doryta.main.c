@@ -58,10 +58,11 @@ static unsigned int gol_width = 20;
 static unsigned int probe_firing_buffer_size = 5000;
 static unsigned int probe_voltage_buffer_size = 5000;
 static unsigned int random_spike_uplimit = 0;
+static unsigned int spike_rand_sched = 0;
 // Doubles
 static double random_spikes_prob = .2;
 static double random_spikes_time = -1;
-static double heartbeat = -1;
+static double heartbeat_overwrite = -1;
 // Strings
 // Yes, caping the size to 512 is UNSAFE but the only way to do it!!
 static char output_dir[512] = "output";
@@ -102,9 +103,6 @@ static tw_optdef const model_opts[] = {
             "the final state will be that in which the neuron was after it received the last spike)"),
     TWOPT_GROUP("Doryta Models"),
     TWOPT_CHAR("load-model", model_path, "Load model from file"),
-    TWOPT_DOUBLE("heartbeat", heartbeat,
-            "Overwrites the heartbeat defined by a model. Depending on the model, it might change "
-            "model behaviour"),
     TWOPT_FLAG("five-example", run_five_neuron_example,
             "Run a simple 5 (or 7) neurons network example (useful to check "
             "the binary is working properly)"),
@@ -112,6 +110,17 @@ static tw_optdef const model_opts[] = {
             "Defines a 20x20 (by default) Game Of Life grid using Conv2D layers"),
     TWOPT_UINT("gol-model-size", gol_width,
             "Width and Height of the GoL world grid"),
+    TWOPT_DOUBLE("heartbeat-overwrite", heartbeat_overwrite,
+            "Overwrites the heartbeat defined by a model. Depending on the model, it might change "
+            "model behaviour"),
+    TWOPT_UINT("spike-rand-sched", spike_rand_sched,
+            "If set to any positive integer, it will schedule spikes randomly between two "
+            "heartbeats instead of scheduling them precisely at 0.5 heartbeats between the "
+            "heartbeats. The larger the number, the more options a spike can have. With 1, "
+            "the spikes have only one slot to be assigned (0.5). With 3, the spikes have "
+            "three slots to be assigned (namely, 0.25, 0.5 and 0.75). This parameter should "
+            "not alter the simulation results, it only alters the speed of the simulation "
+            "between conservative and optimistic approaches"),
     TWOPT_GROUP("Doryta Spikes"),
     TWOPT_CHAR("load-spikes", spikes_path, "Load spikes from file"),
     TWOPT_DOUBLE("random-spikes-prob", random_spikes_prob,
@@ -151,10 +160,11 @@ void fprint_doryta_params(FILE * fp) {
     fprintf(fp, "output-dir            = '%s'\n", output_dir);
     fprintf(fp, "save-state            = %s\n",   save_final_state_neurons ? "ON" : "OFF");
     fprintf(fp, "load-model            = '%s'\n", model_path);
-    fprintf(fp, "heartbeat             = %f\n",   heartbeat);
     fprintf(fp, "five-example          = %s\n",   run_five_neuron_example ? "ON" : "OFF");
     fprintf(fp, "gol-model             = %s\n",   gol ? "ON" : "OFF");
     fprintf(fp, "gol-model-width       = %d\n",   gol_width);
+    fprintf(fp, "heartbeat-overwrite   = %f\n",   heartbeat_overwrite);
+    fprintf(fp, "spike-rand-sched      = %d\n",   spike_rand_sched);
     fprintf(fp, "load-spikes           = '%s'\n", spikes_path);
     fprintf(fp, "random-spikes-prob    = %f\n",   random_spikes_prob);
     fprintf(fp, "random-spikes-time    = %f\n",   random_spikes_time);
@@ -222,12 +232,13 @@ int main(int argc, char *argv[]) {
         tw_error(TW_LOC, "`random-spikes-prob` must be a number between 0.0 and 1.0");
     }
 
-    if (! (heartbeat == -1 || heartbeat > 0) || isnan(heartbeat) || isinf(heartbeat)) {
+    if (! (heartbeat_overwrite == -1 || heartbeat_overwrite > 0)
+            || isnan(heartbeat_overwrite) || isinf(heartbeat_overwrite)) {
         tw_error(TW_LOC, "`heartbeat` must be ether -1 or a positive number");
     }
 
     // ------------- Initializing model, spikes and probes (partially) -------------
-    struct SettingsNeuronLP settings_neuron_lp;
+    struct SettingsNeuronLP settings_neuron_lp = {0};
     struct ModelParams params;
 
     // Loading Model
@@ -235,14 +246,21 @@ int main(int argc, char *argv[]) {
         params = model_five_neurons_init(&settings_neuron_lp);
     }
     if (gol) {
-        params = model_GoL_neurons_init(&settings_neuron_lp, gol_width, heartbeat);
+        params = model_GoL_neurons_init(&settings_neuron_lp, gol_width, heartbeat_overwrite);
     }
     if (model_path[0] != '\0') {
         params = model_load_neurons_init(&settings_neuron_lp, model_path);
     }
 
-    if (heartbeat > 0) {
-        settings_neuron_lp.beat = heartbeat;
+    // Modifying model given arguments
+    if (heartbeat_overwrite > 0) {
+        settings_neuron_lp.beat = heartbeat_overwrite;
+    }
+    if (spike_rand_sched > 0) {
+        settings_neuron_lp.spike_options = (struct SpikeScheduling) {
+            .type = SPIKE_SCHEDULER_at_random_choice,
+            .choices = spike_rand_sched
+        };
     }
 
     // Loading Spikes

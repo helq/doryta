@@ -97,6 +97,20 @@ static inline void assert_valid_NeuronLP(struct NeuronLP * neuronLP) {
 }
 
 
+enum SPIKE_SCHEDULER {
+    SPIKE_SCHEDULER_fixed_middle,
+    SPIKE_SCHEDULER_at_random_choice
+};
+
+
+struct SpikeScheduling {
+    enum SPIKE_SCHEDULER type;
+
+    // Only for SPIKE_SCHEDULER_at_random_choice
+    int choices;
+};
+
+
 typedef void (*neuron_leak_f)      (void *, double);
 typedef void (*neuron_leak_big_f)  (void *, double, double);
 typedef void (*neuron_integrate_f) (void *, float);
@@ -194,6 +208,10 @@ struct SettingsNeuronLP {
     probe_event_f            * probe_events;
     /** File handler to where the final state of the system will be saved. */
     FILE *                     save_state_handler;
+    /** Determines the spikes scheduling methodology. For
+     * example, all spikes are sent at 0.5*heartbeat offset or
+     * at random within 0 and 1 heartbeat.  */
+    struct SpikeScheduling     spike_options;
 };
 
 static inline bool is_valid_SettingsPE(struct SettingsNeuronLP * settingsPE) {
@@ -212,8 +230,12 @@ static inline bool is_valid_SettingsPE(struct SettingsNeuronLP * settingsPE) {
     bool const beat_validity = settingsPE->beat > 0
                             && !isnan(settingsPE->beat)
                             && !isinf(settingsPE->beat);
+    bool spike_opts_validity = true;
+    if (settingsPE->spike_options.type == SPIKE_SCHEDULER_at_random_choice) {
+        spike_opts_validity = settingsPE->spike_options.choices > 0;
+    }
     if (!(basic_non_nullness && correct_neuron_sizes
-          && beat_validity)) {
+          && beat_validity && spike_opts_validity)) {
         return false;
     }
     for (int i = 0; i < settingsPE->num_neurons_pe; i++) {
@@ -237,6 +259,9 @@ static inline void assert_valid_SettingsPE(struct SettingsNeuronLP * settingsPE)
     assert(settingsPE->beat > 0);
     assert(!isnan(settingsPE->beat));
     assert(!isinf(settingsPE->beat));
+    if (settingsPE->spike_options.type == SPIKE_SCHEDULER_at_random_choice) {
+        assert(settingsPE->spike_options.choices > 0);
+    }
     for (int i = 0; i < settingsPE->num_neurons_pe; i++) {
         assert(settingsPE->neurons[i] != NULL);
     }

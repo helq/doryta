@@ -31,14 +31,33 @@
 #define SPIKE_PRIORITY 0.8
 #define HEARTBEAT_PRIORITY 0.5
 
-struct SettingsNeuronLP settings = {0};
-bool settings_initialized = false;
+static struct SettingsNeuronLP settings = {0};
+static bool settings_initialized = false;
+static long (*send_spikes) (struct NeuronLP *neuronLP, struct tw_lp *lp);
+static void (*send_spikes_reverse) (struct NeuronLP *neuronLP, struct tw_lp *lp, long rng_count);
+
+
+// These functions are implemented later
+static long send_spikes_fixed_middle(struct NeuronLP *neuronLP, struct tw_lp *lp);
+static long send_spikes_at_random_choice(struct NeuronLP *neuronLP, struct tw_lp *lp);
+static void send_spikes_at_random_choice_reverse(struct NeuronLP *neuronLP, struct tw_lp *lp, long rng_count);
 
 
 void driver_neuron_config(struct SettingsNeuronLP * settings_in) {
     assert_valid_SettingsPE(settings_in);
     settings = *settings_in;
     settings_initialized = true;
+
+    switch (settings.spike_options.type) {
+        case SPIKE_SCHEDULER_fixed_middle:
+            send_spikes = send_spikes_fixed_middle;
+            send_spikes_reverse = NULL;
+            break;
+        case SPIKE_SCHEDULER_at_random_choice:
+            send_spikes = send_spikes_at_random_choice;
+            send_spikes_reverse = send_spikes_at_random_choice_reverse;
+            break;
+    }
 
     // TODO: This PE should communicate with all the others to see if the total
     // number of neurons is what is supposed to be (only to be run as an assert)
@@ -63,7 +82,9 @@ static inline void send_heartbeat(struct NeuronLP *neuronLP, struct tw_lp *lp) {
 }
 
 
-static inline void send_spike(
+/** This function sends spikes at a fixed time stamp/delay (the floating point
+ * delay value is determined at initilization) */
+static long send_spikes_fixed_middle(
         struct NeuronLP *neuronLP, struct tw_lp *lp) {
     if (neuronLP->to_contact.num > 0) {
         for (int32_t i = 0; i < neuronLP->to_contact.num; i++) {
@@ -85,10 +106,64 @@ static inline void send_spike(
             tw_event_send(event);
         }
     }
+
+    return 0;
 }
 
 
-static inline void send_spike_from_StorableSpike(
+/** This function sends each spike at a randomly chosen time stamp from 1 of `n` choices.
+ * In practice it doesn't matter when the spike is scheduled within two heartbeats, which
+ * is what this function does. This function should not alter the behaviour of the
+ * network. It should only alter the speed of the simulation (better for optimistic than
+ * conservative) */
+static long send_spikes_at_random_choice(
+        struct NeuronLP *neuronLP, struct tw_lp *lp) {
+    assert(settings.spike_options.type == SPIKE_SCHEDULER_at_random_choice);
+    long const start_count = lp->rng->count;
+
+    if (neuronLP->to_contact.num > 0) {
+        for (int32_t i = 0; i < neuronLP->to_contact.num; i++) {
+            struct Synapse const synap =
+                neuronLP->to_contact.synapses[i];
+
+            // Finding offset (delay) value for the spike to be sent
+            int const choices = settings.spike_options.choices;
+            // Finding a random value between 0 and 1 for the number of choices given.
+            // With 1 choice, the only option is .5, with 3 the values are .25, .5 and .75.
+            double const between_0_1 = tw_rand_integer(lp->rng, 1, choices) / (double) (choices + 1);
+            // assert(0 < between_0_1 && between_0_1 < 1);
+            // Scaling (the multiplication)
+            double const delay = (synap.delay - between_0_1) * settings.beat;
+
+            struct tw_event * const event =
+                tw_event_new_user_prio(synap.gid_to_send, delay, lp, SPIKE_PRIORITY);
+            struct Message * const msg = tw_event_data(event);
+            initialize_Message(msg, MESSAGE_TYPE_spike);
+#ifndef NDEBUG
+            msg->neuron_from = neuronLP->doryta_id;
+            msg->neuron_to = synap.doryta_id_to_send;
+#endif
+            msg->neuron_from_gid = lp->gid;
+            msg->neuron_to_gid = synap.gid_to_send;
+            msg->spike_current = synap.weight;
+            assert_valid_Message(msg);
+            tw_event_send(event);
+        }
+    }
+
+    return lp->rng->count - start_count;
+}
+
+
+static void send_spikes_at_random_choice_reverse(struct NeuronLP *neuronLP, struct tw_lp *lp, long rng_count) {
+    (void) neuronLP;
+    while (rng_count--) {
+        tw_rand_reverse_unif(lp->rng);
+    }
+}
+
+
+static inline void send_spikes_from_StorableSpike(
         struct NeuronLP *neuronLP,
         struct tw_lp *lp,
         struct StorableSpike * spike) {
@@ -130,7 +205,9 @@ void driver_neuron_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
         neuronLP->to_contact = settings.synapses[local_id];
         for (int32_t i = 0; i < neuronLP->to_contact.num; i++) {
             struct Synapse * synapse = &neuronLP->to_contact.synapses[i];
-            synapse->delay_double = (synapse->delay - 0.5) * settings.beat;
+            if (settings.spike_options.type == SPIKE_SCHEDULER_fixed_middle) {
+                synapse->delay_double = (synapse->delay - 0.5) * settings.beat;
+            }
         }
     }
 
@@ -140,7 +217,7 @@ void driver_neuron_init(struct NeuronLP *neuronLP, struct tw_lp *lp) {
         // spikes is a pointer to an array of NULL/zero terminated spikes
         while(spikes_for_neuron->intensity != 0) {
             assert_valid_StorableSpike(spikes_for_neuron);
-            send_spike_from_StorableSpike(neuronLP, lp, spikes_for_neuron);
+            send_spikes_from_StorableSpike(neuronLP, lp, spikes_for_neuron);
             spikes_for_neuron++;
         }
     }
@@ -186,7 +263,7 @@ void driver_neuron_event_needy(
             settings.neuron_leak(neuronLP->neuron_struct, settings.beat);
             bool const fired = settings.neuron_fire(neuronLP->neuron_struct);
             if (fired) {
-                send_spike(neuronLP, lp);
+                msg->rng_count = send_spikes(neuronLP, lp);
                 msg->fired = true;
             }
             send_heartbeat(neuronLP, lp);
@@ -209,11 +286,17 @@ void driver_neuron_event_reverse_needy(
         struct Message *msg,
         struct tw_lp *lp) {
     (void) bit_field;
-    (void) lp;
-    settings.reverse_store_neuron(neuronLP->neuron_struct, msg->reserved_for_reverse);
     if (msg->type == MESSAGE_TYPE_heartbeat) {
-        msg->fired = false;
+        if (msg->fired) {
+            msg->fired = false;
+            assert(msg->rng_count > 0 ? send_spikes_reverse != NULL : true);
+            if (send_spikes_reverse) {
+                send_spikes_reverse(neuronLP, lp, msg->rng_count);
+                msg->rng_count = 0;
+            }
+        }
     }
+    settings.reverse_store_neuron(neuronLP->neuron_struct, msg->reserved_for_reverse);
     msg->time_processed = -1;
 }
 
@@ -246,7 +329,7 @@ void driver_neuron_event_spike_driven(
             settings.neuron_leak(neuronLP->neuron_struct, settings.beat);
             bool const fired = settings.neuron_fire(neuronLP->neuron_struct);
             if (fired) {
-                send_spike(neuronLP, lp);
+                msg->rng_count = send_spikes(neuronLP, lp);
                 msg->fired = true;
             }
             neuronLP->last_heartbeat = tw_now(lp);
@@ -293,13 +376,20 @@ void driver_neuron_event_reverse_spike_driven(
         struct Message *msg,
         struct tw_lp *lp) {
     (void) lp;
+    if (msg->type == MESSAGE_TYPE_heartbeat) {
+        if (msg->fired) {
+            msg->fired = false;
+            assert(msg->rng_count > 0 ? send_spikes_reverse != NULL : true);
+            if (send_spikes_reverse) {
+                send_spikes_reverse(neuronLP, lp, msg->rng_count);
+                msg->rng_count = 0;
+            }
+        }
+    }
     settings.reverse_store_neuron(neuronLP->neuron_struct, msg->reserved_for_reverse);
+    msg->time_processed = -1;
     neuronLP->last_heartbeat = msg->prev_heartbeat;
     neuronLP->next_heartbeat_sent = bit_field->c0;
-    if (msg->type == MESSAGE_TYPE_heartbeat) {
-        msg->fired = false;
-    }
-    msg->time_processed = -1;
 }
 
 
@@ -330,6 +420,9 @@ void driver_neuron_final(struct NeuronLP *neuronLP, struct tw_lp *lp) {
         fprintf(fp, "LP (neuron): %" PRIi32 ". ", self);
         if (neuronLP->last_heartbeat > 0) {
             fprintf(fp, "Last heartbeat: %f ", neuronLP->last_heartbeat);
+        }
+        if (settings.spike_options.type == SPIKE_SCHEDULER_at_random_choice) {
+            fprintf(fp, "RNG count: %lu ", lp->rng->count);
         }
         if (settings.print_neuron_struct != NULL) {
             settings.print_neuron_struct(fp, neuronLP->neuron_struct);

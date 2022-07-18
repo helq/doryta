@@ -22,6 +22,7 @@ enum MESSAGE_TYPE {
  * - `spike_current` must be a number (not NaN)
  * - `neuron_from` must be less than the number of LPs in the system
  * - `neuron_to` must be less than the number of LPs in the system
+ * - `rng_count` can be larger than zero if `fired` is true, it is zero otherwise
  */
 struct Message {
     enum MESSAGE_TYPE type;
@@ -29,6 +30,7 @@ struct Message {
     union {
         struct { // message type = heartbeat
             bool fired;
+            long rng_count;
         };
         struct { // message type = spike
 #ifndef NDEBUG
@@ -61,6 +63,7 @@ static inline void initialize_Message(struct Message * msg, enum MESSAGE_TYPE ty
         case MESSAGE_TYPE_heartbeat:
             msg->type = MESSAGE_TYPE_heartbeat;
             msg->fired = false;
+            msg->rng_count = 0;
             break;
         case MESSAGE_TYPE_spike:
             msg->type = MESSAGE_TYPE_spike;
@@ -79,32 +82,42 @@ extern uint64_t g_tw_total_lps; //< Total number of LPs (defined by ROSS)
 
 static inline bool is_valid_Message(struct Message * msg) {
     bool correct_spike = true;
-    if (msg->type == MESSAGE_TYPE_spike) {
-         correct_spike = correct_spike
-                       && !isnan(msg->spike_current)
+    bool correct_heartbeat = true;
+    switch (msg->type) {
+        case MESSAGE_TYPE_heartbeat:
+            correct_heartbeat = msg->fired ? msg->rng_count >= 0 : msg->rng_count == 0;
+            break;
+        case MESSAGE_TYPE_spike:
+            correct_spike = correct_spike
+                && !isnan(msg->spike_current)
 #ifndef NDEBUG
-                       && 0 <= msg->neuron_from
-                       && 0 <= msg->neuron_to
-                       && (uint64_t) msg->neuron_from < g_tw_total_lps
-                       && (uint64_t) msg->neuron_to < g_tw_total_lps
+                && 0 <= msg->neuron_from
+                && 0 <= msg->neuron_to
+                && (uint64_t) msg->neuron_from < g_tw_total_lps
+                && (uint64_t) msg->neuron_to < g_tw_total_lps
 #endif
-                       && 0 <= msg->neuron_from_gid
-                       && 0 <= msg->neuron_to_gid
-                       ;
+                && 0 <= msg->neuron_from_gid
+                && 0 <= msg->neuron_to_gid;
+            break;
     }
-    return correct_spike;
+    return correct_spike && correct_heartbeat;
 }
 
 static inline void assert_valid_Message(struct Message * msg) {
 #ifndef NDEBUG
-    if (msg->type == MESSAGE_TYPE_spike) {
-        assert(!isnan(msg->spike_current));
-        assert(0 <= msg->neuron_from);
-        assert(0 <= msg->neuron_to);
-        assert((uint64_t) msg->neuron_from < g_tw_total_lps);
-        assert((uint64_t) msg->neuron_to < g_tw_total_lps);
-        assert(0 <= msg->neuron_from_gid);
-        assert(0 <= msg->neuron_to_gid);
+    switch (msg->type) {
+        case MESSAGE_TYPE_heartbeat:
+            assert(msg->fired ? msg->rng_count >= 0 : msg->rng_count == 0);
+            break;
+        case MESSAGE_TYPE_spike:
+            assert(!isnan(msg->spike_current));
+            assert(0 <= msg->neuron_from);
+            assert(0 <= msg->neuron_to);
+            assert((uint64_t) msg->neuron_from < g_tw_total_lps);
+            assert((uint64_t) msg->neuron_to < g_tw_total_lps);
+            assert(0 <= msg->neuron_from_gid);
+            assert(0 <= msg->neuron_to_gid);
+            break;
     }
 #endif // NDEBUG
 }
