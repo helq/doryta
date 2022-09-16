@@ -50,7 +50,7 @@ void neurons_lif_beta_leak(struct LifBetaNeuron *, double);
 
 void neurons_lif_beta_integrate(struct LifBetaNeuron *, float current);
 
-bool neurons_lif_beta_fire(struct LifBetaNeuron *);
+struct NeuronFiring neurons_lif_beta_fire(struct LifBetaNeuron *);
 
 void neurons_lif_beta_store_state(
         struct LifBetaNeuron *,

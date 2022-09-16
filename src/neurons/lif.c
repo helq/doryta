@@ -26,7 +26,7 @@ void neurons_lif_integrate(struct LifNeuron * lf, float spike_current) {
 }
 
 
-bool neurons_lif_fire(struct LifNeuron * lf) {
+struct NeuronFiring neurons_lif_fire(struct LifNeuron * lf) {
     bool const to_fire = lf->potential > lf->threshold;
     if (to_fire) {
         lf->potential = lf->reset_potential;
@@ -34,7 +34,7 @@ bool neurons_lif_fire(struct LifNeuron * lf) {
     // The current resets on every instant in time
     // It is equal to whatever it gets from spikes
     lf->current = 0;
-    return to_fire;
+    return (struct NeuronFiring) {to_fire, 1.0};
 }
 
 

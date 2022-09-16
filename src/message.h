@@ -122,4 +122,15 @@ static inline void assert_valid_Message(struct Message * msg) {
 #endif // NDEBUG
 }
 
+
+/** When a neuron fires it must return also the intensity of the value it
+ * returned. This value often is just one, but can be tweaked depending on the
+ * neuron model.
+ */
+struct NeuronFiring {
+    bool fired;
+    double intensity;
+};
+
+
 #endif /* end of include guard */

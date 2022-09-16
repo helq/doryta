@@ -12,12 +12,12 @@ void neurons_lif_beta_integrate(struct LifBetaNeuron * lf, float current) {
 }
 
 
-bool neurons_lif_beta_fire(struct LifBetaNeuron * lf) {
+struct NeuronFiring neurons_lif_beta_fire(struct LifBetaNeuron * lf) {
     bool const to_fire = lf->potential > lf->threshold;
     if (to_fire) {
         lf->potential = lf->baseline;
     }
-    return to_fire;
+    return (struct NeuronFiring) {to_fire, 1.0};
 }
 
 

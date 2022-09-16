@@ -36,7 +36,9 @@ add_library(doryta_lib
   model-loaders/strategy/layouts/master.c
   model-loaders/strategy/layouts/master.c
   model-loaders/strategy/layouts/standard_layouts.c
+  neurons/master.c
   neurons/lif.c
+  neurons/lifpassthru.c
   neurons/lif_beta.c
   probes/firing.c
   probes/lif/voltage.c

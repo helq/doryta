@@ -1,5 +1,5 @@
-#ifndef DORYTA_NEOURNS_LIF_H
-#define DORYTA_NEOURNS_LIF_H
+#ifndef DORYTA_NEOURNS_LIFPASSTHRU_H
+#define DORYTA_NEOURNS_LIFPASSTHRU_H
 
 #include "../message.h"
 #include <stdio.h>
@@ -18,7 +18,7 @@
  * Invariants:
  * - params are positive
  */
-struct LifNeuron {
+struct LifPassthruNeuron {
     float potential;          // V
     float current;            // I(t)
     float resting_potential;  // V_e
@@ -26,6 +26,11 @@ struct LifNeuron {
     float threshold;          // V_th
     float tau_m;              // R * C
     float resistance;         // R
+    // when pashthru is true, then threshold is ignored and the
+    // neuron will fire with any input spike
+    bool passthru;
+    // This is just to know if the neuron has received a spike
+    bool activated;
 };
 
 
@@ -37,7 +42,7 @@ struct LifNeuron {
  * Remember that the data used to reverse the state of the neuron cannot be
  * bigger than MESSAGE_SIZE_REVERSE
  */
-struct StorageInMessageLif {
+struct StorageInMessageLifPassthru {
     float potential;
     float current;
 };
@@ -45,26 +50,26 @@ struct StorageInMessageLif {
 #define WARNING_MESSAGE(x) \
     "The data to store in the `char[" STRING_HELPER(x) \
     "]` cannot exceed " STRING_HELPER(x) " bytes"
-static_assert(sizeof(struct StorageInMessageLif) <= MESSAGE_SIZE_REVERSE,
+static_assert(sizeof(struct StorageInMessageLifPassthru) <= MESSAGE_SIZE_REVERSE,
         WARNING_MESSAGE(MESSAGE_SIZE_REVERSE));
 
 
-void neurons_lif_leak(struct LifNeuron *, double);
+void neurons_lifpassthru_leak(struct LifPassthruNeuron *, double);
 
-void neurons_lif_big_leak(struct LifNeuron *, double, double);
+void neurons_lifpassthru_big_leak(struct LifPassthruNeuron *, double, double);
 
-void neurons_lif_integrate(struct LifNeuron *, float current);
+void neurons_lifpassthru_integrate(struct LifPassthruNeuron *, float current);
 
-struct NeuronFiring neurons_lif_fire(struct LifNeuron *);
+struct NeuronFiring neurons_lifpassthru_fire(struct LifPassthruNeuron *);
 
-void neurons_lif_store_state(
-        struct LifNeuron *,
-        struct StorageInMessageLif * storage);
+void neurons_lifpassthru_store_state(
+        struct LifPassthruNeuron *,
+        struct StorageInMessageLifPassthru * storage);
 
-void neurons_lif_reverse_store_state(
-        struct LifNeuron *,
-        struct StorageInMessageLif * storage);
+void neurons_lifpassthru_reverse_store_state(
+        struct LifPassthruNeuron *,
+        struct StorageInMessageLifPassthru * storage);
 
-void neurons_lif_print(FILE * fp, struct LifNeuron * lif);
+void neurons_lifpassthru_print(FILE * fp, struct LifPassthruNeuron * lif);
 
 #endif /* end of include guard */

@@ -33,13 +33,13 @@
 
 static struct SettingsNeuronLP settings = {0};
 static bool settings_initialized = false;
-static long (*send_spikes) (struct NeuronLP *neuronLP, struct tw_lp *lp);
+static long (*send_spikes) (struct NeuronLP *neuronLP, struct tw_lp *lp, double intensity);
 static void (*send_spikes_reverse) (struct NeuronLP *neuronLP, struct tw_lp *lp, long rng_count);
 
 
 // These functions are implemented later
-static long send_spikes_fixed_middle(struct NeuronLP *neuronLP, struct tw_lp *lp);
-static long send_spikes_at_random_choice(struct NeuronLP *neuronLP, struct tw_lp *lp);
+static long send_spikes_fixed_middle(struct NeuronLP *neuronLP, struct tw_lp *lp, double intensity);
+static long send_spikes_at_random_choice(struct NeuronLP *neuronLP, struct tw_lp *lp, double intensity);
 static void send_spikes_at_random_choice_reverse(struct NeuronLP *neuronLP, struct tw_lp *lp, long rng_count);
 
 
@@ -85,7 +85,7 @@ static inline void send_heartbeat(struct NeuronLP *neuronLP, struct tw_lp *lp) {
 /** This function sends spikes at a fixed time stamp/delay (the floating point
  * delay value is determined at initilization) */
 static long send_spikes_fixed_middle(
-        struct NeuronLP *neuronLP, struct tw_lp *lp) {
+        struct NeuronLP *neuronLP, struct tw_lp *lp, double intensity) {
     if (neuronLP->to_contact.num > 0) {
         for (int32_t i = 0; i < neuronLP->to_contact.num; i++) {
             struct Synapse const synap =
@@ -101,7 +101,7 @@ static long send_spikes_fixed_middle(
 #endif
             msg->neuron_from_gid = lp->gid;
             msg->neuron_to_gid = synap.gid_to_send;
-            msg->spike_current = synap.weight;
+            msg->spike_current = synap.weight * intensity;
             assert_valid_Message(msg);
             tw_event_send(event);
         }
@@ -117,7 +117,7 @@ static long send_spikes_fixed_middle(
  * network. It should only alter the speed of the simulation (better for optimistic than
  * conservative) */
 static long send_spikes_at_random_choice(
-        struct NeuronLP *neuronLP, struct tw_lp *lp) {
+        struct NeuronLP *neuronLP, struct tw_lp *lp, double intensity) {
     assert(settings.spike_options.type == SPIKE_SCHEDULER_at_random_choice);
     long const start_count = lp->rng->count;
 
@@ -145,7 +145,7 @@ static long send_spikes_at_random_choice(
 #endif
             msg->neuron_from_gid = lp->gid;
             msg->neuron_to_gid = synap.gid_to_send;
-            msg->spike_current = synap.weight;
+            msg->spike_current = synap.weight * intensity;
             assert_valid_Message(msg);
             tw_event_send(event);
         }
@@ -261,9 +261,9 @@ void driver_neuron_event_needy(
             // A different ordering (fire before leak) might be necessary for
             // some neuron type but that hasn't happened yet.
             settings.neuron_leak(neuronLP->neuron_struct, settings.beat);
-            bool const fired = settings.neuron_fire(neuronLP->neuron_struct);
-            if (fired) {
-                msg->rng_count = send_spikes(neuronLP, lp);
+            struct NeuronFiring const fired = settings.neuron_fire(neuronLP->neuron_struct);
+            if (fired.fired) {
+                msg->rng_count = send_spikes(neuronLP, lp, fired.intensity);
                 msg->fired = true;
             }
             send_heartbeat(neuronLP, lp);
@@ -327,9 +327,9 @@ void driver_neuron_event_spike_driven(
         case MESSAGE_TYPE_heartbeat: {
             // Same as needy mode, except for `last_heartbeat`
             settings.neuron_leak(neuronLP->neuron_struct, settings.beat);
-            bool const fired = settings.neuron_fire(neuronLP->neuron_struct);
-            if (fired) {
-                msg->rng_count = send_spikes(neuronLP, lp);
+            struct NeuronFiring const fired = settings.neuron_fire(neuronLP->neuron_struct);
+            if (fired.fired) {
+                msg->rng_count = send_spikes(neuronLP, lp, fired.intensity);
                 msg->fired = true;
             }
             neuronLP->last_heartbeat = tw_now(lp);

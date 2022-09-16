@@ -5,6 +5,8 @@
 #include "../strategy/layouts/master.h"
 #include "../strategy/layouts/standard_layouts.h"
 #include "../../neurons/lif.h"
+#include "../../neurons/lifpassthru.h"
+#include "../../neurons/master.h"
 #include "../../utils/io_load.h"
 
 static bool is_initial_current_nonzero = false;
@@ -22,7 +24,9 @@ static void                    ** neurons = NULL;
 static struct SynapseCollection * synapses = NULL;
 
 static void load_with_layout_v1(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
-static void load_with_layout_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
+static void load_with_layout_v2(
+        struct SettingsNeuronLP * settings_neuron_lp, FILE * fp,
+        enum NEURON_TYPE nt);
 static void load_arbitrary_single_pe(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp);
 
 // Functions to determine ID conversions for the case of loading arbitrary networks in one PE
@@ -49,8 +53,9 @@ model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
     if (format == 0x1) {
         load_with_layout_v1(settings_neuron_lp, fp);
         is_using_layout = true;
-    } else if (format == 0x2) {
-        load_with_layout_v2(settings_neuron_lp, fp);
+    } else if (format == 0x2 || format == 0x32) {
+        load_with_layout_v2(settings_neuron_lp, fp,
+                format == 0x2 ? NEURON_TYPE_lif : NEURON_TYPE_lifpassthru);
         is_using_layout = true;
     } else if (format == 0x11) {
         load_arbitrary_single_pe(settings_neuron_lp, fp);
@@ -82,7 +87,7 @@ model_load_neurons_init(struct SettingsNeuronLP * settings_neuron_lp,
 }
 
 
-static void load_neuron_params(struct LifNeuron * neuron, FILE * fp) {
+static void load_neuron_lif_params(struct LifNeuron * neuron, FILE * fp) {
     *neuron = (struct LifNeuron) {
         .potential         = load_float(fp),
         .current           = load_float(fp),
@@ -91,6 +96,29 @@ static void load_neuron_params(struct LifNeuron * neuron, FILE * fp) {
         .threshold         = load_float(fp),
         .tau_m             = load_float(fp),
         .resistance        = load_float(fp),
+    };
+
+    // checking if conditions for Spike-driven mode are fulfilled
+    if (!is_reset_higher_than_treshold && neuron->threshold < neuron->reset_potential) {
+        is_reset_higher_than_treshold = true;
+    }
+    if (!is_initial_current_nonzero && neuron->current != 0) {
+        is_initial_current_nonzero = true;
+    }
+}
+
+
+static void load_neuron_lifpashtru_params(struct LifPassthruNeuron * neuron, FILE * fp) {
+    *neuron = (struct LifPassthruNeuron) {
+        .potential         = load_float(fp),
+        .current           = load_float(fp),
+        .resting_potential = load_float(fp),
+        .reset_potential   = load_float(fp),
+        .threshold         = load_float(fp),
+        .tau_m             = load_float(fp),
+        .resistance        = load_float(fp),
+        .passthru          = load_uint8(fp),
+        .activated         = false,
     };
 
     // checking if conditions for Spike-driven mode are fulfilled
@@ -183,7 +211,7 @@ static void load_with_layout_v1(struct SettingsNeuronLP * settings_neuron_lp, FI
         }
 
         // Storing neuron results
-        load_neuron_params(settings_neuron_lp->neurons[i], fp);
+        load_neuron_lif_params(settings_neuron_lp->neurons[i], fp);
 
         int32_t const num_synapses = load_int32(fp);
         //printf("PE %lu - neuron id %d - num synapses %d\n", g_tw_mynode, doryta_id, num_synapses);
@@ -220,7 +248,8 @@ struct Conv2dGroup {
 };
 
 
-static void load_with_layout_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp) {
+static void load_with_layout_v2(struct SettingsNeuronLP * settings_neuron_lp, FILE * fp,
+        enum NEURON_TYPE nt) {
 #ifndef NDEBUG
     int32_t const total_num_neurons =
 #endif
@@ -299,27 +328,62 @@ static void load_with_layout_v2(struct SettingsNeuronLP * settings_neuron_lp, FI
     }
 
     // Setting the driver configuration
-    *settings_neuron_lp = (struct SettingsNeuronLP) {
-      //.num_neurons      = ...
-      //.num_neurons_pe   = ...
-      //.neurons          = ...
-      //.synapses         = ...
-      .spikes            = NULL,
-      .beat              = beat,
-      .neuron_leak       = (neuron_leak_f) neurons_lif_leak,
-      .neuron_leak_bigdt = (neuron_leak_big_f) neurons_lif_big_leak,
-      .neuron_integrate  = (neuron_integrate_f) neurons_lif_integrate,
-      .neuron_fire       = (neuron_fire_f) neurons_lif_fire,
-      .store_neuron         = (neuron_state_op_f) neurons_lif_store_state,
-      .reverse_store_neuron = (neuron_state_op_f) neurons_lif_reverse_store_state,
-      .print_neuron_struct  = (print_neuron_f) neurons_lif_print,
-      //.gid_to_doryta_id    = ...
-      //.probe_events     = probe_events,
-    };
+    switch (nt) {
+        case NEURON_TYPE_lif:
+            *settings_neuron_lp = (struct SettingsNeuronLP) {
+              //.num_neurons      = ...
+              //.num_neurons_pe   = ...
+              //.neurons          = ...
+              //.synapses         = ...
+              .spikes            = NULL,
+              .beat              = beat,
+              .neuron_leak       = (neuron_leak_f) neurons_lif_leak,
+              .neuron_leak_bigdt = (neuron_leak_big_f) neurons_lif_big_leak,
+              .neuron_integrate  = (neuron_integrate_f) neurons_lif_integrate,
+              .neuron_fire       = (neuron_fire_f) neurons_lif_fire,
+              .store_neuron         = (neuron_state_op_f) neurons_lif_store_state,
+              .reverse_store_neuron = (neuron_state_op_f) neurons_lif_reverse_store_state,
+              .print_neuron_struct  = (print_neuron_f) neurons_lif_print,
+              //.gid_to_doryta_id    = ...
+              //.probe_events     = probe_events,
+            };
+            break;
+        case NEURON_TYPE_lifpassthru:
+            *settings_neuron_lp = (struct SettingsNeuronLP) {
+              //.num_neurons      = ...
+              //.num_neurons_pe   = ...
+              //.neurons          = ...
+              //.synapses         = ...
+              .spikes            = NULL,
+              .beat              = beat,
+              .neuron_leak       = (neuron_leak_f) neurons_lifpassthru_leak,
+              .neuron_leak_bigdt = (neuron_leak_big_f) neurons_lifpassthru_big_leak,
+              .neuron_integrate  = (neuron_integrate_f) neurons_lifpassthru_integrate,
+              .neuron_fire       = (neuron_fire_f) neurons_lifpassthru_fire,
+              .store_neuron         = (neuron_state_op_f) neurons_lifpassthru_store_state,
+              .reverse_store_neuron = (neuron_state_op_f) neurons_lifpassthru_reverse_store_state,
+              .print_neuron_struct  = (print_neuron_f) neurons_lifpassthru_print,
+              //.gid_to_doryta_id    = ...
+              //.probe_events     = probe_events,
+            };
+            break;
+        default:
+            tw_error(TW_LOC, "Unknown neuron type %d", nt);
+    }
 
     // Allocates space for neurons and synapses
-    layout_master_init(sizeof(struct LifNeuron),
-            (neuron_init_f) NULL, (synapse_init_f) NULL);
+    switch (nt) {
+        case NEURON_TYPE_lif:
+            layout_master_init(sizeof(struct LifNeuron),
+                    (neuron_init_f) NULL, (synapse_init_f) NULL);
+            break;
+        case NEURON_TYPE_lifpassthru:
+            layout_master_init(sizeof(struct LifPassthruNeuron),
+                    (neuron_init_f) NULL, (synapse_init_f) NULL);
+            break;
+        default:
+            tw_error(TW_LOC, "Unknown neuron type %d", nt);
+    }
     layout_master_configure(settings_neuron_lp);
 
     // Loading neuron and synapses from file
@@ -350,7 +414,16 @@ static void load_with_layout_v2(struct SettingsNeuronLP * settings_neuron_lp, FI
         }
 
         // Storing neuron results
-        load_neuron_params(settings_neuron_lp->neurons[i], fp);
+        switch (nt) {
+            case NEURON_TYPE_lif:
+                load_neuron_lif_params(settings_neuron_lp->neurons[i], fp);
+                break;
+            case NEURON_TYPE_lifpassthru:
+                load_neuron_lifpashtru_params(settings_neuron_lp->neurons[i], fp);
+                break;
+            default:
+                tw_error(TW_LOC, "Unknown neuron type %d", nt);
+        }
 
         uint16_t const num_groups_fully = load_uint16(fp);
         uint16_t group_ind = 0;
@@ -490,7 +563,7 @@ static void load_arbitrary_single_pe(struct SettingsNeuronLP * settings_neuron_l
         // Connecting neurons pointers to naked neuron array
         neurons[i] = (void*) & naked_neurons[i*sizeof_neuron];
         // Loading neuron params
-        load_neuron_params(neurons[i], fp);
+        load_neuron_lif_params(neurons[i], fp);
 
         int32_t const num_synapses = load_int32(fp);
         synapses[i].num = num_synapses;

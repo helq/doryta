@@ -118,9 +118,9 @@ static void dummy_integrate(struct DummyNeuron * dn, float intensity) {
 }
 
 
-static bool dummy_fire(struct DummyNeuron * dn) {
+static struct NeuronFiring dummy_fire(struct DummyNeuron * dn) {
     bool const to_fire = dn->potential > dn->threshold;
-    return to_fire;
+    return (struct NeuronFiring) {to_fire > 0, 1.0};
 }
 
 
