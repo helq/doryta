@@ -485,7 +485,7 @@ static void load_arbitrary_single_pe(struct SettingsNeuronLP * settings_neuron_l
     int64_t synapses_i = 0;
     for (int32_t i = 0; i < total_neurons_in_pe; i++) {
         assert(i < total_neurons);
-        assert(synapses_i < total_synapses);
+        assert(synapses_i <= total_synapses);
 
         // Connecting neurons pointers to naked neuron array
         neurons[i] = (void*) & naked_neurons[i*sizeof_neuron];
@@ -498,6 +498,7 @@ static void load_arbitrary_single_pe(struct SettingsNeuronLP * settings_neuron_l
 
         // Loading synapses
         if (num_synapses) {
+            assert(synapses_i + num_synapses <= total_synapses);
             int32_t synapses_ids[num_synapses];
             float synapses_weights[num_synapses];
             int32_t synapses_delays[num_synapses];
