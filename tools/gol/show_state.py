@@ -29,8 +29,8 @@ def extract_images_from_doryta_output(
         exit(1)
 
     spikes = np.loadtxt(fileinput.input(stat_files))
-    assert(len(spikes.shape) == 2)
-    assert(spikes.shape[1] == 2)
+    assert len(spikes.shape) == 2
+    assert spikes.shape[1] == 2
 
     # Scaling spike inputs
     spikes[:, 1] *= scale

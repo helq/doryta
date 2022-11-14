@@ -34,9 +34,9 @@ def aggregate_stats(
         print(f"No valid stats files have been found in path {path}", file=sys.stderr)
         exit(1)
 
-    stats_per_neuron = np.loadtxt(fileinput.input(stat_files), dtype=int)  # type: ignore
-    assert(len(stats_per_neuron.shape) == 2)
-    assert(stats_per_neuron.shape[1] == 5)
+    stats_per_neuron = np.loadtxt(fileinput.input(stat_files), dtype=int)
+    assert len(stats_per_neuron.shape) == 2
+    assert stats_per_neuron.shape[1] == 5
 
     last_neuron = stats_per_neuron[:, 0].max()
     grouped: List[Tuple[str, Stats]] = []
@@ -122,9 +122,9 @@ if __name__ == '__main__':
             csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
 
             csvwriter.writerow(["name-unit", "out-synapses", "leak", "integration", "fire"])
-            csvwriter.writerow(["total"] + list(total if n is None  # type: ignore
+            csvwriter.writerow(["total"] + list(total if n is None
                                                 else stats_div_by(total, n)))
             for group_name, stats_i in grouped:
                 csvwriter.writerow([group_name] +
-                                   list(stats_i if n is None  # type: ignore
+                                   list(stats_i if n is None
                                         else stats_div_by(stats_i, n)))

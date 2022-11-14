@@ -19,7 +19,7 @@ def collect_stats(
         print(f"No valid stats files have been found in path {path}", file=sys.stderr)
         exit(1)
 
-    stats_per_neuron = np.loadtxt(fileinput.input(stat_files), dtype=int)  # type: ignore
+    stats_per_neuron = np.loadtxt(fileinput.input(stat_files), dtype=int)
 
     return stats_per_neuron
 
