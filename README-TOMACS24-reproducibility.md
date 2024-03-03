@@ -1,8 +1,11 @@
-# Reproducing results from article in TOMACS journal
+# Reproducing results from article in TOMACS journal (doi:10.1145/3649464)
 
-This folder contains all the data and instructions to reproduce the results and figures
-shown in the paper. Some steps are optional, and when run they will produce slightly
-different results from those of the paper.
+This folder contains all the data and instructions to reproduce some results and figures
+shown in the paper: [Performance Evaluation of Spintronic-Based Spiking Neural Networks Using
+Parallel Discrete-Event Simulation][doi-paper]. Some steps are optional, and when run they
+will produce slightly different results from those of the paper.
+
+[doi-paper]: https://doi.org/10.1145/3649464
 
 This document is broken into four sections: software requirements, how to compile doryta,
 steps to reproduce energy estimation results and steps to reproduce strong scaling
@@ -14,7 +17,7 @@ Doryta is written in C. You need a C compiler, CMake and support for [MPI][].
 
 All surrounding scripts for the analysis of the data are written in Python 3. All Python
 code has been tested in Python 3.10. Additionally, the following Python libraries are
-needed for the scripts to work:
+needed for the scripts to work (either version works):
 
 - Tensorflow 2.8 (for ANN model training, saving and checking)
 - Keras 2.8 (for ANN model training, saving and checking)
@@ -24,6 +27,18 @@ needed for the scripts to work:
 
 Other versions of the libraries might work, but these are the versions we have tested them
 against.
+
+For ease of installation, you can install all dependencies with:
+
+```bash
+pip install -r requirements.txt
+```
+
+The line above has been tested with Python 3.10 on a x64 intel machine with no GPU.
+
+**Note:** Running any version other than those suggested in here might break the scripts
+below in an unpredictable way. The code is offered as-is, although we assure you that at
+the time of writing it works as intended on the systems that have been tested.
 
 ## B. Doryta: Compilation
 
@@ -52,33 +67,38 @@ flag `-DCMAKE_INSTALL_PREFIX="$(pwd -P)/"`.
 a missing include in the `CMakeList.txt` file. If this is your case, please uncomment
 lines 13 and 14 in `CMakeList.txt` and try again. :)
 
+*Note 2:* You might encounter a CMake warning, especifically CMP0118. Do not worry about
+this warning, it comes from ROSS but it doesn't alter/break the compilation or binaries
+(as of now).
+
 ## C. Reproducing performance estimation results
 
-Assuming that the directory where this readme is situated is `<doryta-root>/`, you can
-reproduce the results found in the paper in two ways: run the script
+You can reproduce the results found in the paper in two ways: run the script
 `reproduce_tomacs23.sh` (see below) to reproduce the entire procedure; or, follow the step
 by step instructions (see below below). We suggest you check the step-by-step procedure as
-automated scripts tend to break as new software versions replace those in which the code
-was originally written :(. After that, you have to run the `Benchmark.ipynb` jupyter
-notebook to obtain two figures and a table.
+automated scripts tend to break with time as new software versions replace those in which
+the code was originally written :(. After that, you have to run the `Benchmark.ipynb`
+jupyter notebook to obtain two figures and a table.
+
+**Note:** we assume that the directory where this readme is situated is `<doryta-root>/`.
 
 ### The (almost) everything-bundled script
 
 Running this script will execute all steps from the next subsubsection (the step-by-step)
-except for step 6, which requires running a jupyter notebook.
-That has to be run manually. This means that it might take a significant large amount of
-time, probably many hours, and the final results will be slightly different, but hopefully
-similar enough, to the results presented in the article.
+except for step 7, which requires running a jupyter notebook. That has to be run manually.
+This means that it might take a significant large amount of time, probably many hours,
+and the final results will be slightly different, but hopefully similar enough, to the
+results presented in the article.
 
 ```bash
 cd "<doryta-root>/"
 bash -x data/experiments/performance_estimation/reproduce_tomacs23.sh
 # or, to store all logs
-bash -x data/experiments/performance_estimation/reproduce_tomacs23.sh > logs.txt
+bash -x data/experiments/performance_estimation/reproduce_tomacs23.sh > logs.stdout.txt 2> logs.stderr.txt
 ```
 
 After running the whole script satisfactorily, there will be one new file under
-`<doryta-root>/data/experiments/performance_estimation`: `table10.csv` (Table 10).
+`<doryta-root>/data/experiments/performance_estimation`: `table11.csv` (Table 11).
 
 ### Step-by-step:
 
@@ -97,9 +117,9 @@ skipped if you only want to regenerate Figures 9 and 10, and Table 11:
     python -m code.lenet_mnist --train --save --fashion --large-lenet
     ```
 
-    After running a single command a SNN trained in MNIST (or Fashion-MNIST)
-    should be generated as a `.doryta.bin` file under
-    `<doryta-root>/data/models/mnist/ssn-models`. This file is readable by Doryta only.
+    Running each command/line above will train a SNN in MNIST (or Fashion-MNIST) and it
+    will save the model under `<doryta-root>/data/models/mnist/ssn-models` with the file
+    extension `.doryta.bin`. This file is readable by Doryta only.
 
     If you don't want to train the model and you simply want to see the accuracy results
     run `python lenet_mnist.py`.
@@ -159,6 +179,7 @@ skipped if you only want to regenerate Figures 9 and 10, and Table 11:
 
     ```bash
     # preparing code
+    rm -rf "$dorytaroot"/tools/whetstone-mnist/ws_models/code
     ln -fs <doryta-root>/data/models/code <doryta-root>/tools/whetstone-mnist/ws_models
 
     # checking
@@ -173,6 +194,14 @@ skipped if you only want to regenerate Figures 9 and 10, and Table 11:
     The result of running this script should be a positive message on the screen informing
     you that the output from Keras and Doryta are identical. When checking the large LeNet
     models an additional parameter must be used `--shift 38348`
+
+    Notice that Doryta and the Keras model correspond 1-to-1 for the architectures we have
+    checked. We trained and tested the Keras model with no optimizations on CPU-only. When
+    running the inference the model in GPU, the results between keras and doryta might
+    differ. This is the nature of running different architectures where floating point
+    operations don't match 1-to-1. Optimized ML models are often not guaranteed to
+    correspond 1-to-1 to their unoptimized counterparts. Recent versions of Keras heavily
+    optimize code and seem to break the correspondence we have seen historically seen.
 
 5. Create statistics files from the data. Each file contains the workloads used by the
     benchmarking procedure. Neurons are grouped into their corresponding crossbars.
@@ -193,12 +222,32 @@ skipped if you only want to regenerate Figures 9 and 10, and Table 11:
 
     (yeah, it gets a bit out of hand when the network architecture is laaarge :S)
 
-6. Running the jupyter notebook script
+6. Generate Table 11. Run:
+
+    ```bash
+    cd <doryta-root>/data/experiments/performance_estimation
+
+    truncate -s 0 table11.csv # deleting/creating file
+    echo "workload,integration,fire,accuracy" >> table11.csv
+    for f in {small_lenet,small_lenet_fashion,large_lenet,large_lenet_fashion}; do
+        # saving workload name
+        printf "$f," >> table11.csv
+        # saving integration and fire stats
+        awk -F, 'NR == 2 { printf "%s,%f,", $4, $5 }' $f-average.csv >> table11.csv
+        # saving accuracy stats
+        cat ${f}_accuracy.txt >> table11.csv
+    done
+
+    ```
+
+    The table will be saved into the doc `table11.csv`.
+
+7. Running the jupyter notebook script
 
    Launch jupyter notebook and open the notebook
    `<doryta-root>/external/tools/performance spintronics estimation/v2/Benchmarking.ipynb`.
 
-   The result of running all cells will produce Figures 9 and 10, and Table 11. The figures
+   The result of running all cells will produce Figures 7 and 8, and Table 4. The figures
    will be stored in the folder `<doryta-root>/figures`.
 
 ## D. Reproducing strong scaling results
@@ -221,7 +270,7 @@ raw results of the experiments can be found in the folder
 
 The following are the scripts' names and results for each of the tables:
 
-- Tables 4, 6 and 8.
+- Tables 5 and 7.
     Scripts:
     * `nodes=1.sh`
     * all scripts under `scale-up-nodes/`
@@ -230,7 +279,7 @@ The following are the scripts' names and results for each of the tables:
     * `results/conservative-vs-optimistic-gridsize=1024.ods`, and
     * `results/conservative-vs-optimistic-gridsizes=1K,2K,4K,8K.ods`
 
-- Tables 5 and 7.
+- Tables 6 and 8.
     Scripts:
     * `no-tiebreaker/nodes=1.sh`
     * all scripts under `no-tiebreaker/scale-up-nodes/`
@@ -239,17 +288,28 @@ The following are the scripts' names and results for each of the tables:
     * `results/no-tiebreaker/conservative-vs-optimistic-gridsize=1024.ods` and
     * `results/no-tiebreaker/conservative-vs-optimistic-gridsizes=1K,2K,4K,8K.ods`, respectively.
 
-- Table 9.
+- Table 10.
     Script: `intel-cache-experiment.sh`
 
     Model output: `results/doryta-gol-1024-x86-results-Chris.zip`
 
-- Figure 7.
-    Data taken out of `results/conservative-vs-optimistic-gridsizes=1K,2K,4K,8K.ods` and
+- Figure 9.
+    Data taken out of
+    * `results/conservative-vs-optimistic-gridsizes=1K,2K,4K,8K.ods` and
+    * `results/no-tiebreaker/conservative-vs-optimistic-gridsizes=1K,2K,4K,8K.ods`
 
-    into `weak-scaling-1K-2K-4K-8K.ods`
+    into
+    * `results/weak-scaling-1K-2K-4K-8K.ods`
+    * `results/no-tiebreaker/weak-scaling-1K-2K-4K-8K.ods`
 
-- Figure 8.
+- Table 9.
+    Data taken out of
+    * `results/conservative-vs-optimistic-gridsizes=1K,2K,4K,8K.ods` and
+    * `results/no-tiebreaker/conservative-vs-optimistic-gridsizes=1K,2K,4K,8K.ods`
+
+    into `conservative-vs-optimistic-with-and-wo-tiebreaker.ods`
+
+- Figure 10.
     Script: `smudging-conservative-nodes=1.sh`
 
     Results into: `results/smudging-inherent-lookahead.ods`
